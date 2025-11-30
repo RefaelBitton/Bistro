@@ -14,18 +14,20 @@ public class DBconnector {
     private Connection conn;
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    public void connectToDB()
+    public DBconnector()
     {
 
         try 
         {
-            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/sys?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
-            System.out.println("SQL connection succeed");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/sys?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+            System.out.println("SQL connection succeeded");
          } catch (SQLException ex) 
              {/* handle any errors*/
             System.out.println("SQLException: " + ex.getMessage());
             System.out.println("SQLState: " + ex.getSQLState());
             System.out.println("VendorError: " + ex.getErrorCode());
+            System.exit(1);
             }
        }
 
@@ -36,7 +38,9 @@ public class DBconnector {
         arr = (ArrayList<String>)obj;
 
         PreparedStatement stmt;
-        String toUpdate = "INSERT INTO order (order_number, order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order) VALUES(?, ?, ?, ?, ?, ?);";
+        String toUpdate = 
+        	    "INSERT INTO `order` (order_number, order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order) "
+        	  + "VALUES(?, ?, ?, ?, ?, ?);";
 
         int orderNumber = Integer.parseInt(arr.get(0));
         LocalDate orderDate = LocalDate.parse(arr.get(1),formatter);

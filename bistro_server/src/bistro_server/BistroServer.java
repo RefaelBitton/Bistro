@@ -10,13 +10,14 @@ public class BistroServer extends AbstractServer {
 
     public BistroServer(int port) {
         super(port);
-        dbcon.connectToDB();
     }
 
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
         ArrayList<String> str = (ArrayList<String>)msg;
         dbcon.handleQuerries(str);
+        System.out.println("Added the following order to the DB:");
+        System.out.println(str);
     }
 
     public static void main(String[] args) 

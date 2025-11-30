@@ -46,7 +46,6 @@ public class Console {
         String host = "localhost";
         int port = 5556;
         Console con = new Console(host,port);
-        System.out.println("refael");
         con.accept();
     }
 }
