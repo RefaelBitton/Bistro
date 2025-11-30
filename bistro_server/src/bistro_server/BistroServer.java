@@ -6,15 +6,17 @@ import ocsf.server.*;
 public class BistroServer extends AbstractServer {
 
      final public static int DEFAULT_PORT = 5556;
+     DBconnector dbcon = new DBconnector();
 
     public BistroServer(int port) {
         super(port);
+        dbcon.connectToDB();
     }
 
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
         ArrayList<String> str = (ArrayList<String>)msg;
-        System.out.println(str);
+        dbcon.handleQuerries(str);
     }
 
     public static void main(String[] args) 
