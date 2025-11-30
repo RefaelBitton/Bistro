@@ -1,4 +1,6 @@
 package bistro_server;
+import java.util.ArrayList;
+
 import ocsf.server.*;
 
 public class BistroServer extends AbstractServer {
@@ -11,7 +13,7 @@ public class BistroServer extends AbstractServer {
 
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
-        String str = (String)msg;
+        ArrayList<String> str = (ArrayList<String>)msg;
         System.out.println(str);
     }
 

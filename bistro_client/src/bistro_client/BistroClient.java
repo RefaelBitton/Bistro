@@ -1,5 +1,6 @@
 package bistro_client;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import ocsf.client.*;
 
@@ -19,26 +20,23 @@ public class BistroClient extends AbstractClient{
 
     }
 
-    public void sendOrderToServer() {
-        String str = "testing";
+    public void sendOrderToServer(Object str) {
+        ArrayList<String> userInput = (ArrayList<String>)str;
         try {
-            sendToServer(str);
+            sendToServer(userInput);
         } catch (IOException e) {
             e.printStackTrace();
-            try {
-                closeConnection();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-                System.exit(0);
-            }
+            quit();
         }
     }
 
-    public static void main(String[] args) {
-        String host = "localhost";
-        int port = 5556;
-        BistroClient client = new BistroClient(host,port);
-        client.sendOrderToServer();
+    public void quit() {
+        try {
+            closeConnection();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+            System.exit(0);
+        }
     }
 
 }
