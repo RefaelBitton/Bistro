@@ -2,6 +2,8 @@ package bistro_client;
 
 
 import java.io.IOException;
+
+import boundry.SearchScreenController;
 import entities.Request;
 
 public class Console {
@@ -10,6 +12,10 @@ public class Console {
 
     public Console(String host, int port) {
         bc = new BistroClient(host,port);
+    }
+    
+    public void setController(SearchScreenController cont) {
+    	bc.setController(cont);
     }
 
     public void accept(Request r) 
