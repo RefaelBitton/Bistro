@@ -3,6 +3,7 @@
 	<name>bistro_client</name>
 	<comment></comment>
 	<projects>
+		<project>bistro_server</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

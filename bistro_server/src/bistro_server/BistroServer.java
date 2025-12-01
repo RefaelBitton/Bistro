@@ -1,23 +1,36 @@
 package bistro_server;
-import java.util.ArrayList;
 
+import java.io.IOException;
+
+import entities.Request;
+import entities.RequestType;
 import ocsf.server.*;
 
 public class BistroServer extends AbstractServer {
-
      final public static int DEFAULT_PORT = 5556;
-     DBconnector dbcon = new DBconnector();
+     DBconnector dbcon;
 
     public BistroServer(int port) {
         super(port);
-        dbcon.connectToDB();
+        dbcon = new DBconnector();
     }
 
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
-        ArrayList<String> str = (ArrayList<String>)msg;
-        dbcon.handleQuerries(str);
+        Request r = (Request)msg;
+	    
+        String result = dbcon.handleQueries(r);
+//        System.out.println("Server: db result = '" + result + "'");
+        if(r.getType() == RequestType.READ) {
+        	try {
+				client.sendToClient(result);
+			} catch (IOException e) {
+				System.out.println("sending back to client didn't work");
+				e.printStackTrace();
+			}
+        }
     }
+    
 
     public static void main(String[] args) 
       {
@@ -29,7 +42,7 @@ public class BistroServer extends AbstractServer {
         }
         catch(Throwable t)
         {
-          port = DEFAULT_PORT; //Set port to 5555
+          port = DEFAULT_PORT; //Set port to 5556
         }
 
         BistroServer sv = new BistroServer(port);
