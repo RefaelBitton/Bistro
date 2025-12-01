@@ -5,7 +5,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<fx:root prefHeight="299.0" prefWidth="258.0" type="AnchorPane" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="boundry.OrderScreenController">
+<AnchorPane prefHeight="299.0" prefWidth="258.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="boundry.OrderScreenController">
    <children>
       <Button id="OrderBtn" fx:id="OrderBtn" alignment="BOTTOM_CENTER" layoutX="94.0" layoutY="254.0" mnemonicParsing="false" onAction="#OnOrderClick" text="Order" />
       <TextField id="orderNumTxt" fx:id="orderNumTxt" alignment="CENTER_RIGHT" layoutX="129.0" layoutY="24.0" prefHeight="23.0" prefWidth="119.0" />
@@ -21,4 +21,4 @@
       <Label layoutY="174.0" text="Subscriber ID:" />
       <Label layoutY="206.0" text="Date of placing order:" />
    </children>
-</fx:root>
+</AnchorPane>

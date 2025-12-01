@@ -1,6 +1,8 @@
 package bistro_server;
 import java.util.ArrayList;
-
+import bistro_client.*;
+import entities.Request;
+import entities.RequestType;
 import ocsf.server.*;
 
 public class BistroServer extends AbstractServer {
@@ -14,10 +16,13 @@ public class BistroServer extends AbstractServer {
 
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
-        ArrayList<String> str = (ArrayList<String>)msg;
-        dbcon.handleQuerries(str);
-        System.out.println("Added the following order to the DB:");
-        System.out.println(str);
+        Request r = (Request)msg;
+        if(r.getType()==RequestType.WRITE) {
+	        dbcon.handleQuerries(r);
+	        System.out.println("Added the following order to the DB:");
+	        System.out.println(r.getOrder());
+        }
+        
     }
 
     public static void main(String[] args) 

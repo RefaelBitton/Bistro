@@ -6,6 +6,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import entities.Order;
+import entities.Request;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -31,23 +35,19 @@ public class DBconnector {
             }
        }
 
-    @SuppressWarnings("unchecked")
     public void handleQuerries(Object obj)
     {
-        ArrayList<String> arr = new ArrayList<>();
-        arr = (ArrayList<String>)obj;
-
+    	Request r = (Request)obj;
+    	Order o = r.getOrder();
         PreparedStatement stmt;
-        String toUpdate = 
-        	    "INSERT INTO `order` (order_number, order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order) "
-        	  + "VALUES(?, ?, ?, ?, ?, ?);";
+        String toUpdate = r.getQuery();
 
-        int orderNumber = Integer.parseInt(arr.get(0));
-        LocalDate orderDate = LocalDate.parse(arr.get(1),formatter);
-        int numberOfGuests = Integer.parseInt(arr.get(2));
-        int confirmationCode = Integer.parseInt(arr.get(3));
-        int subscriberID = Integer.parseInt(arr.get(4));
-        LocalDate placingOrderDate = LocalDate.parse(arr.get(5),formatter);
+        int orderNumber = Integer.parseInt(o.getOrderNumber());
+        LocalDate orderDate = LocalDate.parse(o.getOrderDate(),formatter);
+        int numberOfGuests = Integer.parseInt(o.getNumberOfGuests());
+        int confirmationCode = Integer.parseInt(o.getConfirmationCode());
+        int subscriberID = Integer.parseInt(o.getSubscriberId());
+        LocalDate placingOrderDate = LocalDate.parse(o.getDateOfPlacingOrder(),formatter);
         
         try {
             stmt = conn.prepareStatement(toUpdate);

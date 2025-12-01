@@ -1,24 +1,34 @@
 package entities;
 
+import java.util.ArrayList;
+
 public class Order {
-	private int orderNumber;
+	private String orderNumber;
 	private String orderDate;
-	private int numberOfGuests;
-	private int confirmationCode;
-	private int subscriberId;
+	private String numberOfGuests;
+	private String confirmationCode;
+	private String subscriberId;
 	private String dateOfPlacingOrder;
 	
-	public Order(int orderNumber,String orderDate, int numberOfGuests, int confirmationCode, int subscriberId, String dateOfPlacingOrder) {
-		this.confirmationCode = confirmationCode;
-		this.dateOfPlacingOrder = dateOfPlacingOrder;
-		this.numberOfGuests = numberOfGuests;
-		this.orderDate = orderDate;
-		this.orderNumber = orderNumber;
-		this.subscriberId = subscriberId;
+	/*Input: arraList of strings:
+	 * [0] - orderNumber
+	 * [1] - orderDate
+	 * [2] - numberOfGuests
+	 * [3] - confirmaionCode
+	 * [4] - subscriberId
+	 * [5] - dateOfPlacingOrder
+	 * */
+	public Order(ArrayList<String> args) {
+		this.orderNumber = args.get(0);
+		this.orderDate = args.get(1);
+		this.numberOfGuests = args.get(2);
+		this.confirmationCode = args.get(3);
+		this.subscriberId = args.get(4);
+		this.dateOfPlacingOrder = args.get(5);
 	}
 	
 	//Getters
-	public int getOrderNumber() {
+	public String getOrderNumber() {
 		return orderNumber;
 	}
 	
@@ -26,20 +36,29 @@ public class Order {
 		return orderDate;
 	}
 	
-	public int getNumberOfGuests() {
+	public String getNumberOfGuests() {
 		return numberOfGuests;
 		}
 	
-	public int getConfirmationCode() {
+	public String getConfirmationCode() {
 		return confirmationCode;
 	}
 	
-	public int getSubscriberId() {
+	public String getSubscriberId() {
 		return subscriberId;
 	}
 	
 	public String getDateOfPlacingOrder() {
 		return dateOfPlacingOrder;
+	}
+	@Override
+	public String toString() {
+		return "Order Number: "+getOrderNumber()+
+				"\nOrder Date: "+getOrderDate()+
+				"\nNumber Of Guests: " +getNumberOfGuests()+
+				"\nConfirmation Code: " +getConfirmationCode()+
+				"\nSubscriber ID: " + getSubscriberId() +
+				"\nDate of placing the order: " + getDateOfPlacingOrder();
 	}
 	
 	

@@ -1,9 +1,8 @@
 package bistro_client;
 
-import java.io.BufferedReader;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
+import entities.Request;
 
 public class Console {
     BistroClient bc;
@@ -13,39 +12,46 @@ public class Console {
         bc = new BistroClient(host,port);
     }
 
-    public void accept() 
+    public void accept(Request r) 
     {
-        try
-        {
-          BufferedReader fromConsole = 
-          new BufferedReader(new InputStreamReader(System.in));
-          String message;
-
-          ArrayList<String> arr = new ArrayList<>();
-
-          while (true) 
-          {
-            message = fromConsole.readLine();
-            if(message.equals("send")) {
-                bc.sendOrderToServer(arr);
-                arr.clear();
-            }
-            else {
-                arr.add(message);
-            }
-          }
-        } 
-        catch (Exception ex) 
-        {
-          System.out.println
-            ("Unexpected error while reading from console!");
-        }
-     }
-
-    public static void main(String[] args) {
-        String host = "localhost";
-        int port = 5556;
-        Console con = new Console(host,port);
-        con.accept();
+    	try {
+			bc.sendToServer(r);
+		} catch (IOException e) {
+			System.out.println("Error sending request to server!");
+			e.printStackTrace();
+		}
     }
+//        try
+//        {
+//          BufferedReader fromConsole = 
+//          new BufferedReader(new InputStreamReader(System.in));
+//          String message;
+//
+//          ArrayList<String> arr = new ArrayList<>();
+//
+//          while (true) 
+//          {
+//            message = fromConsole.readLine();
+//            if(message.equals("send")) {
+//                bc.sendOrderToServer(arr);
+//                arr.clear();
+//            }
+//            else {
+//                arr.add(message);
+//            }
+//          }
+//        } 
+//        catch (Exception ex) 
+//        {
+//          System.out.println
+//            ("Unexpected error while reading from console!");
+//        }
+//     }
+
+//    public static void main(String[] args) {
+//        String host = "localhost";
+//        int port = 5556;
+//        Console con = new Console(host,port);
+//        con.accept();
+//    }
 }

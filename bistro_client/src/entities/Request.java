@@ -18,7 +18,7 @@ public abstract class Request {
 	public Order getOrder() {
 		return order;
 	}
-	public RequestType type() {
+	public RequestType getType() {
 		return type;
 	}
 }
