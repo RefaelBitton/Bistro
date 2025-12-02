@@ -1,8 +1,5 @@
 package boundry;
 
-import java.util.ArrayList;
-
-import entities.Order;
 import entities.ReadRequest;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -33,31 +30,15 @@ public class SearchScreenController {
 
     @FXML
     private Button searchBtn;
-
+    
     @FXML
     void onCancelClick(ActionEvent event) throws Exception {
-    	FXMLLoader loader = new FXMLLoader();
-    	((Node)event.getSource()).getScene().getWindow().hide(); //hiding primary window
-    	Stage primaryStage = new Stage();
-    	Pane root = loader.load(getClass().getResource("/boundry/mainScreen.fxml").openStream());
-    	Scene scene = new Scene(root);
-    	primaryStage.setScene(scene);		
-    	primaryStage.show();
-
+    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml");
     }
     @FXML
     void onSearchClick(ActionEvent event) {
-    	ArrayList<String> argsForOrder = new ArrayList<>();
-    	argsForOrder.add(orderNumTxt.getText().trim());
-    	argsForOrder.add("");
-    	argsForOrder.add("");
-    	argsForOrder.add("");
-    	argsForOrder.add("");
-    	argsForOrder.add("");
-    	ReadRequest r = new ReadRequest(new Order(argsForOrder));
+    	ReadRequest r = new ReadRequest(orderNumTxt.getText().trim());
     	ClientUI.console.accept(r);
-    	
-    	
     }
     public void setResultTxt(String str) {
     	resultsTxt.setText(str);

@@ -18,6 +18,7 @@ public class ClientUI extends Application {
 		 
 		aFrame.start(primaryStage);
 	}
+
 }
 	
 	

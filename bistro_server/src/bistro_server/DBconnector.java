@@ -8,8 +8,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import entities.Order;
+import entities.ReadRequest;
 import entities.Request;
 import entities.RequestType;
+import entities.WriteRequest;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -24,8 +26,8 @@ public class DBconnector {
     	formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         try 
         {
-        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
          } catch (SQLException ex) 
              {/* handle any errors*/
@@ -39,19 +41,19 @@ public class DBconnector {
     public String handleQueries(Object obj)
     {
     	Request r = (Request)obj;
-    	Order o = r.getOrder();
-        String toUpdate = r.getQuery();
-        if (r.getType()==RequestType.WRITE) handleNewOrder(o,toUpdate);
-        else if(r.getType()==RequestType.READ) return handleOrderSearch(o,toUpdate);
+        if (r.getType()==RequestType.WRITE) handleNewOrder(r);
+        else if(r.getType()==RequestType.READ) return handleOrderSearch(r);
         return "";
     }
     
     //TODO: change result to StringBuilder
-    private String handleOrderSearch(Order o,String query) {
+    private String handleOrderSearch(Request r) {
+    	String query = r.getQuery();
+    	String orderNum = ((ReadRequest)r).getOrderNum();
     	String result = "Results:\n";
     	try {
     		PreparedStatement stmt=conn.prepareStatement(query);
-			stmt.setString(1, o.getOrderNumber());
+			stmt.setString(1, orderNum);
 			ResultSet rs = stmt.executeQuery();
 			int i = 1;
 			while(rs.next())
@@ -75,7 +77,9 @@ public class DBconnector {
  		
 	}
 
-	private void handleNewOrder(Order o,String query) {
+	private void handleNewOrder(Request r) {
+		String query = r.getQuery();
+		Order o = ((WriteRequest)r).getOrder();
     	PreparedStatement stmt;
         int orderNumber = Integer.parseInt(o.getOrderNumber());
         int confirmationCode = Integer.parseInt(o.getConfirmationCode());

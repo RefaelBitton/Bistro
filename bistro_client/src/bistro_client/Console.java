@@ -5,6 +5,12 @@ import java.io.IOException;
 
 import boundry.SearchScreenController;
 import entities.Request;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 
 public class Console {
     BistroClient bc;
@@ -27,37 +33,19 @@ public class Console {
 			e.printStackTrace();
 		}
     }
-//        try
-//        {
-//          BufferedReader fromConsole = 
-//          new BufferedReader(new InputStreamReader(System.in));
-//          String message;
-//
-//          ArrayList<String> arr = new ArrayList<>();
-//
-//          while (true) 
-//          {
-//            message = fromConsole.readLine();
-//            if(message.equals("send")) {
-//                bc.sendOrderToServer(arr);
-//                arr.clear();
-//            }
-//            else {
-//                arr.add(message);
-//            }
-//          }
-//        } 
-//        catch (Exception ex) 
-//        {
-//          System.out.println
-//            ("Unexpected error while reading from console!");
-//        }
-//     }
-
-//    public static void main(String[] args) {
-//        String host = "localhost";
-//        int port = 5556;
-//        Console con = new Console(host,port);
-//        con.accept();
-//    }
+	public void switchScreen(Object controller, ActionEvent event, String newScreenPath) {
+		try{
+    		FXMLLoader loader = new FXMLLoader();					// Create a new FXMLLoader instance
+    	((Node)event.getSource()).getScene().getWindow().hide();    // Hide primary window (current window)
+    	Stage primaryStage = new Stage();							// Create a new stage (new window)							
+    	Pane root = loader.load(controller.getClass().getResource(newScreenPath).openStream()); // Load the new screen FFXML file
+    	Scene scene = new Scene(root);								// Create a new scene with the loaded UI
+    	primaryStage.setScene(scene);								// Set the scene to the new stage
+    	primaryStage.show();										// Show the new window
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    		System.out.println("Couldn't switch to screen " + newScreenPath);
+    	}
+          
+	}
 }
