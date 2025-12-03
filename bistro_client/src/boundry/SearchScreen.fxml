@@ -16,7 +16,7 @@
       </Label>
       <Label layoutX="112.0" layoutY="129.0" text="Order Number:" />
       <TextField fx:id="orderNumTxt" layoutX="301.0" layoutY="125.0" />
-      <Button fx:id="cancelBtn" layoutX="149.0" layoutY="224.0" mnemonicParsing="false" onAction="#onCancelClick" text="Cancel" />
+      <Button fx:id="cancelBtn" layoutX="149.0" layoutY="224.0" mnemonicParsing="false" onAction="#onCancelClick" text="Back To Home Screen" />
       <Button fx:id="searchBtn" layoutX="355.0" layoutY="224.0" mnemonicParsing="false" onAction="#onSearchClick" text="Search" />
       <TextArea fx:id="resultsTxt" layoutX="6.0" layoutY="279.0" prefHeight="200.0" prefWidth="590.0" />
    </children>

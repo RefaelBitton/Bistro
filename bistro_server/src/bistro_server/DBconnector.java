@@ -46,33 +46,31 @@ public class DBconnector {
         return "";
     }
     
-    //TODO: change result to StringBuilder
     private String getOrder(Request r) {
     	String query = r.getQuery();
     	String orderNum = ((ReadRequest)r).getOrderNum();
     	String result = "Results:\n";
+		boolean orderFound = false;
     	try {
     		PreparedStatement stmt=conn.prepareStatement(query);
 			stmt.setString(1, orderNum);
 			ResultSet rs = stmt.executeQuery();
-			int i = 1;
+
 			while(rs.next())
 	 		{
-				 result+=i + ". \n";
 				 result+= "Order Number: " + rs.getString(1) + "\n";
 				 result+= "Order Date: " + rs.getString(2) + "\n";
 				 result+= "Number Of Guests: " + rs.getString(3) + "\n";
 				 result+= "Confirmation Code: " + rs.getString(4) + "\n";
 				 result+= "Subscriber ID: " + rs.getString(5) + "\n";
 				 result+= "Date of placing order: " + rs.getString(6) + "\n";
-				 i++;
+				 orderFound = true;
 			} 
 			rs.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	return result;
+    	return orderFound? result : "No results for that order number";
     	
  		
 	}

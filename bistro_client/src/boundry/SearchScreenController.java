@@ -8,6 +8,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 public class SearchScreenController {
+	
 	@FXML
 	public void initialize() {
 	    ClientUI.console.setController(this);
@@ -32,8 +33,13 @@ public class SearchScreenController {
     }
     @FXML
     void onSearchClick(ActionEvent event) {
-    	ReadRequest r = new ReadRequest(orderNumTxt.getText().trim());
-    	ClientUI.console.accept(r);
+    	try {
+    		Integer.parseInt(orderNumTxt.getText().trim());
+    		ReadRequest r = new ReadRequest(orderNumTxt.getText().trim());
+        	ClientUI.console.accept(r);
+    	} catch (NumberFormatException e) {
+    		setResultTxt("Please enter a valid order number");
+    	}
     }
     public void setResultTxt(String str) {
     	resultsTxt.setText(str);

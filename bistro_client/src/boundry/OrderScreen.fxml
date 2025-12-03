@@ -22,6 +22,6 @@
       <Label layoutY="174.0" text="Subscriber ID:" />
       <Label layoutY="206.0" text="Date of placing order:" />
       <TextArea fx:id="resultTxt" layoutX="29.0" layoutY="306.0" prefHeight="200.0" prefWidth="200.0" />
-      <Button fx:id="cancelBtn" layoutX="6.0" layoutY="254.0" mnemonicParsing="false" onAction="#onCancelClick" text="Cancel" />
+      <Button fx:id="cancelBtn" layoutX="6.0" layoutY="254.0" mnemonicParsing="false" onAction="#onCancelClick" text="Back" />
    </children>
 </AnchorPane>

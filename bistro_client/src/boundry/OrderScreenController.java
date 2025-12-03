@@ -1,6 +1,10 @@
 package boundry;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 
 import entities.Order;
@@ -12,7 +16,15 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 public class OrderScreenController {
-    @FXML
+    DateTimeFormatter formatter;
+	@FXML
+	public void initialize() {
+		formatter =DateTimeFormatter
+	            .ofPattern("dd/MM/uuuu")
+	            .withResolverStyle(ResolverStyle.STRICT); // forces real dates
+	}
+	
+	@FXML
     private TextField ConfirmationCodeTxt;
 
     @FXML
@@ -38,20 +50,38 @@ public class OrderScreenController {
 
     @FXML
     private Button cancelBtn;
-    //TODO: add input checks
-    //TODO: don't print when the order failed, add input check before calling console.accept()
     @FXML
     void OnOrderClick(ActionEvent event) {
     	ArrayList<String> args = new ArrayList<>();
-    	args.add(orderNumTxt.getText().trim());
-    	args.add(OrderDateTxt.getText().trim());
-    	args.add(NumberOfGuestsTxt.getText().trim());
-    	args.add(ConfirmationCodeTxt.getText().trim());
-    	args.add(SubscriberIdTxt.getText().trim());
-    	args.add(dateOfPlacingOrderTxt.getText().trim());
-    	WriteRequest r = new WriteRequest(new Order(args));
-    	ClientUI.console.accept(r);
-    	resultTxt.setText(r.getOrder().toString());
+    	boolean exceptionRaised = false;
+    	//Input checks
+    	try {
+    		Integer.parseInt(orderNumTxt.getText().trim());
+    		Integer.parseInt(NumberOfGuestsTxt.getText().trim());
+    		Integer.parseInt(ConfirmationCodeTxt.getText().trim());
+    		Integer.parseInt(SubscriberIdTxt.getText().trim());
+    	} catch (NumberFormatException e) {
+    		exceptionRaised = true;
+    		resultTxt.setText("Please enter valid text in the fields");
+    	}
+    	try {
+    		LocalDate.parse(OrderDateTxt.getText().trim(),formatter);
+    		LocalDate.parse(dateOfPlacingOrderTxt.getText().trim(),formatter);
+    	} catch (DateTimeParseException e) {
+    		exceptionRaised = true;
+    		resultTxt.setText("Please enter valid text in the fields");
+    	}
+    	if(!exceptionRaised) {
+    		args.add(orderNumTxt.getText().trim());
+    		args.add(OrderDateTxt.getText().trim());
+        	args.add(NumberOfGuestsTxt.getText().trim());
+        	args.add(ConfirmationCodeTxt.getText().trim());
+        	args.add(SubscriberIdTxt.getText().trim());
+        	args.add(dateOfPlacingOrderTxt.getText().trim());
+        	WriteRequest r = new WriteRequest(new Order(args));
+        	ClientUI.console.accept(r);
+        	resultTxt.setText(r.getOrder().toString());
+    	}
     }
     
     @FXML
