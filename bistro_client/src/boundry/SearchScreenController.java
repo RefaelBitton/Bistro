@@ -11,7 +11,7 @@ public class SearchScreenController {
 	
 	@FXML
 	public void initialize() {
-	    ClientUI.console.setController(this);
+	    ClientUI.console.setSearchController(this);
 	}
 	
     @FXML

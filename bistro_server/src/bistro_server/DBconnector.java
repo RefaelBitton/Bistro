@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 
 import entities.Order;
 import entities.ReadRequest;
@@ -41,7 +42,7 @@ public class DBconnector {
     public String handleQueries(Object obj)
     {
     	Request r = (Request)obj;
-        if (r.getType()==RequestType.WRITE) addOrder(r);
+        if (r.getType()==RequestType.WRITE) return addOrder(r);
         else if(r.getType()==RequestType.READ) return getOrder(r);
         return "";
     }
@@ -75,7 +76,7 @@ public class DBconnector {
  		
 	}
 
-	private void addOrder(Request r) {
+	private String addOrder(Request r) {
 		String query = r.getQuery();
 		Order o = ((WriteRequest)r).getOrder();
     	PreparedStatement stmt;
@@ -96,6 +97,10 @@ public class DBconnector {
             stmt.setDate(6, Date.valueOf(placingOrderDate));
             stmt.executeUpdate();
 
-        } catch (SQLException e) {    e.printStackTrace();}    	
+        }catch (SQLIntegrityConstraintViolationException e1) {
+        	return "An order with that number already exists";
+        }catch (SQLException e) {    e.printStackTrace();}
+        return "";
+            	
     }
 }

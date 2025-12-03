@@ -22,6 +22,7 @@ public class OrderScreenController {
 		formatter =DateTimeFormatter
 	            .ofPattern("dd/MM/uuuu")
 	            .withResolverStyle(ResolverStyle.STRICT); // forces real dates
+		ClientUI.console.setOrderController(this);
 	}
 	
 	@FXML
@@ -63,12 +64,18 @@ public class OrderScreenController {
     	} catch (NumberFormatException e) {
     		exceptionRaised = true;
     		resultTxt.setText("Please enter valid text in the fields");
+    		orderNumTxt.clear();
+    		NumberOfGuestsTxt.clear();
+    		ConfirmationCodeTxt.clear();
+    		SubscriberIdTxt.clear();
     	}
     	try {
     		LocalDate.parse(OrderDateTxt.getText().trim(),formatter);
     		LocalDate.parse(dateOfPlacingOrderTxt.getText().trim(),formatter);
     	} catch (DateTimeParseException e) {
     		exceptionRaised = true;
+    		OrderDateTxt.clear();
+    		dateOfPlacingOrderTxt.clear();
     		resultTxt.setText("Please enter valid text in the fields");
     	}
     	if(!exceptionRaised) {
@@ -88,5 +95,9 @@ public class OrderScreenController {
     void onCancelClick(ActionEvent event) throws IOException {
     	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml");
     	}
+    
+    public void setResultText(String result) {
+    	resultTxt.setText(result);
+    }
 
 }

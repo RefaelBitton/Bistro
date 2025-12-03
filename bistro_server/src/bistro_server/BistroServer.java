@@ -21,7 +21,7 @@ public class BistroServer extends AbstractServer {
 	    
         String result = dbcon.handleQueries(r);
 //        System.out.println("Server: db result = '" + result + "'");
-        if(r.getType() == RequestType.READ) {
+        if(r.getType() == RequestType.READ || (r.getType() == RequestType.WRITE && result!="")) {
         	try {
 				client.sendToClient(result);
 			} catch (IOException e) {
