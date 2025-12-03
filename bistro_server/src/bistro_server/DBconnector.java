@@ -41,13 +41,13 @@ public class DBconnector {
     public String handleQueries(Object obj)
     {
     	Request r = (Request)obj;
-        if (r.getType()==RequestType.WRITE) handleNewOrder(r);
-        else if(r.getType()==RequestType.READ) return handleOrderSearch(r);
+        if (r.getType()==RequestType.WRITE) addOrder(r);
+        else if(r.getType()==RequestType.READ) return getOrder(r);
         return "";
     }
     
     //TODO: change result to StringBuilder
-    private String handleOrderSearch(Request r) {
+    private String getOrder(Request r) {
     	String query = r.getQuery();
     	String orderNum = ((ReadRequest)r).getOrderNum();
     	String result = "Results:\n";
@@ -77,7 +77,7 @@ public class DBconnector {
  		
 	}
 
-	private void handleNewOrder(Request r) {
+	private void addOrder(Request r) {
 		String query = r.getQuery();
 		Order o = ((WriteRequest)r).getOrder();
     	PreparedStatement stmt;

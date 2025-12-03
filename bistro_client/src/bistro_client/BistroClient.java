@@ -7,6 +7,7 @@ public class BistroClient extends AbstractClient{
     SearchScreenController controller;
 	public BistroClient(String host, int port) {
         super(host, port);
+        System.out.println("on port: "+ port );
         try {
             openConnection();
         } catch (IOException e) {
