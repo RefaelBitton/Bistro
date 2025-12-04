@@ -11,25 +11,26 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import entities.Order;
 import entities.ReadRequest;
 import entities.Request;
+import entities.RequestHandler;
 import entities.RequestType;
 import entities.UpdateRequest;
 import entities.WriteRequest;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 
 
 public class DBconnector {
     private Connection conn;
     private DateTimeFormatter formatter;
-
-    public DBconnector()
-    {
+    private HashMap<RequestType,RequestHandler> handlers;
+    public DBconnector(){
     	formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         try 
         {
-        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
          } catch (SQLException ex) 
              {/* handle any errors*/
@@ -38,16 +39,23 @@ public class DBconnector {
             System.out.println("VendorError: " + ex.getErrorCode());
             System.exit(1);
             }
+        handlers = new HashMap<>();
+        handlers.put(RequestType.WRITE_ORDER, this::addOrder);
+        handlers.put(RequestType.READ_ORDER, this::getOrder);
+        handlers.put(RequestType.UPDATE_GUESTS, this::updateNumOfGuests);
+        handlers.put(RequestType.UPDATE_DATE, this::updateDate);
        }
+    
 
     public String handleQueries(Object obj)
     {
     	Request r = (Request)obj;
-        if (r.getType()==RequestType.WRITE) return addOrder(r);
-        else if(r.getType()==RequestType.READ) return getOrder(r);
-        else if(r.getType()==RequestType.UPDATEGUESTS) return updateNumOfGuests(r);
-        else if(r.getType()==RequestType.UPDATEDATE) return updateDate(r);
-        return "";
+        return handlers.get(r.getType()).handle(r);
+    	//if (r.getType()==RequestType.WRITE) return addOrder(r);
+        //else if(r.getType()==RequestType.READ) return getOrder(r);
+        //else if(r.getType()==RequestType.UPDATEGUESTS) return updateNumOfGuests(r);
+        //else if(r.getType()==RequestType.UPDATEDATE) return updateDate(r);
+        //return "";
     }
     
     private String getOrder(Request r) {

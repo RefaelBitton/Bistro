@@ -3,9 +3,7 @@ package bistro_client;
 
 import java.io.IOException;
 
-import boundry.OrderScreenController;
-import boundry.SearchScreenController;
-import boundry.UpdateScreenController;
+import boundry.IController;
 import entities.Request;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -22,18 +20,9 @@ public class Console {
         bc = new BistroClient(host,port);
     }
     
-    public void setSearchController(SearchScreenController cont) {
-    	bc.setSearchController(cont);
-    }
-    
-    public void setOrderController(OrderScreenController cont) {
-    	bc.setOrderController(cont);
-    }
-    
-    public void setUpdateController(UpdateScreenController cont) {
-    	bc.setUpdateController(cont);
-    }
-
+      public void setController(IController controller) {
+    	  bc.setController(controller);
+      }
     public void accept(Request r) 
     {
     	try {

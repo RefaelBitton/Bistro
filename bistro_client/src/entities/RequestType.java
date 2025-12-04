@@ -1,5 +1,5 @@
 package entities;
 
 public enum RequestType {
-	READ, WRITE, UPDATEGUESTS, UPDATEDATE
+	READ_ORDER, WRITE_ORDER, UPDATE_GUESTS, UPDATE_DATE
 }

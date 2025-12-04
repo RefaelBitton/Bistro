@@ -13,7 +13,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
-public class UpdateScreenController {
+public class UpdateScreenController implements IController {
 	@FXML
 	private TextField orderNumberTxt;
 	
@@ -42,7 +42,7 @@ public class UpdateScreenController {
 		formatter =DateTimeFormatter
 	            .ofPattern("dd/MM/uuuu")
 	            .withResolverStyle(ResolverStyle.STRICT); // forces real dates
-		ClientUI.console.setUpdateController(this);
+		ClientUI.console.setController(this);
 	}
 	
 	@FXML
@@ -57,6 +57,7 @@ public class UpdateScreenController {
     		exceptionRaised = true;
     		orderNumberTxt.clear();
     		guestsNumberTxt.clear();
+    		setResultText("Please enter valid entries in the fields");
     	}
     	if(!exceptionRaised) {
     		args.add(orderNumberTxt.getText().trim());
@@ -88,6 +89,9 @@ public class UpdateScreenController {
     		args.add(dateTxt.getText().trim());
     		UpdateRequest r = new UpdateRequest(args.get(0), args.get(1));
         	ClientUI.console.accept(r);
+    	}
+    	else {
+    		setResultText("Please enter valid entries in the fields");
     	}
     }	
     

@@ -15,14 +15,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
-public class OrderScreenController {
+public class OrderScreenController implements IController {
     DateTimeFormatter formatter;
 	@FXML
 	public void initialize() {
 		formatter =DateTimeFormatter
 	            .ofPattern("dd/MM/uuuu")
 	            .withResolverStyle(ResolverStyle.STRICT); // forces real dates
-		ClientUI.console.setOrderController(this);
+		ClientUI.console.setController(this);
 	}
 	
 	@FXML

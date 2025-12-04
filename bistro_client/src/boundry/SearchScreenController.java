@@ -7,11 +7,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
-public class SearchScreenController {
+public class SearchScreenController implements IController {
 	
 	@FXML
 	public void initialize() {
-	    ClientUI.console.setSearchController(this);
+	    ClientUI.console.setController(this);
 	}
 	
     @FXML
@@ -38,10 +38,10 @@ public class SearchScreenController {
     		ReadRequest r = new ReadRequest(orderNumTxt.getText().trim());
         	ClientUI.console.accept(r);
     	} catch (NumberFormatException e) {
-    		setResultTxt("Please enter a valid order number");
+    		setResultText("Please enter a valid order number");
     	}
     }
-    public void setResultTxt(String str) {
+    public void setResultText(String str) {
     	resultsTxt.setText(str);
     }
 

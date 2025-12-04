@@ -1,18 +1,15 @@
 package bistro_client;
 import java.io.IOException;
 
-import boundry.OrderScreenController;
-import boundry.SearchScreenController;
-import boundry.UpdateScreenController;
+import boundry.IController;
+
 import ocsf.client.*;
 
 public class BistroClient extends AbstractClient{
-    SearchScreenController searchController;
-    OrderScreenController orderController;
-    UpdateScreenController updateController;
+
+    private IController controller;
 	public BistroClient(String host, int port) {
         super(host, port);
-        System.out.println("on port: "+ port );
         try {
             openConnection();
         } catch (IOException e) {
@@ -22,30 +19,14 @@ public class BistroClient extends AbstractClient{
 
     @Override
     protected void handleMessageFromServer(Object msg) {
-    	String result = (String)msg;    	
-    	if(searchController==null && updateController==null) {
-    		this.orderController.setResultText(result);
-    	}
-    	else if(orderController==null && updateController==null){
-    		this.searchController.setResultTxt(result);
-    	}
-    	else {
-    		this.updateController.setResultText(result);
-    	}
-    	
+    	String result = (String)msg;
+    	controller.setResultText(result);
     }
     
-    public void setSearchController(SearchScreenController controller) {
-        this.searchController = controller;
+    public void setController(IController controller) {
+    	this.controller = controller;
     }
     
-    public void setOrderController(OrderScreenController controller) {
-    	this.orderController = controller;
-    }
-    
-    public void setUpdateController(UpdateScreenController controller) {
-    	this.updateController = controller;
-    }
 
     public void quit() {
         try {

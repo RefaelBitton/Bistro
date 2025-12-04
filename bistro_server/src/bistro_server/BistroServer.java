@@ -3,7 +3,6 @@ package bistro_server;
 import java.io.IOException;
 
 import entities.Request;
-import entities.RequestType;
 import ocsf.server.*;
 
 public class BistroServer extends AbstractServer {
@@ -19,7 +18,7 @@ public class BistroServer extends AbstractServer {
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
         Request r = (Request)msg;
         String result = dbcon.handleQueries(r);
-        if(result != "") {
+        if(!result.equals("")) {
         	try {
 				client.sendToClient(result);
 			} catch (IOException e) {
