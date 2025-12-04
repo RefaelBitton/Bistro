@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import boundry.OrderScreenController;
 import boundry.SearchScreenController;
+import boundry.UpdateScreenController;
 import entities.Request;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -28,6 +29,10 @@ public class Console {
     public void setOrderController(OrderScreenController cont) {
     	bc.setOrderController(cont);
     }
+    
+    public void setUpdateController(UpdateScreenController cont) {
+    	bc.setUpdateController(cont);
+    }
 
     public void accept(Request r) 
     {
@@ -38,6 +43,7 @@ public class Console {
 			e.printStackTrace();
 		}
     }
+    
 	public void switchScreen(Object controller, ActionEvent event, String newScreenPath) {
 		try{
     		FXMLLoader loader = new FXMLLoader();					// Create a new FXMLLoader instance
@@ -50,7 +56,6 @@ public class Console {
     	} catch (IOException e) {
     		e.printStackTrace();
     		System.out.println("Couldn't switch to screen " + newScreenPath);
-    	}
-          
+    	}          
 	}
 }

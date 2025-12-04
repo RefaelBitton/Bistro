@@ -51,6 +51,7 @@ public class OrderScreenController {
 
     @FXML
     private Button cancelBtn;
+    
     @FXML
     void OnOrderClick(ActionEvent event) {
     	ArrayList<String> args = new ArrayList<>();
@@ -94,7 +95,7 @@ public class OrderScreenController {
     @FXML
     void onCancelClick(ActionEvent event) throws IOException {
     	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml");
-    	}
+    }
     
     public void setResultText(String result) {
     	resultTxt.setText(result);

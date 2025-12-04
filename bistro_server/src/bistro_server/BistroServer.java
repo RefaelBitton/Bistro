@@ -18,10 +18,8 @@ public class BistroServer extends AbstractServer {
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
         Request r = (Request)msg;
-	    
         String result = dbcon.handleQueries(r);
-//        System.out.println("Server: db result = '" + result + "'");
-        if(r.getType() == RequestType.READ || (r.getType() == RequestType.WRITE && result!="")) {
+        if(result != "") {
         	try {
 				client.sendToClient(result);
 			} catch (IOException e) {

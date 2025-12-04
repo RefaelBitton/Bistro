@@ -18,6 +18,9 @@ public class MainScreenController {
     
     @FXML
     private Button exitBtn;
+    
+    @FXML
+    private Button updateBtn;
 
 
     @FXML
@@ -42,5 +45,10 @@ public class MainScreenController {
     @FXML
     void onExitClick(ActionEvent event) {
     	System.exit(0);
+    }
+    
+    @FXML
+    void onUpdateClick(ActionEvent event) throws Exception {   // Method called when update button is clicked
+    	ClientUI.console.switchScreen(this, event, "/boundry/UpdateScreen.fxml");
     }
 }

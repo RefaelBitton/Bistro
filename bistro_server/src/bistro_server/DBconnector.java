@@ -12,6 +12,7 @@ import entities.Order;
 import entities.ReadRequest;
 import entities.Request;
 import entities.RequestType;
+import entities.UpdateRequest;
 import entities.WriteRequest;
 
 import java.time.LocalDate;
@@ -27,8 +28,8 @@ public class DBconnector {
     	formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         try 
         {
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
          } catch (SQLException ex) 
              {/* handle any errors*/
@@ -44,6 +45,8 @@ public class DBconnector {
     	Request r = (Request)obj;
         if (r.getType()==RequestType.WRITE) return addOrder(r);
         else if(r.getType()==RequestType.READ) return getOrder(r);
+        else if(r.getType()==RequestType.UPDATEGUESTS) return updateNumOfGuests(r);
+        else if(r.getType()==RequestType.UPDATEDATE) return updateDate(r);
         return "";
     }
     
@@ -100,7 +103,39 @@ public class DBconnector {
         }catch (SQLIntegrityConstraintViolationException e1) {
         	return "An order with that number already exists";
         }catch (SQLException e) {    e.printStackTrace();}
-        return "";
-            	
+        return "";           	
     }
+	
+	private String updateNumOfGuests(Request r) {
+		String query = r.getQuery();
+		String orderNum = ((UpdateRequest)r).getOrderNum();
+		int numberOfGuests = ((UpdateRequest)r).getNumberOfGuests();
+    	try {
+    		PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setInt(1, numberOfGuests);
+			stmt.setInt(2, Integer.parseInt(orderNum));
+			stmt.executeUpdate();			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "";
+		}
+    	return "Updating order " + orderNum + " to " + numberOfGuests + " guests";
+	}
+	
+	private String updateDate(Request r) {
+		String query = r.getQuery();
+		String orderNum = ((UpdateRequest)r).getOrderNum();
+		String date = ((UpdateRequest)r).getDate();
+		LocalDate orderDate = LocalDate.parse(date,formatter);
+    	try {
+    		PreparedStatement stmt=conn.prepareStatement(query);
+			stmt.setDate(1, Date.valueOf(orderDate));
+			stmt.setString(2, orderNum);
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "";
+		}
+    	return "Updating order " + orderNum + " to " + date;
+	}
 }
