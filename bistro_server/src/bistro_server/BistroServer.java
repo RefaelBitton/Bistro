@@ -1,17 +1,21 @@
 package bistro_server;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import entities.Request;
 import ocsf.server.*;
 
 public class BistroServer extends AbstractServer {
      final public static int DEFAULT_PORT = 5556;
+     protected static List<ConnectionToClient> clients;
      DBconnector dbcon;
 
     public BistroServer(int port) {
         super(port);
         dbcon = new DBconnector();
+        clients = new ArrayList<>();
     }
 
     @Override
@@ -27,6 +31,12 @@ public class BistroServer extends AbstractServer {
 			}
         }
     }
+    
+    @Override
+    protected void clientConnected(ConnectionToClient client) {
+    	clients.add(client);
+    }
+    
     
 
     public static void runServer(String p) 

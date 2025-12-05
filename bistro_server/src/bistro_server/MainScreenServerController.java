@@ -34,43 +34,53 @@ public class MainScreenServerController {
     	System.exit(0);
     }
     
+//    @FXML
+//    void onShowIpClick(ActionEvent event) {
+//        try {
+//            boolean connected = false;
+//            String ipAddress = "No IPv4 found";
+//            String hostName = "Unknown";
+//            
+//            for (NetworkInterface ni : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+//                if (ni.isUp() && !ni.isLoopback() && 
+//                    (ni.getDisplayName().contains("Wi-Fi") || 
+//                     ni.getDisplayName().contains("Wireless") ||
+//                     ni.getName().contains("wlan") ||
+//                     ni.getName().contains("wlp"))) {
+//                    
+//                    for (InetAddress addr : Collections.list(ni.getInetAddresses())) {
+//                        if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
+//                            ipAddress = addr.getHostAddress();
+//                            hostName = addr.getHostName(); // Gets hostname like "MyLaptop.local"
+//                            connected = true;
+//                            break;
+//                        }
+//                    }
+//                    if (connected) break;
+//                }
+//            }
+//            
+//            if (connected) {
+//                resultTxt.setText("WiFi Connected\n" +
+//                                "Hostname: " + hostName + "\n" +
+//                                "IPv4: " + ipAddress);
+//            } else {
+//                resultTxt.setText("No WiFi IPv4 found - Connect to WiFi");
+//            }
+//            
+//        } catch (SocketException e) {
+//            resultTxt.setText("Error checking WiFi IP");
+//        }
+//    }
+    
     @FXML
     void onShowIpClick(ActionEvent event) {
-        try {
-            boolean connected = false;
-            String ipAddress = "No IPv4 found";
-            String hostName = "Unknown";
-            
-            for (NetworkInterface ni : Collections.list(NetworkInterface.getNetworkInterfaces())) {
-                if (ni.isUp() && !ni.isLoopback() && 
-                    (ni.getDisplayName().contains("Wi-Fi") || 
-                     ni.getDisplayName().contains("Wireless") ||
-                     ni.getName().contains("wlan") ||
-                     ni.getName().contains("wlp"))) {
-                    
-                    for (InetAddress addr : Collections.list(ni.getInetAddresses())) {
-                        if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
-                            ipAddress = addr.getHostAddress();
-                            hostName = addr.getHostName(); // Gets hostname like "MyLaptop.local"
-                            connected = true;
-                            break;
-                        }
-                    }
-                    if (connected) break;
-                }
-            }
-            
-            if (connected) {
-                resultTxt.setText("WiFi Connected\n" +
-                                "Hostname: " + hostName + "\n" +
-                                "IPv4: " + ipAddress);
-            } else {
-                resultTxt.setText("No WiFi IPv4 found - Connect to WiFi");
-            }
-            
-        } catch (SocketException e) {
-            resultTxt.setText("Error checking WiFi IP");
-        }
+    	if (BistroServer.clients.size() == 0) {
+    		 resultTxt.setText("No Client Connected.");
+    		 return;
+    	}
+    	
+    	resultTxt.setText(BistroServer.clients.toString());
     }
     
     public void start(Stage primaryStage) throws Exception {  // Method for starting the main screen
