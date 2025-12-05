@@ -29,13 +29,13 @@ public class BistroServer extends AbstractServer {
     }
     
 
-    public static void main(String[] args) 
+    public static void runServer(String p) 
       {
         int port = 0; //Port to listen on
 
         try
         {
-          port = Integer.parseInt(args[0]); //Get port from command line
+          port = Integer.parseInt(p); //Get port from command line
         }
         catch(Throwable t)
         {

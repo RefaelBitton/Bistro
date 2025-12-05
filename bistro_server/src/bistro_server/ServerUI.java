@@ -1,0 +1,19 @@
+package bistro_server;
+
+import javafx.application.Application;
+import javafx.stage.Stage;
+
+public class ServerUI extends Application {
+	final public static String DEFAULT_PORT = "5556";
+	public static void main( String args[] ) throws Exception
+	   { 	
+			BistroServer.runServer(DEFAULT_PORT);
+		    launch(args);  
+	   }
+	
+	public void start(Stage primaryStage) throws Exception {
+		MainScreenServerController aFrame = new MainScreenServerController();
+		 
+		aFrame.start(primaryStage);
+	}
+}
