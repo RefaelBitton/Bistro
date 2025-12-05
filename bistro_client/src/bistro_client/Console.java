@@ -20,10 +20,11 @@ public class Console {
         bc = new BistroClient(host,port);
     }
     
-      public void setController(IController controller) {
+  	public void setController(IController controller) {
     	  bc.setController(controller);
-      }
-    public void accept(Request r) 
+  	}
+  	
+    public void accept(Request r) //sending request to server
     {
     	try {
 			bc.sendToServer(r);
@@ -33,15 +34,15 @@ public class Console {
 		}
     }
     
-	public void switchScreen(Object controller, ActionEvent event, String newScreenPath) {
+	public void switchScreen(Object controller, ActionEvent event, String newScreenPath) { //switching screens
 		try{
     		FXMLLoader loader = new FXMLLoader();					// Create a new FXMLLoader instance
-    	((Node)event.getSource()).getScene().getWindow().hide();    // Hide primary window (current window)
-    	Stage primaryStage = new Stage();							// Create a new stage (new window)							
-    	Pane root = loader.load(controller.getClass().getResource(newScreenPath).openStream()); // Load the new screen FFXML file
-    	Scene scene = new Scene(root);								// Create a new scene with the loaded UI
-    	primaryStage.setScene(scene);								// Set the scene to the new stage
-    	primaryStage.show();										// Show the new window
+	    	((Node)event.getSource()).getScene().getWindow().hide();    // Hide primary window (current window)
+	    	Stage primaryStage = new Stage();							// Create a new stage (new window)							
+	    	Pane root = loader.load(controller.getClass().getResource(newScreenPath).openStream()); // Load the new screen FFXML file
+	    	Scene scene = new Scene(root);								// Create a new scene with the loaded UI
+	    	primaryStage.setScene(scene);								// Set the scene to the new stage
+	    	primaryStage.show();										// Show the new window
     	} catch (IOException e) {
     		e.printStackTrace();
     		System.out.println("Couldn't switch to screen " + newScreenPath);

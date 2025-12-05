@@ -34,9 +34,10 @@ public class SearchScreenController implements IController {
     @FXML
     void onSearchClick(ActionEvent event) {
     	int orderNum = 0;
+    	//input checks
     	try {
     		orderNum = Integer.parseInt(orderNumTxt.getText().trim());
-    		ReadRequest r = new ReadRequest(orderNumTxt.getText().trim());
+    		ReadRequest r = new ReadRequest(orderNumTxt.getText().trim()); //creating request to search by order number because its primary key
         	if(orderNum > 0) {
         		ClientUI.console.accept(r);
         	}

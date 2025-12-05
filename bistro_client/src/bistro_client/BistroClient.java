@@ -8,6 +8,7 @@ import ocsf.client.*;
 public class BistroClient extends AbstractClient{
 
     private IController controller;
+    //creating client and connecting it to server
 	public BistroClient(String host, int port) {
         super(host, port);
         try {
@@ -18,7 +19,7 @@ public class BistroClient extends AbstractClient{
     }
 
     @Override
-    protected void handleMessageFromServer(Object msg) {
+    protected void handleMessageFromServer(Object msg) { //handling message from server
     	String result = (String)msg;
     	controller.setResultText(result);
     }
@@ -28,7 +29,7 @@ public class BistroClient extends AbstractClient{
     }
     
 
-    public void quit() {
+    public void quit() { //closing connection between client to server
         try {
             closeConnection();
         } catch (IOException e1) {

@@ -14,17 +14,17 @@ public class BistroServer extends AbstractServer {
 
     public BistroServer(int port) {
         super(port);
-        dbcon = new DBconnector();
+        dbcon = new DBconnector(); //connecting server to DB
         clients = new ArrayList<>();
     }
 
     @Override
-    protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
+    protected void handleMessageFromClient(Object msg, ConnectionToClient client) { //handling messages from client
         Request r = (Request)msg;
         String result = dbcon.handleQueries(r);
         if(!result.equals("")) {
         	try {
-				client.sendToClient(result);
+				client.sendToClient(result); //returning result from client
 			} catch (IOException e) {
 				System.out.println("sending back to client didn't work");
 				e.printStackTrace();

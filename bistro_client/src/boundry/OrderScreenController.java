@@ -62,6 +62,7 @@ public class OrderScreenController implements IController {
     	int subscriberId = 0;
     	//Input checks
     	try {
+    		//parsing integers fields
     		orderNum = Integer.parseInt(orderNumTxt.getText().trim());
     		numberOfGuests = Integer.parseInt(NumberOfGuestsTxt.getText().trim());
     		confirmationCode = Integer.parseInt(ConfirmationCodeTxt.getText().trim());
@@ -69,17 +70,18 @@ public class OrderScreenController implements IController {
     		if(orderNum<=0 || numberOfGuests <=0 || confirmationCode <=0 || subscriberId <=0) {
     			exceptionRaised = true;
     		}
-    	} catch (NumberFormatException e) {
+    	} catch (NumberFormatException e) { //wrong input handling
     		exceptionRaised = true;
     		orderNumTxt.clear();
     		NumberOfGuestsTxt.clear();
     		ConfirmationCodeTxt.clear();
     		SubscriberIdTxt.clear();
     	}
+    	//parsing date fields
     	try {
     		LocalDate.parse(OrderDateTxt.getText().trim(),formatter);
     		LocalDate.parse(dateOfPlacingOrderTxt.getText().trim(),formatter);
-    	} catch (DateTimeParseException e) {
+    	} catch (DateTimeParseException e) { //wrong input handling
     		exceptionRaised = true;
     		OrderDateTxt.clear();
     		dateOfPlacingOrderTxt.clear();
@@ -94,9 +96,9 @@ public class OrderScreenController implements IController {
         	args.add(ConfirmationCodeTxt.getText().trim());
         	args.add(SubscriberIdTxt.getText().trim());
         	args.add(dateOfPlacingOrderTxt.getText().trim());
-        	WriteRequest r = new WriteRequest(new Order(args));
-        	ClientUI.console.accept(r);
-        	resultTxt.setText(r.getOrder().toString());
+        	WriteRequest r = new WriteRequest(new Order(args)); //creating request with the new order
+        	ClientUI.console.accept(r); //sending request to client
+        	resultTxt.setText(r.getOrder().toString()); //printing the new order details on the screen
     	}
     }
     

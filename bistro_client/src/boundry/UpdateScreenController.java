@@ -41,14 +41,14 @@ public class UpdateScreenController implements IController {
 	public void initialize() {
 		formatter =DateTimeFormatter
 	            .ofPattern("dd/MM/uuuu")
-	            .withResolverStyle(ResolverStyle.STRICT); // forces real dates
+	            .withResolverStyle(ResolverStyle.STRICT); //forces real dates
 		ClientUI.console.setController(this);
 	}
 	
 	@FXML
-    void OnUpdateNumberOfGuestsClick(ActionEvent event) {
+    void OnUpdateNumberOfGuestsClick(ActionEvent event) { 
     	ArrayList<String> args = new ArrayList<>();
-    	boolean exceptionRaised = false;
+    	boolean exceptionRaised = false; //to check valid entries
     	int orderNum = 0;
     	int guestsNum = 0;
     	//Input checks
@@ -67,8 +67,8 @@ public class UpdateScreenController implements IController {
     	else {
     		args.add(orderNumberTxt.getText().trim());
         	args.add(guestsNumberTxt.getText().trim());
-        	UpdateRequest r = new UpdateRequest(args.get(0), Integer.parseInt(args.get(1)));
-        	ClientUI.console.accept(r);
+        	UpdateRequest r = new UpdateRequest(args.get(0), Integer.parseInt(args.get(1))); //creating request with the new number of guests
+        	ClientUI.console.accept(r); //sending to client 
     	}
     	
     }
@@ -76,7 +76,7 @@ public class UpdateScreenController implements IController {
     @FXML
     void OnUpdateDateClick(ActionEvent event) {
     	ArrayList<String> args = new ArrayList<>();
-    	boolean exceptionRaised = false;
+    	boolean exceptionRaised = false; //to check valid entries
     	int orderNum = 0;
     	//Input checks
     	try {
@@ -95,8 +95,8 @@ public class UpdateScreenController implements IController {
     	if(!exceptionRaised) {
     		args.add(orderNumberTxt.getText().trim());
     		args.add(dateTxt.getText().trim());
-    		UpdateRequest r = new UpdateRequest(args.get(0), args.get(1));
-        	ClientUI.console.accept(r);
+    		UpdateRequest r = new UpdateRequest(args.get(0), args.get(1)); //creating request with the new date
+        	ClientUI.console.accept(r); //sending to client 
     	}
     	else {
     		setResultText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");

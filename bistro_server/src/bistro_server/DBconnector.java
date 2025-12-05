@@ -24,10 +24,10 @@ import java.util.HashMap;
 public class DBconnector {
     private Connection conn;
     private DateTimeFormatter formatter;
-    private HashMap<RequestType,RequestHandler> handlers;
+    private HashMap<RequestType,RequestHandler> handlers; //managing requests by their Types
     public DBconnector(){
     	formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        try 
+        try //connect DB
         {
         	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
         	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
@@ -39,12 +39,13 @@ public class DBconnector {
             System.out.println("VendorError: " + ex.getErrorCode());
             System.exit(1);
             }
-        handlers = new HashMap<>();
+        //in the HashMap: keys - requests type, values - functionality of each type
+        handlers = new HashMap<>(); 
         handlers.put(RequestType.WRITE_ORDER, this::addOrder);
         handlers.put(RequestType.READ_ORDER, this::getOrder);
         handlers.put(RequestType.UPDATE_GUESTS, this::updateNumOfGuests);
         handlers.put(RequestType.UPDATE_DATE, this::updateDate);
-       }
+   }
     
 
     public String handleQueries(Object obj)
@@ -58,12 +59,12 @@ public class DBconnector {
         //return "";
     }
     
-    private String getOrder(Request r) {
+    private String getOrder(Request r) { //getting details of existing order from DB 
     	String query = r.getQuery();
     	String orderNum = ((ReadRequest)r).getOrderNum();
     	String result = "Results:\n";
 		boolean orderFound = false;
-    	try {
+    	try { 
     		PreparedStatement stmt=conn.prepareStatement(query);
 			stmt.setString(1, orderNum);
 			ResultSet rs = stmt.executeQuery();
@@ -82,12 +83,10 @@ public class DBconnector {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-    	return orderFound? result : "No results for that order number";
-    	
- 		
+    	return orderFound? result : "No results for that order number";		
 	}
 
-	private String addOrder(Request r) {
+	private String addOrder(Request r) { //adding order to DB
 		String query = r.getQuery();
 		Order o = ((WriteRequest)r).getOrder();
     	PreparedStatement stmt;
@@ -114,7 +113,7 @@ public class DBconnector {
         return "";           	
     }
 	
-	private String updateNumOfGuests(Request r) {
+	private String updateNumOfGuests(Request r) { //update number of guests in DB
 		String query = r.getQuery();
 		String orderNum = ((UpdateRequest)r).getOrderNum();
 		int numberOfGuests = ((UpdateRequest)r).getNumberOfGuests();
@@ -132,7 +131,7 @@ public class DBconnector {
     	return "Updating order " + orderNum + " to " + numberOfGuests + " guests";
 	}
 	
-	private String updateDate(Request r) {
+	private String updateDate(Request r) { //update order's date in DB
 		String query = r.getQuery();
 		String orderNum = ((UpdateRequest)r).getOrderNum();
 		String date = ((UpdateRequest)r).getDate();
@@ -147,7 +146,7 @@ public class DBconnector {
 			e.printStackTrace();
 			return "";
 		}
-    	
+    	//input check
     	if(rowsUpdated == 0) return "an order with that number does not exist.";
     	return "Updating order " + orderNum + " to " + date;
 	}
