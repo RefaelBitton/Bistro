@@ -56,15 +56,21 @@ public class OrderScreenController implements IController {
     void OnOrderClick(ActionEvent event) {
     	ArrayList<String> args = new ArrayList<>();
     	boolean exceptionRaised = false;
+    	int orderNum = 0;
+    	int numberOfGuests = 0;
+    	int confirmationCode = 0;
+    	int subscriberId = 0;
     	//Input checks
     	try {
-    		Integer.parseInt(orderNumTxt.getText().trim());
-    		Integer.parseInt(NumberOfGuestsTxt.getText().trim());
-    		Integer.parseInt(ConfirmationCodeTxt.getText().trim());
-    		Integer.parseInt(SubscriberIdTxt.getText().trim());
+    		orderNum = Integer.parseInt(orderNumTxt.getText().trim());
+    		numberOfGuests = Integer.parseInt(NumberOfGuestsTxt.getText().trim());
+    		confirmationCode = Integer.parseInt(ConfirmationCodeTxt.getText().trim());
+    		subscriberId = Integer.parseInt(SubscriberIdTxt.getText().trim());
+    		if(orderNum<=0 || numberOfGuests <=0 || confirmationCode <=0 || subscriberId <=0) {
+    			exceptionRaised = true;
+    		}
     	} catch (NumberFormatException e) {
     		exceptionRaised = true;
-    		resultTxt.setText("Please enter valid text in the fields");
     		orderNumTxt.clear();
     		NumberOfGuestsTxt.clear();
     		ConfirmationCodeTxt.clear();
@@ -77,9 +83,11 @@ public class OrderScreenController implements IController {
     		exceptionRaised = true;
     		OrderDateTxt.clear();
     		dateOfPlacingOrderTxt.clear();
-    		resultTxt.setText("Please enter valid text in the fields");
     	}
-    	if(!exceptionRaised) {
+    	if(exceptionRaised) {
+    		setResultText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor anything else: a positive integer");
+    	}
+    	else {
     		args.add(orderNumTxt.getText().trim());
     		args.add(OrderDateTxt.getText().trim());
         	args.add(NumberOfGuestsTxt.getText().trim());

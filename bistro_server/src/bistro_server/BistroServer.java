@@ -36,6 +36,11 @@ public class BistroServer extends AbstractServer {
     protected void clientConnected(ConnectionToClient client) {
     	clients.add(client);
     }
+
+    @Override
+    protected void clientDisconnected(ConnectionToClient client) {
+    	clients.remove(client);
+    }
     
     
 

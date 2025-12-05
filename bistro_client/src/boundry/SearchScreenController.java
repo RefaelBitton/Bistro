@@ -33,10 +33,16 @@ public class SearchScreenController implements IController {
     }
     @FXML
     void onSearchClick(ActionEvent event) {
+    	int orderNum = 0;
     	try {
-    		Integer.parseInt(orderNumTxt.getText().trim());
+    		orderNum = Integer.parseInt(orderNumTxt.getText().trim());
     		ReadRequest r = new ReadRequest(orderNumTxt.getText().trim());
-        	ClientUI.console.accept(r);
+        	if(orderNum > 0) {
+        		ClientUI.console.accept(r);
+        	}
+        	else {
+    		setResultText("Please enter a valid order number: a positive integer");
+        	}
     	} catch (NumberFormatException e) {
     		setResultText("Please enter a valid order number");
     	}

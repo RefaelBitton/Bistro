@@ -29,7 +29,7 @@ public class DBconnector {
     	formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         try 
         {
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "123456789");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
         	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
          } catch (SQLException ex) 
@@ -118,15 +118,17 @@ public class DBconnector {
 		String query = r.getQuery();
 		String orderNum = ((UpdateRequest)r).getOrderNum();
 		int numberOfGuests = ((UpdateRequest)r).getNumberOfGuests();
+		int rowsUpdated = 0;
     	try {
     		PreparedStatement stmt = conn.prepareStatement(query);
 			stmt.setInt(1, numberOfGuests);
 			stmt.setInt(2, Integer.parseInt(orderNum));
-			stmt.executeUpdate();			
+			rowsUpdated = stmt.executeUpdate();			
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return "";
 		}
+    	if(rowsUpdated == 0) return "an order with that number does not exist.";
     	return "Updating order " + orderNum + " to " + numberOfGuests + " guests";
 	}
 	
@@ -135,15 +137,18 @@ public class DBconnector {
 		String orderNum = ((UpdateRequest)r).getOrderNum();
 		String date = ((UpdateRequest)r).getDate();
 		LocalDate orderDate = LocalDate.parse(date,formatter);
+		int rowsUpdated = 0;
     	try {
     		PreparedStatement stmt=conn.prepareStatement(query);
 			stmt.setDate(1, Date.valueOf(orderDate));
 			stmt.setString(2, orderNum);
-			stmt.executeUpdate();
+			rowsUpdated = stmt.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return "";
 		}
+    	
+    	if(rowsUpdated == 0) return "an order with that number does not exist.";
     	return "Updating order " + orderNum + " to " + date;
 	}
 }

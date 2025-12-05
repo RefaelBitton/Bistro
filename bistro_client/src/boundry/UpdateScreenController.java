@@ -49,31 +49,39 @@ public class UpdateScreenController implements IController {
     void OnUpdateNumberOfGuestsClick(ActionEvent event) {
     	ArrayList<String> args = new ArrayList<>();
     	boolean exceptionRaised = false;
+    	int orderNum = 0;
+    	int guestsNum = 0;
     	//Input checks
     	try {
-    		Integer.parseInt(orderNumberTxt.getText().trim());
-    		Integer.parseInt(guestsNumberTxt.getText().trim());
+    		orderNum = Integer.parseInt(orderNumberTxt.getText().trim());
+    		guestsNum = Integer.parseInt(guestsNumberTxt.getText().trim());
+    		if(orderNum<=0 || guestsNum<=0) exceptionRaised = true;
     	} catch (NumberFormatException e) {
     		exceptionRaised = true;
     		orderNumberTxt.clear();
     		guestsNumberTxt.clear();
-    		setResultText("Please enter valid entries in the fields");
     	}
-    	if(!exceptionRaised) {
+    	if(exceptionRaised) {
+    		setResultText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");
+    	}
+    	else {
     		args.add(orderNumberTxt.getText().trim());
         	args.add(guestsNumberTxt.getText().trim());
         	UpdateRequest r = new UpdateRequest(args.get(0), Integer.parseInt(args.get(1)));
         	ClientUI.console.accept(r);
     	}
+    	
     }
    
     @FXML
     void OnUpdateDateClick(ActionEvent event) {
     	ArrayList<String> args = new ArrayList<>();
     	boolean exceptionRaised = false;
+    	int orderNum = 0;
     	//Input checks
     	try {
-    		Integer.parseInt(orderNumberTxt.getText().trim());
+    		orderNum = Integer.parseInt(orderNumberTxt.getText().trim());
+    		if(orderNum<=0) exceptionRaised = true;
     	} catch (NumberFormatException e) {
     		exceptionRaised = true;
     		orderNumberTxt.clear();
@@ -91,7 +99,7 @@ public class UpdateScreenController implements IController {
         	ClientUI.console.accept(r);
     	}
     	else {
-    		setResultText("Please enter valid entries in the fields");
+    		setResultText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");
     	}
     }	
     
