@@ -6,9 +6,10 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 
 public class ClientUI extends Application {
-	public static Console console = new Console("localhost",5556);
+	public static Console console;
 	public static void main( String args[] ) throws Exception
 	   { 
+			console = new Console(args[0],5556);
 		    launch(args);  
 	   }
 	 
