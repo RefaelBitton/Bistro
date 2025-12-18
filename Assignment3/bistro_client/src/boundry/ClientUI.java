@@ -9,7 +9,7 @@ public class ClientUI extends Application {
 	public static Console console;
 	public static void main( String args[] ) throws Exception
 	   { 
-			console = new Console(args[0],5556);
+			console = new Console("localhost",5556);
 		    launch(args);  
 	   }
 	 

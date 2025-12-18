@@ -8,12 +8,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 
+import entities.LoginRequest;
 import entities.Order;
 import entities.ReadRequest;
+import entities.RegisterRequest;
 import entities.Request;
 import entities.RequestHandler;
 import entities.RequestType;
 import entities.UpdateRequest;
+import entities.User;
 import entities.WriteRequest;
 
 import java.time.LocalDate;
@@ -44,6 +47,8 @@ public class DBconnector {
         handlers.put(RequestType.READ_ORDER, this::getOrder);
         handlers.put(RequestType.UPDATE_GUESTS, this::updateNumOfGuests);
         handlers.put(RequestType.UPDATE_DATE, this::updateDate);
+        handlers.put(RequestType.LOGIN_REQUEST, this::checkLogin);
+        handlers.put(RequestType.REGISTER_REQUEST, this::addNewUser);
    }
     
 
@@ -148,5 +153,50 @@ public class DBconnector {
     	//input check
     	if(rowsUpdated == 0) return "an order with that number does not exist.";
     	return "Updating order " + orderNum + " to " + date;
+	}
+	
+	private String checkLogin(Request r) {
+		String query = r.getQuery();
+		int subcriberId = ((LoginRequest)r).getId();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setInt(1, subcriberId);
+			ResultSet rs =stmt.executeQuery();
+			if(rs.next()) {
+				boolean userFound = rs.getBoolean(1);
+				if(userFound) {
+					return "User found";
+				}
+				else {
+					return "Not found";
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return "";
+		
+		
+		
+	}
+	private String addNewUser(Request r) {
+		String query = r.getQuery();
+		User user = ((RegisterRequest)r).getUser();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setString(1, user.getFirstName()+" "+user.getLastName());
+			stmt.setInt(2,user.getSubscriberID());
+			stmt.setString(3,user.getUserName());
+			stmt.setString(4, user.getPhoneNumber());
+			stmt.setString(5, user.getEmail());
+			if(stmt.executeUpdate()==0) {
+				return "ERROR: Couldn't add the user, please try again";
+			}
+		} catch(SQLException e) {
+			e.printStackTrace();
+			return "ERROR: Couldn't add the user, please try again"; 
+		}
+		return "New user added successfully, please keep your ID handy for further login attempts\nUser is:\n"+user;
+		
 	}
 }
