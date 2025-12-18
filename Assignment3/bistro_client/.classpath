@@ -6,8 +6,11 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/javaFx"/>
-	<classpathentry kind="src" path="/OCSF"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/bistro_server"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/javaFX">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
