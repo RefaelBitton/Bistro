@@ -59,15 +59,6 @@ public class MainScreenController implements Initializable {
 
 
     
-    public void start(Stage primaryStage) throws Exception {  // Method for starting the main screen
-        // Load the main screen FXML into a Parent node
-        Parent root = FXMLLoader.load(getClass().getResource("/boundry/mainScreen.fxml"));
-
-        Scene scene = new Scene(root);                        // Create the scene with the loaded layout
-        primaryStage.setTitle("Bistro Order management tool"); // Set the window title
-        primaryStage.setScene(scene);                         // Set the scene on the primary stage
-        primaryStage.show();                                  // Display the window
-    }
     @FXML
     void onExitClick(ActionEvent event) {
     	System.exit(0);

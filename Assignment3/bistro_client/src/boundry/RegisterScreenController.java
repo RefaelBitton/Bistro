@@ -15,10 +15,9 @@ import javafx.scene.control.TextField;
 public class RegisterScreenController implements IController{
 	
 	Random random;
-	@SuppressWarnings("unused")
 	@FXML
 	void initialize() {
-		Random random = new Random();
+		random = new Random();
 		ClientUI.console.setController(this);
 	}
     @FXML
@@ -43,7 +42,7 @@ public class RegisterScreenController implements IController{
     private TextField userName;
     
     @FXML
-    private TextArea resultText;
+    private TextArea resultTxt;
 
     @FXML
     void onCancelClick(ActionEvent event) {
@@ -73,7 +72,7 @@ public class RegisterScreenController implements IController{
 
 	@Override
 	public void setResultText(String result) {
-		resultText.setText(result);
+		resultTxt.setText(result);
 	}
     
 

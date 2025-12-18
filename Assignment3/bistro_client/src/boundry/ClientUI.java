@@ -15,7 +15,7 @@ public class ClientUI extends Application {
 	 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		MainScreenController aFrame = new MainScreenController();
+		LoginScreenController aFrame = new LoginScreenController();
 		 
 		aFrame.start(primaryStage);
 	}
