@@ -1,6 +1,11 @@
 package boundry;
 
 import javafx.event.ActionEvent;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.fxml.Initializable;
+import java.net.URL;
+import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,30 +13,51 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
 
-public class MainScreenController {
+public class MainScreenController implements Initializable {
 	
     @FXML
     private Button OrderBtn;  
 
     @FXML
-    private Button viewBtn;
+    private Button cancelOrderBtn;
     
     @FXML
     private Button exitBtn;
     
     @FXML
-    private Button updateBtn;
+    private Button viewHistoryBtn;
+    
+    @FXML
+    private Button waitBtn;
+    
+    @FXML
+    private Button changePersonalDetailsBtn;
+    
+    private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
 
-
+    
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        // Bind protected buttons - invisible/managed=false for guests
+        viewHistoryBtn.visibleProperty().bind(isLoggedIn);
+        viewHistoryBtn.managedProperty().bind(isLoggedIn);
+        changePersonalDetailsBtn.visibleProperty().bind(isLoggedIn);
+        changePersonalDetailsBtn.managedProperty().bind(isLoggedIn);
+        
+        // Optionally disable others too
+        // cancelOrderBtn.visibleProperty().bind(isLoggedIn);
+    }
+    
+    public void setLoggedIn(boolean loggedIn) {
+        isLoggedIn.set(loggedIn);
+    }
+    
     @FXML
     void onOrderClick(ActionEvent event) throws Exception {   // Method called when Order button is clicked
     	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml");
     }
 
-    @FXML
-    void onViewClick(ActionEvent event) throws Exception {    // Method called when View button is clicked
-        ClientUI.console.switchScreen(this, event, "/boundry/SearchScreen.fxml");
-    }
+
     
     public void start(Stage primaryStage) throws Exception {  // Method for starting the main screen
         // Load the main screen FXML into a Parent node
@@ -47,8 +73,5 @@ public class MainScreenController {
     	System.exit(0);
     }
     
-    @FXML
-    void onUpdateClick(ActionEvent event) throws Exception {   // Method called when update button is clicked
-    	ClientUI.console.switchScreen(this, event, "/boundry/UpdateScreen.fxml");
-    }
+
 }
