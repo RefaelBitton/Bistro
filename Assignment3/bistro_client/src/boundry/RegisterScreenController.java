@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import entities.RegisterRequest;
+import entities.Subscriber;
 import entities.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -13,6 +14,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 public class RegisterScreenController implements IController{
+	
+	private User user;
 	
 	Random random;
 	@FXML
@@ -64,7 +67,7 @@ public class RegisterScreenController implements IController{
     	}
     	else {
     		int generatedId = this.random.nextInt(1_000_000);
-    		RegisterRequest r = new RegisterRequest(new User(generatedId,userName,fname,lname,phone,email,new ArrayList<>()));
+    		RegisterRequest r = new RegisterRequest(new Subscriber(generatedId,userName,fname,lname,phone,email,new ArrayList<>()));
     		ClientUI.console.accept(r);
     	}
     	
@@ -75,5 +78,7 @@ public class RegisterScreenController implements IController{
 		resultTxt.setText(result);
 	}
     
-
+    public void setUser(User user) {
+    	this.user = user;
+    }
 }

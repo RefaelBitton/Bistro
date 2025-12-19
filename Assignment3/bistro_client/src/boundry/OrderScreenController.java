@@ -8,6 +8,7 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 
 import entities.Order;
+import entities.User;
 import entities.WriteRequest;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -16,6 +17,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 public class OrderScreenController implements IController {
+	
+	private User user;
+	
     DateTimeFormatter formatter;
 	@FXML
 	public void initialize() {
@@ -111,4 +115,7 @@ public class OrderScreenController implements IController {
     	resultTxt.setText(result);
     }
 
+    public void setUser(User user) {
+    	this.user = user;
+    }    
 }
