@@ -16,7 +16,7 @@ import entities.Request;
 import entities.RequestHandler;
 import entities.RequestType;
 import entities.UpdateRequest;
-import entities.User;
+import entities.Subscriber;
 import entities.WriteRequest;
 
 import java.time.LocalDate;
@@ -32,8 +32,8 @@ public class DBconnector {
     	formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         try //connect DB
         {
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
          } catch (SQLException ex) 
              {/* handle any errors*/
@@ -182,7 +182,7 @@ public class DBconnector {
 	}
 	private String addNewUser(Request r) {
 		String query = r.getQuery();
-		User user = ((RegisterRequest)r).getUser();
+		Subscriber user = ((RegisterRequest)r).getUser();
 		try {
 			PreparedStatement stmt = conn.prepareStatement(query);
 			stmt.setString(1, user.getFirstName()+" "+user.getLastName());

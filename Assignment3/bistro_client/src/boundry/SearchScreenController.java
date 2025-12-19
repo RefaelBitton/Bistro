@@ -1,6 +1,7 @@
 package boundry;
 
 import entities.ReadRequest;
+import entities.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -8,6 +9,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 public class SearchScreenController implements IController {
+	
+	private User user;
 	
 	@FXML
 	public void initialize() {
@@ -52,4 +55,7 @@ public class SearchScreenController implements IController {
     	resultsTxt.setText(str);
     }
 
+    public void setUser(User user) {
+    	this.user = user;
+    }
 }

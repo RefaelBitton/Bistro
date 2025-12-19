@@ -6,6 +6,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.Initializable;
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import entities.User;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -13,7 +15,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
 
-public class MainScreenController implements Initializable {
+public class MainScreenController implements Initializable, IController {
+	private User user;
 	
     @FXML
     private Button OrderBtn;  
@@ -48,21 +51,22 @@ public class MainScreenController implements Initializable {
         // cancelOrderBtn.visibleProperty().bind(isLoggedIn);
     }
     
-    public void setLoggedIn(boolean loggedIn) {
-        isLoggedIn.set(loggedIn);
-    }
-    
     @FXML
     void onOrderClick(ActionEvent event) throws Exception {   // Method called when Order button is clicked
     	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml");
     }
 
-
-    
     @FXML
     void onExitClick(ActionEvent event) {
     	System.exit(0);
     }
     
+    public void setUser(User user) {
+    	this.user = user;
+    }
 
+	@Override
+	public void setResultText(String result) {
+		return;
+	}
 }

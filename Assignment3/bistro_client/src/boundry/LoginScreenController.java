@@ -2,7 +2,9 @@ package boundry;
 
 import java.io.IOException;
 
+import entities.Guest;
 import entities.LoginRequest;
+import entities.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,6 +19,7 @@ import javafx.stage.Stage;
 
 public class LoginScreenController implements IController{
 	private boolean flag;
+	private User user;
 	@FXML
 	public void initialize() {
 		ClientUI.console.setController(this);
@@ -41,15 +44,8 @@ public class LoginScreenController implements IController{
     
     @FXML
     void onGuestClick(ActionEvent event) throws IOException {
-        	FXMLLoader loader = new FXMLLoader(getClass().getResource("/boundry/mainScreen.fxml"));
-        	Parent root = loader.load();
-        	MainScreenController main = loader.getController();
-        	main.setLoggedIn(false);
-        	Scene scene = new Scene(root);
-        	Stage primaryStage = new Stage();
-        	((Node)event.getSource()).getScene().getWindow().hide();    // Hide primary window (current window)
-        	primaryStage.setScene(scene);
-        	primaryStage.show();
+    	this.user = new Guest(null, null);
+    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
     }
 
     @FXML
@@ -121,4 +117,7 @@ public class LoginScreenController implements IController{
         primaryStage.show();                                  // Display the window
     }
 
+    public void setUser(User user) {
+    	this.user = user;
+    }
 }

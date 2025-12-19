@@ -7,6 +7,7 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 
 import entities.UpdateRequest;
+import entities.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -14,6 +15,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 public class UpdateScreenController implements IController {
+	
+	private User user;
+	
 	@FXML
 	private TextField orderNumberTxt;
 	
@@ -110,5 +114,9 @@ public class UpdateScreenController implements IController {
     
     public void setResultText(String result) {
     	resultTxt.setText(result);
+    }
+    
+    public void setUser(User user) {
+    	this.user = user;
     }
 }
