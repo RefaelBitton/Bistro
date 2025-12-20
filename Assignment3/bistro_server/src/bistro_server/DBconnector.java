@@ -188,7 +188,7 @@ public class DBconnector {
 			stmt.setString(1, user.getFirstName()+" "+user.getLastName());
 			stmt.setInt(2,user.getSubscriberID());
 			stmt.setString(3,user.getUserName());
-			stmt.setString(4, user.getPhoneNumber());
+			stmt.setString(4, user.getPhone());
 			stmt.setString(5, user.getEmail());
 			if(stmt.executeUpdate()==0) {
 				return "ERROR: Couldn't add the user, please try again";

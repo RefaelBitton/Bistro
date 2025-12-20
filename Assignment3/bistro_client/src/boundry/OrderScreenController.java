@@ -108,7 +108,7 @@ public class OrderScreenController implements IController {
     
     @FXML
     void onCancelClick(ActionEvent event) throws IOException {
-    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml");
+    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
     }
     
     public void setResultText(String result) {

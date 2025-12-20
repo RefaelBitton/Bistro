@@ -49,7 +49,7 @@ public class RegisterScreenController implements IController{
 
     @FXML
     void onCancelClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/loginScreen.fxml");
+    	ClientUI.console.switchScreen(this, event, "/boundry/loginScreen.fxml",user);
     }
 
     @FXML
@@ -67,10 +67,11 @@ public class RegisterScreenController implements IController{
     	}
     	else {
     		int generatedId = this.random.nextInt(1_000_000);
-    		RegisterRequest r = new RegisterRequest(new Subscriber(generatedId,userName,fname,lname,phone,email,new ArrayList<>()));
+    		Subscriber s = new Subscriber(generatedId,userName,fname,lname,phone,email,new ArrayList<>());
+    		RegisterRequest r = new RegisterRequest(s);
     		ClientUI.console.accept(r);
+    		user = s;
     	}
-    	
     }
 
 	@Override
