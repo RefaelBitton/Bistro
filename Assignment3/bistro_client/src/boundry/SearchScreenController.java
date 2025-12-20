@@ -32,7 +32,7 @@ public class SearchScreenController implements IController {
     
     @FXML
     void onCancelClick(ActionEvent event) throws Exception {
-    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml");
+    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
     }
     @FXML
     void onSearchClick(ActionEvent event) {

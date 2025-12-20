@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import entities.Guest;
 import entities.LoginRequest;
+import entities.Subscriber;
 import entities.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -66,7 +67,8 @@ public class LoginScreenController implements IController{
         		FXMLLoader loader = new FXMLLoader(getClass().getResource("/boundry/mainScreen.fxml"));
         		Parent root = loader.load();
         		MainScreenController main = loader.getController();
-        		main.setLoggedIn(true);
+        		user = new Subscriber(1,null, null, null, null, null, null);
+        		((IController)main).setUser(user);
         		Scene scene = new Scene(root);
         		Stage primaryStage = new Stage();
         		((Node)event.getSource()).getScene().getWindow().hide();    // Hide primary window (current window)
@@ -94,7 +96,8 @@ public class LoginScreenController implements IController{
 
     @FXML
     void onRegisterClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/registerScreen.fxml");
+    	this.user = new Guest(null, null);
+    	ClientUI.console.switchScreen(this, event, "/boundry/registerScreen.fxml",user);
     }
 
 	@Override

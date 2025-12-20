@@ -41,7 +41,7 @@ public class Subscriber extends User implements Serializable {
 	public String getLastName() {
 		return lastName;
 	}
-	
+		
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
