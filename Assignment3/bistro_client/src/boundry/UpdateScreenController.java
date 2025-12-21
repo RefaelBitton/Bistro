@@ -109,7 +109,8 @@ public class UpdateScreenController implements IController {
     
     @FXML
     void OnBackBtnClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml");
+    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
+
     }
     
     public void setResultText(String result) {

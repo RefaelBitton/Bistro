@@ -49,7 +49,8 @@ public class RegisterScreenController implements IController{
 
     @FXML
     void onCancelClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/loginScreen.fxml");
+    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
+
     }
 
     @FXML

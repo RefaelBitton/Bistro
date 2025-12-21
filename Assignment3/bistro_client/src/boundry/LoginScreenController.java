@@ -66,7 +66,7 @@ public class LoginScreenController implements IController{
         		FXMLLoader loader = new FXMLLoader(getClass().getResource("/boundry/mainScreen.fxml"));
         		Parent root = loader.load();
         		MainScreenController main = loader.getController();
-        		main.setLoggedIn(true);
+        		//main.setLoggedIn(true);
         		Scene scene = new Scene(root);
         		Stage primaryStage = new Stage();
         		((Node)event.getSource()).getScene().getWindow().hide();    // Hide primary window (current window)
@@ -94,7 +94,7 @@ public class LoginScreenController implements IController{
 
     @FXML
     void onRegisterClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/registerScreen.fxml");
+    	ClientUI.console.switchScreen(this, event, "/boundry/RegisterScreen.fxml", user);
     }
 
 	@Override
