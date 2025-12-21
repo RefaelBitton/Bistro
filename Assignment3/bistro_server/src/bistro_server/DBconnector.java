@@ -32,8 +32,8 @@ public class DBconnector {
     	formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         try //connect DB
         {
-			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
          } catch (SQLException ex) 
              {/* handle any errors*/
@@ -164,22 +164,25 @@ public class DBconnector {
 			stmt.setInt(1, subcriberId);
 			ResultSet rs =stmt.executeQuery();
 			if(rs.next()) {
-				boolean userFound = rs.getBoolean(1);
-				if(userFound) {
-					return "User found";
+				String res = "";
+				for (int i = 1; i <= 4; i++) {
+					res+=rs.getString(i)+",";				
 				}
-				else {
-					return "Not found";
-				}
+				res+=rs.getString(5);
+				return res;
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
+			else{
+				return "Not found";
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return "";
 		}
-		return "";
 		
 		
 		
-	}
+	
 	private String addNewUser(Request r) {
 		String query = r.getQuery();
 		Subscriber user = ((RegisterRequest)r).getUser();

@@ -8,12 +8,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import entities.User;
+import entities.UserType;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.stage.Stage;
 
 public class MainScreenController implements Initializable, IController {
 	private User user;
@@ -58,11 +55,13 @@ public class MainScreenController implements Initializable, IController {
 
     @FXML
     void onExitClick(ActionEvent event) {
+    	System.out.println(user);
     	System.exit(0);
     }
     
     public void setUser(User user) {
     	this.user = user;
+    	isLoggedIn.setValue(user.getType()==UserType.SUBSCRIBER);
     }
 
 	@Override

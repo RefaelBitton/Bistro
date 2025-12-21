@@ -4,8 +4,6 @@ package bistro_client;
 import java.io.IOException;
 
 import boundry.IController;
-import boundry.ILogin;
-import boundry.MainScreenController;
 import entities.Request;
 import entities.User;
 import javafx.event.ActionEvent;
@@ -13,7 +11,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 public class Console {
