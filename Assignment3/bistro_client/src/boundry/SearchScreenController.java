@@ -4,9 +4,11 @@ import entities.ReadRequest;
 import entities.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 
 public class SearchScreenController implements IController {
 	
@@ -45,10 +47,18 @@ public class SearchScreenController implements IController {
         		ClientUI.console.accept(r);
         	}
         	else {
-    		setResultText("Please enter a valid order number: a positive integer");
+    		Alert alert = new Alert(AlertType.ERROR);
+    	    alert.setTitle("Error Occurred");
+    	    alert.setHeaderText("Input Validation Failed");
+    	    alert.setContentText("order number must be positive number");
+    	    alert.showAndWait();
         	}
     	} catch (NumberFormatException e) {
-    		setResultText("Please enter a valid order number");
+    		Alert alert = new Alert(AlertType.ERROR);
+    	    alert.setTitle("Error Occurred");
+    	    alert.setHeaderText("Input Validation Failed");
+    	    alert.setContentText("order number must be positive number");
+    	    alert.showAndWait();
     	}
     }
     public void setResultText(String str) {

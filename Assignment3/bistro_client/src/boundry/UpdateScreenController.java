@@ -10,9 +10,11 @@ import entities.UpdateRequest;
 import entities.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 
 public class UpdateScreenController implements IController {
 	
@@ -66,7 +68,11 @@ public class UpdateScreenController implements IController {
     		guestsNumberTxt.clear();
     	}
     	if(exceptionRaised) {
-    		setResultText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");
+    		Alert alert = new Alert(AlertType.ERROR);
+    		alert.setTitle("Error Occurred");
+    		alert.setHeaderText("Input Validation Failed");
+    		alert.setContentText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");
+    		alert.showAndWait();
     	}
     	else {
     		args.add(orderNumberTxt.getText().trim());
@@ -103,7 +109,11 @@ public class UpdateScreenController implements IController {
         	ClientUI.console.accept(r); //sending to client 
     	}
     	else {
-    		setResultText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");
+    		Alert alert = new Alert(AlertType.ERROR);
+    		alert.setTitle("Error Occurred");
+    		alert.setHeaderText("Input Validation Failed");
+    		alert.setContentText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");
+    		alert.showAndWait();
     	}
     }	
     

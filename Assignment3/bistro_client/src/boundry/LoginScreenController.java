@@ -80,7 +80,6 @@ public class LoginScreenController implements IController{
         	    alert.setTitle("Error Occurred");
         	    alert.setHeaderText("Input Validation Failed");
         	    alert.setContentText("That user doesn't exist, please check your credentials");
-
         	    alert.showAndWait();
         	}    		
     	}
@@ -105,6 +104,7 @@ public class LoginScreenController implements IController{
 		flag = result.equals("User found");
 		
 	}
+	
     @FXML
     void onExitClick(ActionEvent event) {
     	System.exit(0);
