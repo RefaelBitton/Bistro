@@ -58,6 +58,11 @@ public class MainScreenController implements Initializable, IController {
     void onOrderClick(ActionEvent event) throws Exception {
     	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml",user);
     }
+    
+    @FXML
+    void onCancelOrderClick(ActionEvent event) throws Exception {
+    	ClientUI.console.switchScreen(this, event, "/boundry/CancelScreen.fxml",user);
+    }
 
     @FXML
     void onExitClick(ActionEvent event) {
