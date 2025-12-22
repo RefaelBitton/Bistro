@@ -12,7 +12,7 @@
             <Font size="20.0" />
          </font>
       </Label>
-      <Button fx:id="cancelOrderBtn" layoutX="100.0" layoutY="211.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="99.0" text="Cancel Order" />
+      <Button fx:id="cancelOrderBtn" layoutX="100.0" layoutY="211.0" mnemonicParsing="false" onAction="#onCancelOrderClick" prefHeight="42.0" prefWidth="99.0" text="Cancel Order" />
       <Button fx:id="OrderBtn" layoutX="372.0" layoutY="211.0" mnemonicParsing="false" onAction="#onOrderClick" prefHeight="42.0" prefWidth="99.0" text="Order a spot" />
       <Button fx:id="exitBtn" layoutX="245.0" layoutY="341.0" mnemonicParsing="false" onAction="#onExitClick" prefHeight="23.0" prefWidth="67.0" text="Exit" />
       <Button fx:id="waitBtn" layoutX="235.0" layoutY="211.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="107.0" text="Wait for table" />

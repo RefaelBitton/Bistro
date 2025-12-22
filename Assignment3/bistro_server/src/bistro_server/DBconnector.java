@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 
+import entities.CancelRequest;
 import entities.LoginRequest;
 import entities.Order;
 import entities.ReadRequest;
@@ -41,8 +42,8 @@ public class DBconnector {
     	formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         try //connect DB
         {
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
          } catch (SQLException ex) 
              {/* handle any errors*/
@@ -59,6 +60,7 @@ public class DBconnector {
         handlers.put(RequestType.UPDATE_DATE, this::updateDate);
         handlers.put(RequestType.LOGIN_REQUEST, this::checkLogin);
         handlers.put(RequestType.REGISTER_REQUEST, this::addNewUser);
+        handlers.put(RequestType.CANCEL_REQUEST, this::cancelOrder);
    }
     
     /**A method that routes the request to the correct function based on the value in 'handlers'*/
@@ -235,5 +237,21 @@ public class DBconnector {
 		}
 		return "New user added successfully, please keep your ID handy for further login attempts\nUser is:\n"+user;
 		
+	}
+	
+	private String cancelOrder(Request r) {
+		String query = r.getQuery();
+		String orderNum = ((CancelRequest)r).getOrderNum();
+		int rowsDeleted = 0;
+		try {
+    		PreparedStatement stmt = conn.prepareStatement(query);
+    		stmt.setString(1, orderNum);
+    		rowsDeleted = stmt.executeUpdate();
+    		if(rowsDeleted > 0)
+    			return "order deleted";
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return "order did not deleted";
 	}
 }
