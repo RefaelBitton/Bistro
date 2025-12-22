@@ -71,6 +71,7 @@ public class RegisterScreenController implements IController{
     		alert.setTitle("Error Occurred");
     		alert.setHeaderText("Input Validation Failed");
     		alert.setContentText("please enter a value in all fields");
+    		alert.showAndWait();
     	}
     	else {
     		int generatedId = this.random.nextInt(1_000_000);

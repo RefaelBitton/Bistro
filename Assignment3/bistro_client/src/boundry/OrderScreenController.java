@@ -12,9 +12,11 @@ import entities.User;
 import entities.WriteRequest;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 
 public class OrderScreenController implements IController {
 	
@@ -91,7 +93,11 @@ public class OrderScreenController implements IController {
     		dateOfPlacingOrderTxt.clear();
     	}
     	if(exceptionRaised) {
-    		setResultText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor anything else: a positive integer");
+    		Alert alert = new Alert(AlertType.ERROR);
+    	    alert.setTitle("Error Occurred");
+    	    alert.setHeaderText("Input Validation Failed");
+    	    alert.setContentText("you cannot enter non-positive number or not existing date");
+    	    alert.showAndWait();
     	}
     	else {
     		args.add(orderNumTxt.getText().trim());
