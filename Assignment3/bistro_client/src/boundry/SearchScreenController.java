@@ -7,7 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-
+/**A controller for the 'searching for your order' screen*/
 public class SearchScreenController implements IController {
 	
 	private User user;
@@ -29,11 +29,15 @@ public class SearchScreenController implements IController {
 
     @FXML
     private Button searchBtn;
-    
+    /** when the user clicks 'cancel'*/
     @FXML
     void onCancelClick(ActionEvent event) throws Exception {
     	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
     }
+    /**
+     * when the user clicks 'Search'
+     * @param event
+     */
     @FXML
     void onSearchClick(ActionEvent event) {
     	int orderNum = 0;

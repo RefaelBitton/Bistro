@@ -12,7 +12,9 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
+/**
+ * A wrapper around the client, sending messages and holding the method to switch screens
+ */
 public class Console {
     BistroClient bc;
     final public static int DEFAULT = 5556;
@@ -24,8 +26,8 @@ public class Console {
   	public void setController(IController controller) {
     	  bc.setController(controller);
   	}
-  	
-    public void accept(Request r) //sending request to server
+  	/**sending request to server*/
+    public void accept(Request r) 
     {
     	try {
 			bc.sendToServer(r);
@@ -34,7 +36,13 @@ public class Console {
 			e.printStackTrace();
 		}
     }
-    
+    /**
+     * A method that switches between screens
+     * @param controller the controller of the screen switched from
+     * @param event the event the triggers the switch (usually a button click)
+     * @param newScreenPath a string which holds the path to the new screen
+     * @param user the user using the session (to use setUser)
+     */
 	public void switchScreen(Object controller, ActionEvent event, String newScreenPath, User user) { //switching screens
 		try{
 //    		FXMLLoader loader = new FXMLLoader();					// Create a new FXMLLoader instance

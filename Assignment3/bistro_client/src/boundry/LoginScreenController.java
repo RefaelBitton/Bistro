@@ -16,10 +16,15 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-
+/**
+ * A controller responsible for the login screen
+ */
 public class LoginScreenController implements IController{
+	/** the string that will hold the response from the server*/
 	private String serverResponse;
+	/** the user using the screen*/
 	private User user;
+	/** setting the console's controller to this*/
 	@FXML
 	public void initialize() {
 		ClientUI.console.setController(this);
@@ -42,12 +47,22 @@ public class LoginScreenController implements IController{
     @FXML
     private Button exitBtn;
     
+    /**
+     * when the user clicks 'enter as guest'
+     * @param event
+     * @throws IOException
+     */
     @FXML
     void onGuestClick(ActionEvent event) throws IOException {
     	this.user = new Guest(null, null);
     	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
     }
-
+    /**
+     * when the user clicks 'login'
+     * @param event
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @FXML
     void onLoginClick(ActionEvent event) throws IOException, InterruptedException {
     	int id = 0;
@@ -90,13 +105,18 @@ public class LoginScreenController implements IController{
     	}
     	
     }
-
+    /**
+     * when the user clicks on 'Register'
+     * @param event
+     */
     @FXML
     void onRegisterClick(ActionEvent event) {
     	this.user = new Guest(null, null);
     	ClientUI.console.switchScreen(this, event, "/boundry/registerScreen.fxml",user);
     }
-
+    /**
+     * setting the server response
+     */
 	@Override
 	public void setResultText(String result) {
 		serverResponse = result;

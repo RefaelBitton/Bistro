@@ -11,7 +11,9 @@ import entities.User;
 import entities.UserType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-
+/**
+ * The controller for the main screen of the app, after logging in or entering as a guest
+ * */
 public class MainScreenController implements Initializable, IController {
 	private User user;
 	
@@ -32,10 +34,10 @@ public class MainScreenController implements Initializable, IController {
     
     @FXML
     private Button changePersonalDetailsBtn;
-    
+    /** binds some of the buttons to be available (visible) only to users who are subscribed*/
     private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
 
-    
+    /** binds some of the buttons to be visible to subscribers only  */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Bind protected buttons - invisible/managed=false for guests
@@ -47,15 +49,18 @@ public class MainScreenController implements Initializable, IController {
         // Optionally disable others too
         // cancelOrderBtn.visibleProperty().bind(isLoggedIn);
     }
-    
+    /**
+     * Method called when Order button is clicked
+     * @param event
+     * @throws Exception
+     */
     @FXML
-    void onOrderClick(ActionEvent event) throws Exception {   // Method called when Order button is clicked
+    void onOrderClick(ActionEvent event) throws Exception {
     	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml",user);
     }
 
     @FXML
     void onExitClick(ActionEvent event) {
-    	System.out.println(user);
     	System.exit(0);
     }
     

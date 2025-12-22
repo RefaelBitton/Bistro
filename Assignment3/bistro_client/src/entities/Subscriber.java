@@ -3,7 +3,6 @@ package entities;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
-
 public class Subscriber extends User implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private int subscriberID;

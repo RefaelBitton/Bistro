@@ -2,7 +2,9 @@ package bistro_server;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-
+/**
+ * The entry point for the server side of the app
+ */
 public class ServerUI extends Application {
 	final public static String DEFAULT_PORT = "5556";
 	public static void main( String args[] ) throws Exception

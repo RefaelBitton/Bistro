@@ -12,12 +12,13 @@ public class Order implements Serializable {
 	private String subscriberId;
 	private String dateOfPlacingOrder;
 	
-	/*Input: arraList of strings:
-	 * [0] - orderNumber
-	 * [1] - orderDate
-	 * [2] - numberOfGuests
-	 * [3] - confirmaionCode
-	 * [4] - subscriberId
+	/**
+	 * @param args an array of arguments for defining an order
+	 * [0] - orderNumber,
+	 * [1] - orderDate,
+	 * [2] - numberOfGuests,
+	 * [3] - confirmaionCode,
+	 * [4] - subscriberId,
 	 * [5] - dateOfPlacingOrder
 	 * */
 	public Order(ArrayList<String> args) {
@@ -29,27 +30,45 @@ public class Order implements Serializable {
 		this.dateOfPlacingOrder = args.get(5);
 	}
 	
-	//Getters
+	/**
+	 * 
+	 * @return the order number
+	 */
 	public String getOrderNumber() {
 		return orderNumber;
 	}
-	
+	/**
+	 * 
+	 * @return the order's date
+	 */
 	public String getOrderDate() {
 		return orderDate;
 	}
-	
+	/**
+	 * 
+	 * @return the number of guests
+	 */
 	public String getNumberOfGuests() {
 		return numberOfGuests;
 		}
-	
+	/**
+	 * 
+	 * @return the order's confirmation code
+	 */
 	public String getConfirmationCode() {
 		return confirmationCode;
 	}
-	
+	/**
+	 * 
+	 * @return the user's id that ordered
+	 */
 	public String getSubscriberId() {
 		return subscriberId;
 	}
-	
+	/**
+	 * 
+	 * @return the date of placing the order
+	 */
 	public String getDateOfPlacingOrder() {
 		return dateOfPlacingOrder;
 	}
