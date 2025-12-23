@@ -4,11 +4,17 @@ import java.io.IOException;
 import boundry.IController;
 
 import ocsf.client.*;
-
+/**
+ * The client itself, extending abstract client and responsible for sending and recieving messages from the server
+ * */
 public class BistroClient extends AbstractClient{
-
+	/**The controller of the screen currently being displayed*/
     private IController controller;
-    //creating client and connecting it to server
+    /**
+     * creating client and connecting it to server
+     * @param host
+     * @param port
+     */
 	public BistroClient(String host, int port) {
         super(host, port);
         try {
@@ -17,19 +23,23 @@ public class BistroClient extends AbstractClient{
             e.printStackTrace();
         }
     }
-
+	/**
+	 * handling message from server
+	 */
     @Override
-    protected void handleMessageFromServer(Object msg) { //handling message from server
+    protected void handleMessageFromServer(Object msg) { 
     	String result = (String)msg;
     	controller.setResultText(result);
     }
-    
+    /**Setting the controller field whenever a screen is switched*/
     public void setController(IController controller) {
     	this.controller = controller;
     }
     
-
-    public void quit() { //closing connection between client to server
+    /**
+     * closing connection between client to server
+     */
+    public void quit() {
         try {
             closeConnection();
         } catch (IOException e1) {

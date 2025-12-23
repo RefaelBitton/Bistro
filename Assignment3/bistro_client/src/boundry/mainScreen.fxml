@@ -12,9 +12,11 @@
             <Font size="20.0" />
          </font>
       </Label>
-      <Button fx:id="viewBtn" layoutX="97.0" layoutY="238.0" mnemonicParsing="false" onAction="#onViewClick" prefHeight="42.0" prefWidth="99.0" text="View an order" />
-      <Button fx:id="OrderBtn" layoutX="360.0" layoutY="238.0" mnemonicParsing="false" onAction="#onOrderClick" prefHeight="42.0" prefWidth="99.0" text="Order a spot" />
-      <Button fx:id="exitBtn" layoutX="245.0" layoutY="317.0" mnemonicParsing="false" onAction="#onExitClick" prefHeight="23.0" prefWidth="67.0" text="Exit" />
-      <Button fx:id="updateBtn" layoutX="225.0" layoutY="238.0" mnemonicParsing="false" onAction="#onUpdateClick" prefHeight="42.0" prefWidth="107.0" text="update an order" />
+      <Button fx:id="cancelOrderBtn" layoutX="100.0" layoutY="211.0" mnemonicParsing="false" onAction="#onCancelOrderClick" prefHeight="42.0" prefWidth="99.0" text="Cancel Order" />
+      <Button fx:id="OrderBtn" layoutX="372.0" layoutY="211.0" mnemonicParsing="false" onAction="#onOrderClick" prefHeight="42.0" prefWidth="99.0" text="Order a spot" />
+      <Button fx:id="exitBtn" layoutX="245.0" layoutY="341.0" mnemonicParsing="false" onAction="#onExitClick" prefHeight="23.0" prefWidth="67.0" text="Exit" />
+      <Button fx:id="waitBtn" layoutX="235.0" layoutY="211.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="107.0" text="Wait for table" />
+      <Button fx:id="viewHistoryBtn" layoutX="312.0" layoutY="285.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="144.0" text="View History" />
+      <Button fx:id="changePersonalDetailsBtn" layoutX="118.0" layoutY="285.0" mnemonicParsing="false" text="Change Personal Details" />
    </children>
 </AnchorPane>

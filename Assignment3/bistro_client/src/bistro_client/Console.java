@@ -5,13 +5,16 @@ import java.io.IOException;
 
 import boundry.IController;
 import entities.Request;
+import entities.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-
+/**
+ * A wrapper around the client, sending messages and holding the method to switch screens
+ */
 public class Console {
     BistroClient bc;
     final public static int DEFAULT = 5556;
@@ -23,8 +26,8 @@ public class Console {
   	public void setController(IController controller) {
     	  bc.setController(controller);
   	}
-  	
-    public void accept(Request r) //sending request to server
+  	/**sending request to server*/
+    public void accept(Request r) 
     {
     	try {
 			bc.sendToServer(r);
@@ -33,19 +36,36 @@ public class Console {
 			e.printStackTrace();
 		}
     }
-    
-	public void switchScreen(Object controller, ActionEvent event, String newScreenPath) { //switching screens
+    /**
+     * A method that switches between screens
+     * @param controller the controller of the screen switched from
+     * @param event the event the triggers the switch (usually a button click)
+     * @param newScreenPath a string which holds the path to the new screen
+     * @param user the user using the session (to use setUser)
+     */
+	public void switchScreen(Object controller, ActionEvent event, String newScreenPath, User user) { //switching screens
 		try{
-    		FXMLLoader loader = new FXMLLoader();					// Create a new FXMLLoader instance
-	    	((Node)event.getSource()).getScene().getWindow().hide();    // Hide primary window (current window)
-	    	Stage primaryStage = new Stage();							// Create a new stage (new window)							
-	    	Pane root = loader.load(controller.getClass().getResource(newScreenPath).openStream()); // Load the new screen FFXML file
-	    	Scene scene = new Scene(root);								// Create a new scene with the loaded UI
-	    	primaryStage.setScene(scene);								// Set the scene to the new stage
-	    	primaryStage.show();										// Show the new window
+//    		FXMLLoader loader = new FXMLLoader();					// Create a new FXMLLoader instance
+//	    	((Node)event.getSource()).getScene().getWindow().hide();    // Hide primary window (current window)
+//	    	Stage primaryStage = new Stage();							// Create a new stage (new window)							
+//	    	Pane root = loader.load(controller.getClass().getResource(newScreenPath).openStream()); // Load the new screen FFXML file
+//	    	Scene scene = new Scene(root);								// Create a new scene with the loaded UI
+//	    	primaryStage.setScene(scene);								// Set the scene to the new stage
+//	    	primaryStage.show();										// Show the new window
+        	FXMLLoader loader = new FXMLLoader(getClass().getResource(newScreenPath));
+        	Parent root = loader.load();
+        	Object main = loader.getController();
+        	((IController)main).setUser(user);
+        	Scene scene = new Scene(root);
+        	Stage primaryStage = new Stage();
+        	((Node)event.getSource()).getScene().getWindow().hide();    // Hide primary window (current window)
+        	primaryStage.setScene(scene);
+        	primaryStage.show();
     	} catch (IOException e) {
     		e.printStackTrace();
     		System.out.println("Couldn't switch to screen " + newScreenPath);
     	}          
 	}
+	
+
 }

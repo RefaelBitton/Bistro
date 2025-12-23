@@ -8,7 +8,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 
-
+/**
+ * A controller for the server UI
+ */
 public class MainScreenServerController {
     @FXML
     private Button exitBtn;
@@ -18,12 +20,17 @@ public class MainScreenServerController {
     
     @FXML
     private TextArea resultTxt;
-    
+    /**
+     * When the user clicks 'Exit'
+     * */
     @FXML
     void onExitClick(ActionEvent event) {
     	System.exit(0);
     }
-    
+    /**
+     * When the user clicks on 'show ip'
+     * @param event
+     */
     @FXML
     void onShowIpClick(ActionEvent event) {
     	if (BistroServer.clients.size() == 0) {

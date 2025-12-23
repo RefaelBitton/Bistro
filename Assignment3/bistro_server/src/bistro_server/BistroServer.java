@@ -6,18 +6,25 @@ import java.util.List;
 
 import entities.Request;
 import ocsf.server.*;
-
+/**The server, extending the abstract server*/
 public class BistroServer extends AbstractServer {
      final public static int DEFAULT_PORT = 5556;
+     /**An array that holds the currently connected clients*/
      protected static List<ConnectionToClient> clients;
+     /**A connection to the database*/
      DBconnector dbcon;
-
+    /**
+     * 
+     * @param port the port to connect to
+     */
     public BistroServer(int port) {
         super(port);
         dbcon = new DBconnector(); //connecting server to DB
         clients = new ArrayList<>();
     }
-
+    /**
+     * Sending messages from client over to the database connector
+     */
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) { //handling messages from client
         Request r = (Request)msg;
@@ -31,19 +38,23 @@ public class BistroServer extends AbstractServer {
 			}
         }
     }
-    
+    /**Adding a client to the array*/
     @Override
     protected void clientConnected(ConnectionToClient client) {
     	clients.add(client);
     }
-
+    /**
+     * Removing a client from the array
+     */
     @Override
     protected void clientDisconnected(ConnectionToClient client) {
     	clients.remove(client);
     }
     
     
-
+    /**Starting the server
+     * @param p the port to listen on
+     * */
     public static void runServer(String p) 
       {
         int port = 0; //Port to listen on
