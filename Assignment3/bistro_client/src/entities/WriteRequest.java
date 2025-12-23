@@ -1,5 +1,7 @@
 package entities;
-
+/**
+ * a request that adds a new order
+ */
 public class WriteRequest extends Request {
 
 	private static final long serialVersionUID = 1L;

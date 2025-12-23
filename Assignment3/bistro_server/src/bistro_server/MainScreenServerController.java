@@ -11,6 +11,10 @@ import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import ocsf.server.ConnectionToClient;
 
+
+/**
+ * A controller for the server UI
+ */
 public class MainScreenServerController {
     @FXML
     private Button exitBtn;

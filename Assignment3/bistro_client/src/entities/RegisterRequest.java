@@ -1,5 +1,7 @@
 package entities;
-
+/**
+ * A request that handles a new registration of a user
+ */
 public class RegisterRequest extends Request {
 
 	private static final long serialVersionUID = 1L;

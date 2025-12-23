@@ -4,10 +4,13 @@ import entities.ReadRequest;
 import entities.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 
+/**A controller for the 'searching for your order' screen*/
 public class SearchScreenController implements IController {
 	
 	private User user;
@@ -29,11 +32,15 @@ public class SearchScreenController implements IController {
 
     @FXML
     private Button searchBtn;
-    
+    /** when the user clicks 'cancel'*/
     @FXML
     void onCancelClick(ActionEvent event) throws Exception {
-    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
     }
+    /**
+     * when the user clicks 'Search'
+     * @param event
+     */
     @FXML
     void onSearchClick(ActionEvent event) {
     	int orderNum = 0;
@@ -45,10 +52,18 @@ public class SearchScreenController implements IController {
         		ClientUI.console.accept(r);
         	}
         	else {
-    		setResultText("Please enter a valid order number: a positive integer");
+    		Alert alert = new Alert(AlertType.ERROR);
+    	    alert.setTitle("Error Occurred");
+    	    alert.setHeaderText("Input Validation Failed");
+    	    alert.setContentText("order number must be positive number");
+    	    alert.showAndWait();
         	}
     	} catch (NumberFormatException e) {
-    		setResultText("Please enter a valid order number");
+    		Alert alert = new Alert(AlertType.ERROR);
+    	    alert.setTitle("Error Occurred");
+    	    alert.setHeaderText("Input Validation Failed");
+    	    alert.setContentText("order number must be positive number");
+    	    alert.showAndWait();
     	}
     }
     public void setResultText(String str) {

@@ -7,19 +7,25 @@ import java.util.List;
 
 import entities.Request;
 import ocsf.server.*;
-
+/**The server, extending the abstract server*/
 public class BistroServer extends AbstractServer {
-
-    public static final int DEFAULT_PORT = 5556;
-    protected static List<ConnectionToClient> clients;
-    DBconnector dbcon;
-
+     final public static int DEFAULT_PORT = 5556;
+     /**An array that holds the currently connected clients*/
+     protected static List<ConnectionToClient> clients;
+     /**A connection to the database*/
+     DBconnector dbcon;
+    /**
+     * 
+     * @param port the port to connect to
+     */
     public BistroServer(int port) {
         super(port);
         dbcon = new DBconnector();
         clients = Collections.synchronizedList(new ArrayList<>());
     }
-
+    /**
+     * Sending messages from client over to the database connector
+     */
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
         Request r = (Request) msg;
@@ -31,13 +37,15 @@ public class BistroServer extends AbstractServer {
             e.printStackTrace();
         }
     }
-
+    /**Adding a client to the array*/
     @Override
     protected void clientConnected(ConnectionToClient client) {
         clients.add(client);
         MainScreenServerController.refreshClientsLive();
     }
-
+    /**
+     * Removing a client from the array
+     */
     @Override
     protected void clientDisconnected(ConnectionToClient client) {
         clients.remove(client);
@@ -49,6 +57,14 @@ public class BistroServer extends AbstractServer {
         clients.remove(client);
         MainScreenServerController.refreshClientsLive();
     }
+    
+    
+    /**Starting the server
+     * @param p the port to listen on
+     * */
+    public static void runServer(String p) 
+      {
+        int port = 0; //Port to listen on
 
     public static void runServer(String p) {
         int port;

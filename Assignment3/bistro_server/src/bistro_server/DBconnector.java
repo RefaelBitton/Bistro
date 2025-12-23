@@ -1,6 +1,26 @@
 package bistro_server;
 
 import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
+
+import entities.CancelRequest;
+import entities.LoginRequest;
+import entities.Order;
+import entities.ReadRequest;
+import entities.RegisterRequest;
+import entities.Request;
+import entities.RequestHandler;
+import entities.RequestType;
+import entities.UpdateRequest;
+import entities.Subscriber;
+import entities.WriteRequest;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -9,27 +29,28 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import entities.*;
-
+/**
+ * A class that handles all operations on the database, receiving requests and handling them 
+ * */
 public class DBconnector {
-
+	/**The connection to the Database*/
     private Connection conn;
-
-    // date_of_placing_order stays DATE (yyyy-MM-dd)
-    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
-
-    // client sends order datetime as: "yyyy-MM-dd HH:mm:ss"
+    /**formatter for parsing dates*/
+    private DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
+   /**client sends order datetime as: "yyyy-MM-dd HH:mm:ss"*/
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-    private HashMap<RequestType, RequestHandler> handlers;
-
-    public DBconnector() {
-        try {
-            conn = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/bistro?useSSL=false&serverTimezone=UTC",
-                "root",
-                "shonv2014!"
-            );
+    /**A map for handling a request based on it's type,
+     *  and routing to the correct method */
+    private HashMap<RequestType,RequestHandler> handlers; //managing requests by their Types
+    /**
+     * Constructor, initiating the connection and fields
+     * */
+    public DBconnector(){
+    	formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        try //connect DB
+        {
+			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -51,7 +72,7 @@ public class DBconnector {
         return handler.handle(r);
     }
 
-    /* ================= WRITE ORDER =================
+    /** ================= WRITE ORDER =================
        Uses ONLY a DATETIME column named: order_datetime
 
        IMPORTANT: This assumes your WriteRequest query is:
@@ -320,4 +341,122 @@ public class DBconnector {
             return "❌ Registration failed.";
         }
     }
+	/**
+	 * update number of guests in DB
+	 * @param r An UpdateRequest to handle
+	 * @return A message to the user
+	 */
+	private String updateNumOfGuests(Request r) { 
+		String query = r.getQuery();
+		String orderNum = ((UpdateRequest)r).getOrderNum();
+		int numberOfGuests = ((UpdateRequest)r).getNumberOfGuests();
+		int rowsUpdated = 0;
+    	try {
+    		PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setInt(1, numberOfGuests);
+			stmt.setInt(2, Integer.parseInt(orderNum));
+			rowsUpdated = stmt.executeUpdate();			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "";
+		}
+    	if(rowsUpdated == 0) return "an order with that number does not exist.";
+    	return "Updating order " + orderNum + " to " + numberOfGuests + " guests";
+	}
+	/**
+	 * update order's date in DB
+	 * @param r an Update request for the date 
+	 * @return A message to the user
+	 */
+	private String updateDate(Request r) {
+		String query = r.getQuery();
+		String orderNum = ((UpdateRequest)r).getOrderNum();
+		String date = ((UpdateRequest)r).getDate();
+		LocalDate orderDate = LocalDate.parse(date,formatter);
+		int rowsUpdated = 0;
+    	try {
+    		PreparedStatement stmt=conn.prepareStatement(query);
+			stmt.setDate(1, Date.valueOf(orderDate));
+			stmt.setString(2, orderNum);
+			rowsUpdated = stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "";
+		}
+    	//input check
+    	if(rowsUpdated == 0) return "an order with that number does not exist.";
+    	return "Updating order " + orderNum + " to " + date;
+	}
+	/**
+	 * 
+	 * @param r A LoginRequest
+	 * @return The resulting string, a message or the subscriber if found
+	 */
+	private String checkLogin(Request r) {
+		String query = r.getQuery();
+		int subcriberId = ((LoginRequest)r).getId();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setInt(1, subcriberId);
+			ResultSet rs =stmt.executeQuery();
+			if(rs.next()) {
+				String res = "";
+				for (int i = 1; i <= 4; i++) {
+					res+=rs.getString(i)+",";				
+				}
+				res+=rs.getString(5);
+				return res;
+			}
+			else{
+				return "Not found";
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return "";
+		}
+		
+		
+		
+	/**
+	 * 
+	 * @param r a RegisterRequest to handle
+	 * @return The resulting string, message to the user
+	 */
+	private String addNewUser(Request r) {
+		String query = r.getQuery();
+		Subscriber user = ((RegisterRequest)r).getUser();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setString(1, user.getFirstName()+" "+user.getLastName());
+			stmt.setInt(2,user.getSubscriberID());
+			stmt.setString(3,user.getUserName());
+			stmt.setString(4, user.getPhone());
+			stmt.setString(5, user.getEmail());
+			if(stmt.executeUpdate()==0) {
+				return "ERROR: Couldn't add the user, please try again";
+			}
+		} catch(SQLException e) {
+			e.printStackTrace();
+			return "ERROR: Couldn't add the user, please try again"; 
+		}
+		return "New user added successfully, please keep your ID handy for further login attempts\nUser is:\n"+user;
+		
+	}
+	
+	private String cancelOrder(Request r) {
+		String query = r.getQuery();
+		String orderNum = ((CancelRequest)r).getOrderNum();
+		int rowsDeleted = 0;
+		try {
+    		PreparedStatement stmt = conn.prepareStatement(query);
+    		stmt.setString(1, orderNum);
+    		rowsDeleted = stmt.executeUpdate();
+    		if(rowsDeleted > 0)
+    			return "order deleted";
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return "order did not deleted";
+	}
 }

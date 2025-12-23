@@ -10,10 +10,13 @@ import entities.UpdateRequest;
 import entities.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 
+/**A controller for the update screen*/
 public class UpdateScreenController implements IController {
 	
 	private User user;
@@ -38,7 +41,7 @@ public class UpdateScreenController implements IController {
 	
 	@FXML
 	private Button backBtn;
-	
+	/** for formatting the dates the user enters*/
 	DateTimeFormatter formatter;
 	
 	@FXML
@@ -48,7 +51,9 @@ public class UpdateScreenController implements IController {
 	            .withResolverStyle(ResolverStyle.STRICT); //forces real dates
 		ClientUI.console.setController(this);
 	}
-	
+	/**
+	 * When the user clicks on 'update number of guests'
+	 */
 	@FXML
     void OnUpdateNumberOfGuestsClick(ActionEvent event) { 
     	ArrayList<String> args = new ArrayList<>();
@@ -66,7 +71,11 @@ public class UpdateScreenController implements IController {
     		guestsNumberTxt.clear();
     	}
     	if(exceptionRaised) {
-    		setResultText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");
+    		Alert alert = new Alert(AlertType.ERROR);
+    		alert.setTitle("Error Occurred");
+    		alert.setHeaderText("Input Validation Failed");
+    		alert.setContentText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");
+    		alert.showAndWait();
     	}
     	else {
     		args.add(orderNumberTxt.getText().trim());
@@ -76,7 +85,10 @@ public class UpdateScreenController implements IController {
     	}
     	
     }
-   
+    /**
+     * When the user clicks on 'update date'
+     * @param event
+     */
     @FXML
     void OnUpdateDateClick(ActionEvent event) {
     	ArrayList<String> args = new ArrayList<>();
@@ -103,14 +115,20 @@ public class UpdateScreenController implements IController {
         	ClientUI.console.accept(r); //sending to client 
     	}
     	else {
-    		setResultText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");
+    		Alert alert = new Alert(AlertType.ERROR);
+    		alert.setTitle("Error Occurred");
+    		alert.setHeaderText("Input Validation Failed");
+    		alert.setContentText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");
+    		alert.showAndWait();
     	}
     }	
-    
+    /**
+     * When the user clicks on 'back'
+     * @param event
+     */
     @FXML
     void OnBackBtnClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
-
+    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
     }
     
     public void setResultText(String result) {
