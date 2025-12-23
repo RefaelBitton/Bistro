@@ -2,6 +2,7 @@ package bistro_server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import entities.Request;
@@ -16,7 +17,7 @@ public class BistroServer extends AbstractServer {
     public BistroServer(int port) {
         super(port);
         dbcon = new DBconnector();
-        clients = new ArrayList<>();
+        clients = Collections.synchronizedList(new ArrayList<>());
     }
 
     @Override
@@ -34,11 +35,19 @@ public class BistroServer extends AbstractServer {
     @Override
     protected void clientConnected(ConnectionToClient client) {
         clients.add(client);
+        MainScreenServerController.refreshClientsLive();
     }
 
     @Override
     protected void clientDisconnected(ConnectionToClient client) {
         clients.remove(client);
+        MainScreenServerController.refreshClientsLive();
+    }
+
+    @Override
+    protected void clientException(ConnectionToClient client, Throwable exception) {
+        clients.remove(client);
+        MainScreenServerController.refreshClientsLive();
     }
 
     public static void runServer(String p) {
