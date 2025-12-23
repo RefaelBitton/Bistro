@@ -62,10 +62,6 @@ public class BistroServer extends AbstractServer {
     /**Starting the server
      * @param p the port to listen on
      * */
-    public static void runServer(String p) 
-      {
-        int port = 0; //Port to listen on
-
     public static void runServer(String p) {
         int port;
         try {

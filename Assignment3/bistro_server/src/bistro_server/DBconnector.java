@@ -12,12 +12,12 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import entities.CancelRequest;
 import entities.LoginRequest;
 import entities.Order;
+import entities.ReadEmailRequest;
 import entities.ReadRequest;
 import entities.RegisterRequest;
 import entities.Request;
 import entities.RequestHandler;
 import entities.RequestType;
-import entities.UpdateRequest;
 import entities.Subscriber;
 import entities.WriteRequest;
 
@@ -49,8 +49,8 @@ public class DBconnector {
     	formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         try //connect DB
         {
-			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -63,6 +63,7 @@ public class DBconnector {
         handlers.put(RequestType.READ_EMAIL, this::readEmail);
         handlers.put(RequestType.LOGIN_REQUEST, this::checkLogin);
         handlers.put(RequestType.REGISTER_REQUEST, this::addNewUser);
+        handlers.put(RequestType.CANCEL_REQUEST, this::cancelOrder);
     }
 
     public String handleQueries(Object obj) {
@@ -122,7 +123,7 @@ public class DBconnector {
             if (subId == 0) stmt.setNull(5, Types.INTEGER);
             else stmt.setInt(5, subId);
 
-            stmt.setDate(6, Date.valueOf(LocalDate.parse(o.getDateOfPlacingOrder(), dateFormatter)));
+            stmt.setDate(6, Date.valueOf(LocalDate.parse(o.getDateOfPlacingOrder(), formatter)));
             stmt.setString(7, contact);
 
             int rows = stmt.executeUpdate();
@@ -307,86 +308,54 @@ public class DBconnector {
         }
     }
 
-    /* ================= LOGIN ================= */
-    private String checkLogin(Request r) {
-        try {
-            PreparedStatement stmt = conn.prepareStatement(r.getQuery());
-            stmt.setInt(1, ((LoginRequest) r).getId());
-            ResultSet rs = stmt.executeQuery();
 
-            if (rs.next() && rs.getBoolean(1)) return "User found";
-            return "User not found";
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Login error";
-        }
-    }
-
-    /* ================= REGISTER ================= */
-    private String addNewUser(Request r) {
-        Subscriber user = ((RegisterRequest) r).getUser();
-
-        try {
-            PreparedStatement stmt = conn.prepareStatement(r.getQuery());
-            stmt.setString(1, user.getFirstName() + " " + user.getLastName());
-            stmt.setInt(2, user.getSubscriberID());
-            stmt.setString(3, user.getUserName());
-            stmt.setString(4, user.getPhone());
-            stmt.setString(5, user.getEmail());
-            stmt.executeUpdate();
-            return "✅ User registered successfully.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "❌ Registration failed.";
-        }
-    }
+   
 	/**
 	 * update number of guests in DB
 	 * @param r An UpdateRequest to handle
 	 * @return A message to the user
 	 */
-	private String updateNumOfGuests(Request r) { 
-		String query = r.getQuery();
-		String orderNum = ((UpdateRequest)r).getOrderNum();
-		int numberOfGuests = ((UpdateRequest)r).getNumberOfGuests();
-		int rowsUpdated = 0;
-    	try {
-    		PreparedStatement stmt = conn.prepareStatement(query);
-			stmt.setInt(1, numberOfGuests);
-			stmt.setInt(2, Integer.parseInt(orderNum));
-			rowsUpdated = stmt.executeUpdate();			
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return "";
-		}
-    	if(rowsUpdated == 0) return "an order with that number does not exist.";
-    	return "Updating order " + orderNum + " to " + numberOfGuests + " guests";
-	}
-	/**
-	 * update order's date in DB
-	 * @param r an Update request for the date 
-	 * @return A message to the user
-	 */
-	private String updateDate(Request r) {
-		String query = r.getQuery();
-		String orderNum = ((UpdateRequest)r).getOrderNum();
-		String date = ((UpdateRequest)r).getDate();
-		LocalDate orderDate = LocalDate.parse(date,formatter);
-		int rowsUpdated = 0;
-    	try {
-    		PreparedStatement stmt=conn.prepareStatement(query);
-			stmt.setDate(1, Date.valueOf(orderDate));
-			stmt.setString(2, orderNum);
-			rowsUpdated = stmt.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return "";
-		}
-    	//input check
-    	if(rowsUpdated == 0) return "an order with that number does not exist.";
-    	return "Updating order " + orderNum + " to " + date;
-	}
+//	private String updateNumOfGuests(Request r) { 
+//		String query = r.getQuery();
+//		String orderNum = ((UpdateRequest)r).getOrderNum();
+//		int numberOfGuests = ((UpdateRequest)r).getNumberOfGuests();
+//		int rowsUpdated = 0;
+//    	try {
+//    		PreparedStatement stmt = conn.prepareStatement(query);
+//			stmt.setInt(1, numberOfGuests);
+//			stmt.setInt(2, Integer.parseInt(orderNum));
+//			rowsUpdated = stmt.executeUpdate();			
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//			return "";
+//		}
+//    	if(rowsUpdated == 0) return "an order with that number does not exist.";
+//    	return "Updating order " + orderNum + " to " + numberOfGuests + " guests";
+//	}
+//	/**
+//	 * update order's date in DB
+//	 * @param r an Update request for the date 
+//	 * @return A message to the user
+//	 */
+//	private String updateDate(Request r) {
+//		String query = r.getQuery();
+//		String orderNum = ((UpdateRequest)r).getOrderNum();
+//		String date = ((UpdateRequest)r).getDate();
+//		LocalDate orderDate = LocalDate.parse(date,formatter);
+//		int rowsUpdated = 0;
+//    	try {
+//    		PreparedStatement stmt=conn.prepareStatement(query);
+//			stmt.setDate(1, Date.valueOf(orderDate));
+//			stmt.setString(2, orderNum);
+//			rowsUpdated = stmt.executeUpdate();
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//			return "";
+//		}
+//    	//input check
+//    	if(rowsUpdated == 0) return "an order with that number does not exist.";
+//    	return "Updating order " + orderNum + " to " + date;
+//	}
 	/**
 	 * 
 	 * @param r A LoginRequest
