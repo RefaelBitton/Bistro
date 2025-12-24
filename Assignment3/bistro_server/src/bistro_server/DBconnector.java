@@ -27,6 +27,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -42,6 +43,8 @@ public class DBconnector {
     /**A map for handling a request based on it's type,
      *  and routing to the correct method */
     private HashMap<RequestType,RequestHandler> handlers; //managing requests by their Types
+    
+    
     /**
      * Constructor, initiating the connection and fields
      * */
@@ -85,23 +88,16 @@ public class DBconnector {
         Order o = ((WriteRequest) r).getOrder();
 
         try {
-            int nextCode = getNextConfirmationCode(); // increments on server
+            int nextCode = BistroServer.getConfCode();
 
-            int subId = 0;
-            try { subId = Integer.parseInt(o.getSubscriberId()); } catch (Exception ignored) {}
+            int subId = Integer.parseInt(o.getSubscriberId());
 
-            String contact = (o.getContact() == null) ? "" : o.getContact().trim();
-            if (contact.isEmpty()) return "❌ Missing contact (phone/email).";
-
+            String contact = o.getContact().trim();
             // Parse requested slot & normalize
             LocalDateTime requested = LocalDateTime
                     .parse(o.getOrderDateTime(), dateTimeFormatter)
                     .withSecond(0).withNano(0);
 
-            // Guard: working hours 11:00 <= time < 22:00 (matches your client)
-            if (!isWithinWorkingHours(requested.toLocalTime())) {
-                return "❌ Selected time is outside working hours (11:00–22:00).";
-            }
 
             // Exact slot check (date + time together)
             if (isSlotTaken(requested)) {
@@ -161,7 +157,7 @@ public class DBconnector {
     private boolean isSlotTaken(LocalDateTime requested) throws SQLException {
         String q = "SELECT 1 FROM `order` WHERE order_datetime = ? LIMIT 1";
         try (PreparedStatement stmt = conn.prepareStatement(q)) {
-            stmt.setTimestamp(1, Timestamp.valueOf(requested.withSecond(0).withNano(0))); // 🔧 CHANGED (was setObject with LocalDateTime)
+            stmt.setTimestamp(1, Timestamp.valueOf(requested.withSecond(0).withNano(0))); 
 
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -243,12 +239,6 @@ public class DBconnector {
         return set;
     }
 
-    // matches your client time generation: 11:00 <= t < 22:00
-    private boolean isWithinWorkingHours(LocalTime time) {
-        LocalTime opening = LocalTime.of(11, 0);
-        LocalTime closing = LocalTime.of(22, 0);
-        return !time.isBefore(opening) && time.isBefore(closing);
-    }
 
     private int getNextConfirmationCode() throws SQLException {
         try (Statement st = conn.createStatement();

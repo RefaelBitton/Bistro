@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import entities.Request;
 import ocsf.server.*;
@@ -12,6 +13,9 @@ public class BistroServer extends AbstractServer {
      final public static int DEFAULT_PORT = 5556;
      /**An array that holds the currently connected clients*/
      protected static List<ConnectionToClient> clients;
+
+     private static Random rand;
+
      /**A connection to the database*/
      DBconnector dbcon;
     /**
@@ -21,6 +25,7 @@ public class BistroServer extends AbstractServer {
     public BistroServer(int port) {
         super(port);
         dbcon = new DBconnector();
+        rand = new Random(1_000_000_000);
         clients = Collections.synchronizedList(new ArrayList<>());
     }
     /**
@@ -51,6 +56,10 @@ public class BistroServer extends AbstractServer {
     protected void clientDisconnected(ConnectionToClient client) {
         clients.remove(client);
         MainScreenServerController.refreshClientsLive();
+    }
+    
+    public static int getConfCode() {
+    	return rand.nextInt();
     }
 
 //    @Override

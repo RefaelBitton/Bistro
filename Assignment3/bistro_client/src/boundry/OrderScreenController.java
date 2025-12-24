@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import entities.Order;
@@ -31,6 +32,7 @@ public class OrderScreenController implements IController {
     @FXML private Button OrderBtn;
     @FXML private Button cancelBtn;
 
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     // ✅ NEW guest contact UI
     @FXML private HBox contactBox;
     @FXML private TextField contactTxt;
@@ -103,12 +105,17 @@ public class OrderScreenController implements IController {
         resultTxt.clear();
 
         try {
-            LocalDate date = orderDatePicker.getValue();
+            LocalDateTime date = LocalDateTime.parse(orderDatePicker.getValue().toString(),dateTimeFormatter);
             String time = timeComboBox.getValue();
             Integer guests = guestsComboBox.getValue();
 
             if (date == null || time == null || guests == null) {
                 throw new IllegalArgumentException();
+            }
+            // Guard: working hours 11:00 <= time < 22:00 (matches your client)
+            if(!isWithinWorkingHours(date.toLocalTime())) {
+            	
+                resultTxt.setText("❌ Selected time is outside working hours (11:00–22:00).");
             }
 
             // GUEST: must provide contact (phone OR email)
@@ -214,5 +221,11 @@ public class OrderScreenController implements IController {
 
         // Normal responses (order saved / validation / etc.)
         resultTxt.setText(result);
+    }
+    // matches your client time generation: 11:00 <= t < 22:00
+    private boolean isWithinWorkingHours(LocalTime time) {
+        LocalTime opening = LocalTime.of(11, 0);
+        LocalTime closing = LocalTime.of(22, 0);
+        return !time.isBefore(opening) && time.isBefore(closing);
     }
 }
