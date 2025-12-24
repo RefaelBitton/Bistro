@@ -49,8 +49,8 @@ public class DBconnector {
     	DateTimeFormatter.ofPattern("yyyy-MM-dd");
         try //connect DB
         {
-			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -398,6 +398,7 @@ public class DBconnector {
 	private String addNewUser(Request r) {
 		String query = r.getQuery();
 		Subscriber user = ((RegisterRequest)r).getUser();
+		System.out.println("In add new user");
 		try {
 			PreparedStatement stmt = conn.prepareStatement(query);
 			stmt.setString(1, user.getFirstName()+" "+user.getLastName());
