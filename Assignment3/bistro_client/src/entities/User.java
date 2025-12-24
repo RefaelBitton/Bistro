@@ -1,10 +1,17 @@
 package entities;
+
+import java.io.Serializable;
+
 /**
  * an abstract class describing a general user of the system
  * each user has at least an email and phone, and we use a type to distinguish
  * between different users  
  * */
-public abstract class User {
+public abstract class User implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private UserType type;
 	private String email;
 	private String phone;
