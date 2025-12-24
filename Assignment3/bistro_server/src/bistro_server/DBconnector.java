@@ -46,11 +46,11 @@ public class DBconnector {
      * Constructor, initiating the connection and fields
      * */
     public DBconnector(){
-    	formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    	DateTimeFormatter.ofPattern("yyyy-MM-dd");
         try //connect DB
         {
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -115,7 +115,7 @@ public class DBconnector {
             PreparedStatement stmt = conn.prepareStatement(r.getQuery());
 
             stmt.setInt(1, nextCode);        // order_number
-            stmt.setObject(2, requested);    // ✅ order_datetime (DATETIME) — no timezone conversion
+            stmt.setTimestamp(2, Timestamp.valueOf(requested));
             stmt.setInt(3, Integer.parseInt(o.getNumberOfGuests()));
             stmt.setInt(4, nextCode);        // confirmation_code
 
@@ -152,7 +152,8 @@ public class DBconnector {
             return "❌ Database error: " + e.getMessage();
         } catch (Exception e) {
             e.printStackTrace();
-            return "❌ Error saving order.";
+            //return "❌ Error saving order.";
+            return "❌ ERROR: " + e.getClass().getName() + " | " + e.getMessage();
         }
     }
 
@@ -160,12 +161,14 @@ public class DBconnector {
     private boolean isSlotTaken(LocalDateTime requested) throws SQLException {
         String q = "SELECT 1 FROM `order` WHERE order_datetime = ? LIMIT 1";
         try (PreparedStatement stmt = conn.prepareStatement(q)) {
-            stmt.setObject(1, requested.withSecond(0).withNano(0)); // ✅ LocalDateTime (DATETIME)
+            stmt.setTimestamp(1, Timestamp.valueOf(requested.withSecond(0).withNano(0))); // 🔧 CHANGED (was setObject with LocalDateTime)
+
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
             }
         }
     }
+
 
     /* ================= available-only suggestions ±2 hours ================= */
     private String getAvailableSlotsAround(LocalDateTime requested, int hoursRadius, int stepMinutes) throws SQLException {
