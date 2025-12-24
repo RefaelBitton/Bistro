@@ -29,8 +29,9 @@ public class BistroServer extends AbstractServer {
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
         Request r = (Request) msg;
+        System.out.println("In handleMessage before handlequeries");
         String result = dbcon.handleQueries(r);
-
+        System.out.println("In handleMessage after handlequeries");
         try {
             client.sendToClient(result); // ALWAYS send response
         } catch (IOException e) {
@@ -52,11 +53,11 @@ public class BistroServer extends AbstractServer {
         MainScreenServerController.refreshClientsLive();
     }
 
-    @Override
-    protected void clientException(ConnectionToClient client, Throwable exception) {
-        clients.remove(client);
-        MainScreenServerController.refreshClientsLive();
-    }
+//    @Override
+//    protected void clientException(ConnectionToClient client, Throwable exception) {
+//        clients.remove(client);
+//        MainScreenServerController.refreshClientsLive();
+//    }
     
     
     /**Starting the server

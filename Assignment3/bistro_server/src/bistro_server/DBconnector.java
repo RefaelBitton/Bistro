@@ -395,6 +395,7 @@ public class DBconnector {
 	private String addNewUser(Request r) {
 		String query = r.getQuery();
 		Subscriber user = ((RegisterRequest)r).getUser();
+		System.out.println("In add new user");
 		try {
 			PreparedStatement stmt = conn.prepareStatement(query);
 			stmt.setString(1, user.getFirstName()+" "+user.getLastName());
