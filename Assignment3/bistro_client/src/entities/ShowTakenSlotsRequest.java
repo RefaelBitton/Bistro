@@ -5,7 +5,7 @@ package entities;
 public class ShowTakenSlotsRequest extends Request {
 
     private static final String Q =
-            "SELECT number_of_guests FROM `order` WHERE status = 'OPEN' AND order_datetime BETWEEN ? AND ?";
+            "SELECT number_of_guests FROM `order` WHERE status = 'OPEN' AND order_datetime BETWEEN ? AND ?;";
 
     private static final long serialVersionUID = 1L;
     private int numberOfGuests;

@@ -42,7 +42,8 @@ public class DBconnector {
 	/**The connection to the Database*/
     private Connection conn;
     
-    
+    DateTimeFormatter f;
+ 
     /**
      * Constructor, initiating the connection and fields
      * */
@@ -52,6 +53,8 @@ public class DBconnector {
 			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
         	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
+            f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
         } catch (SQLException ex) {
             ex.printStackTrace();
             System.exit(1);
@@ -113,8 +116,10 @@ public class DBconnector {
     }
     public String getTakenSlots(Request r) {
     	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
-    	LocalDateTime from = LocalDateTime.parse(req.getOrderDateTime()).minusHours(1).minusMinutes(30);
-    	LocalDateTime to = LocalDateTime.parse(req.getOrderDateTime()).plusHours(1).plusMinutes(30);
+    	LocalDateTime parsed = LocalDateTime.parse(req.getOrderDateTime(), f);
+
+    	LocalDateTime from = LocalDateTime.parse(parsed.toString()).minusHours(1).minusMinutes(30);
+    	LocalDateTime to = LocalDateTime.parse(parsed.toString()).plusHours(1).plusMinutes(30);
         try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
             stmt.setTimestamp(1, Timestamp.valueOf(from));
             stmt.setTimestamp(2, Timestamp.valueOf(to));
@@ -277,7 +282,7 @@ public class DBconnector {
 	public List<Table> getAllTables() {
 		ArrayList<Table> tables = new ArrayList<>();
 		try {
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM bistro.table_info");
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table`;");
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				int id = rs.getInt("table_number");

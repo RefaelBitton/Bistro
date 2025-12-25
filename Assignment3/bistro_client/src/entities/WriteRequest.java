@@ -38,5 +38,6 @@ public class WriteRequest extends Request {
 	public String getContact() {
 		return contact;
 	}
+	
 
 }

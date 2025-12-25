@@ -4,25 +4,16 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashSet;
-
-import entities.CheckSlotRequest;
-import entities.OrderNumberRequest;
-import entities.ShowTakenSlotsRequest;
-import entities.Order;
-import entities.ReadEmailRequest;
-import entities.Subscriber;
+import entities.ReserveRequest;
 import entities.User;
 import entities.UserType;
-import entities.WriteRequest;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import entities.Subscriber;
 
 public class OrderScreenController implements IController {
 
@@ -39,20 +30,14 @@ public class OrderScreenController implements IController {
     @FXML private TextField contactTxt;
 
     private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
-
-    private boolean waitingForEmail = false;
-    private boolean waitingSlotCheck = false;
-    private boolean waitingTakenList = false;
-    private boolean waitingNextOrderNumber = false;
-
-    private LocalDate pendingDate;
-    private String pendingTime;
     private Integer pendingGuests;
     private String pendingSubscriberIdStr;
     private String pendingContact;
     private String pendingOrderDateTime;
+               
 
-    private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    
+
 
     @FXML
     public void initialize() {
@@ -116,8 +101,6 @@ public class OrderScreenController implements IController {
                 }
             }
 
-            pendingDate = date;
-            pendingTime = time;
             pendingGuests = guests;
             pendingOrderDateTime = date + " " + time + ":00";
             if (!isLoggedIn.get()) {
@@ -132,16 +115,13 @@ public class OrderScreenController implements IController {
                 
                 
                 
+            }else {
+            	pendingSubscriberIdStr = String.valueOf(((Subscriber)user).getSubscriberID());
+				pendingContact = ((Subscriber)user).getEmail();
             }
-            waitingSlotCheck = true;
-            resultTxt.setText("Checking availability...");
             
-            ClientUI.console.accept(new ShowTakenSlotsRequest(pendingGuests, pendingOrderDateTime));
+            ClientUI.console.accept(new ReserveRequest(pendingOrderDateTime, pendingGuests+"", pendingSubscriberIdStr, pendingContact));
 
-//            int subId = ((Subscriber) user).getSubscriberID();
-//            waitingForEmail = true;
-//            resultTxt.setText("Fetching subscriber email...");
-//            ClientUI.console.accept(new ReadEmailRequest(subId));
 
         } catch (Exception e) {
             resultTxt.setText("❌ Invalid input.");
@@ -166,130 +146,12 @@ public class OrderScreenController implements IController {
         isLoggedIn.set(user != null && user.getType() != UserType.GUEST);
     }
 
-    private LocalDateTime parseDT(String s) {
-        return LocalDateTime.parse(s, DT_FMT);
-    }
-
-    private LocalDateTime roundUpToNext30(LocalDateTime t) {
-        int m = t.getMinute();
-        int add = (m % 30 == 0) ? 0 : (30 - (m % 30));
-        LocalDateTime r = t.plusMinutes(add).withSecond(0).withNano(0);
-        return r;
-    }
-
-    private String buildSuggestions(LocalDate date, LocalDateTime requested, HashSet<String> taken) {
-        LocalDateTime open = LocalDateTime.of(date, LocalTime.of(11,0));
-        LocalDateTime last = LocalDateTime.of(date, LocalTime.of(21,30));
-
-        LocalDateTime from = requested.minusHours(2);
-        LocalDateTime to   = requested.plusHours(2);
-
-        if (from.isBefore(open)) from = open;
-        if (to.isAfter(last)) to = last;
-
-        if (date.equals(LocalDate.now())) {
-            LocalDateTime minToday = roundUpToNext30(LocalDateTime.now().plusHours(1));
-            if (from.isBefore(minToday)) from = minToday;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        int count = 0;
-
-        for (LocalDateTime t = from; !t.isAfter(to); t = t.plusMinutes(30)) {
-            String key = t.format(DT_FMT);
-            if (!taken.contains(key)) {
-                sb.append("• ").append(key.substring(0,16)).append("\n"); // yyyy-MM-dd HH:mm
-                if (++count == 16) break;
-            }
-        }
-        return sb.toString();
-    }
 
     @Override
     public void setResultText(Object result) {
-    	Boolean resultBool = (Boolean) result;
-        // 1) email -> then check slot
-////        if (waitingForEmail) {
-////            waitingForEmail = false;
-////
-////            if (result != null && resultStr.startsWith("EMAIL:")) {
-////                String email = resultStr.substring("EMAIL:".length()).trim();
-////                if (email.isEmpty()) {
-////                    resultTxt.setText("❌ Subscriber email not found in DB.");
-////                    return;
-////                }
-////                pendingSubscriberIdStr = String.valueOf(((Subscriber) user).getSubscriberID());
-////                pendingContact = email;
-////
-////                waitingSlotCheck = true;
-////                resultTxt.setText("Checking availability...");
-////                ClientUI.console.accept(new CheckSlotRequest(pendingOrderDateTime));
-////                return;
-////            }
-//
-//            resultTxt.setText("❌ Unexpected response:\n" + result);
-//            return;
-//        }
-
-        // 2) slot check
-        if (waitingSlotCheck) {
-            waitingSlotCheck = false;
-
-            if (resultBool) {
-                ClientUI.console.accept(new WriteRequest(pendingOrderDateTime, pendingGuests+"", pendingSubscriberIdStr, pendingContact));
-                return;
-            }
-
-            else{
-                LocalDateTime requested = parseDT(pendingOrderDateTime);
-
-                LocalDateTime open = LocalDateTime.of(pendingDate, LocalTime.of(11,0));
-                LocalDateTime last = LocalDateTime.of(pendingDate, LocalTime.of(21,30));
-
-                LocalDateTime from = requested.minusHours(1).minusMinutes(30);
-                LocalDateTime to   = requested.plusHours(1).plusMinutes(30);
-
-                if (from.isBefore(open)) from = open;
-                if (to.isAfter(last)) to = last;
-
-                if (pendingDate.equals(LocalDate.now())) {
-                    LocalDateTime minToday = roundUpToNext30(LocalDateTime.now().plusHours(1));
-                    if (from.isBefore(minToday)) from = minToday;
-                }
-
-                waitingTakenList = true;
-                //Not final, an idea
-                ClientUI.console.accept(new ShowTakenSlotsRequest(pendingGuests, from.toString()));
-                ClientUI.console.accept(new ShowTakenSlotsRequest(pendingGuests, to.toString()));
-                return;
-            }
-
-            
-        }
-
-        // Will enter here if slot is taken, from each call to ShowTakenSlotsRequest above
-        if (waitingTakenList) {
-            waitingTakenList = false;
-
-            ClientUI.console.accept(new WriteRequest(/*Should be from/to*/, pendingGuests+"", pendingSubscriberIdStr, pendingContact));
-//            HashSet<String> taken = new HashSet<>();
-//            if (result != null) {
-//                for (String line : resultStr.split("\n")) {
-//                    line = line.trim();
-//                    taken.add(line.substring(0, 19));
-//                }
-//            }
-//
-//            LocalDateTime requested = parseDT(pendingOrderDateTime);
-//            String suggestions = buildSuggestions(pendingDate, requested, taken);
-
-            if (suggestions.isEmpty()) {
-                resultTxt.setText("❌ This date and time is already taken.\nNo available slots found within ±2 hours.");
-            } else {
-                resultTxt.setText("❌ This date and time is already taken.\nAvailable slots (±2 hours):\n" + suggestions);
-            }
-            return;
-        }
-
-      }
-}
+    	System.out.println("OrderScreenController received result: " + result);
+    	String res = (String) result;
+    	resultTxt.clear();
+    	resultTxt.setText(res);
+		}
+    }
