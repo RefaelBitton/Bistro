@@ -109,8 +109,8 @@ public class TerminalScreenController implements IController {
     }
 
     @Override
-    public void setResultText(String result) {
-        terminalStatus.setText(result);
+    public void setResultText(Object result) {
+        terminalStatus.setText((String)result);
     }
 
     @Override
@@ -122,6 +122,7 @@ public class TerminalScreenController implements IController {
     void OnBackBtnClick(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
     }
-    
+
+
     
 }

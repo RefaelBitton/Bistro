@@ -39,7 +39,7 @@ public class DBconnector {
     public DBconnector(){
         try //connect DB
         {
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "123456789");
         	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -90,9 +90,6 @@ public class DBconnector {
         }
     }
     
-    /** * Handles a walk-in joining the waitlist at the terminal.
-     * Assumptions: checkImmediateAvailability(int guests) is implemented elsewhere.
-     */
     
 
 	
