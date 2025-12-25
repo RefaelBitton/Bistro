@@ -8,9 +8,6 @@ import java.io.Serializable;
  * between different users  
  * */
 public abstract class User implements Serializable{
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private UserType type;
 	private String email;
