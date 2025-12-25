@@ -19,16 +19,19 @@ import entities.RegisterRequest;
 import entities.Request;
 import entities.RequestHandler;
 import entities.RequestType;
-import entities.ShowOpenSlotsRequest;
+import entities.ShowTakenSlotsRequest;
 import entities.Subscriber;
+import entities.Table;
 import entities.WriteRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -38,8 +41,6 @@ import java.util.Set;
 public class DBconnector {
 	/**The connection to the Database*/
     private Connection conn;
-    /**formatter for parsing dates*/
-    private HashMap<RequestType,RequestHandler> handlers; //managing requests by their Types
     
     
     /**
@@ -48,7 +49,7 @@ public class DBconnector {
     public DBconnector(){
         try //connect DB
         {
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "shonv2014!");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
         	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
         } catch (SQLException ex) {
@@ -56,30 +57,13 @@ public class DBconnector {
             System.exit(1);
         }
 
-        handlers = new HashMap<>();
-        handlers.put(RequestType.WRITE_ORDER, this::addOrder);
-        handlers.put(RequestType.READ_ORDER, this::getOrder);
-        handlers.put(RequestType.READ_EMAIL, this::readEmail);
-        handlers.put(RequestType.LOGIN_REQUEST, this::checkLogin);
-        handlers.put(RequestType.REGISTER_REQUEST, this::addNewUser);
-        handlers.put(RequestType.CANCEL_REQUEST, this::cancelOrder);
-        handlers.put(RequestType.CHECK_SLOT, this::checkSlot);
-        handlers.put(RequestType.SHOW_OPEN_SLOTS, this::getTakenSlots);
-        handlers.put(RequestType.ORDER_NUMBER, this::OrderNumber);
 
     }
 
-    public String handleQueries(Object obj) {
-        Request r = (Request) obj;
-        RequestHandler handler = handlers.get(r.getType());
-        if (handler == null) return "❌ No handler for request type: " + r.getType();
-        return handler.handle(r);
-    }
 
-    private String addOrder(Request r) {
-        Order o = ((WriteRequest) r).getOrder();
-
-        try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
+    public String addOrder(Order o,String query) {
+       
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setInt(1, Integer.parseInt(o.getOrderNumber()));
             stmt.setTimestamp(2, Timestamp.valueOf(o.getOrderDateTime()));
@@ -93,6 +77,7 @@ public class DBconnector {
 
             stmt.setDate(6, Date.valueOf(o.getDateOfPlacingOrder()));
             stmt.setString(7, o.getContact());
+            stmt.setString(8, "OPEN");
 
             int rows = stmt.executeUpdate();
             if (rows == 1) {
@@ -112,7 +97,7 @@ public class DBconnector {
             return "❌ ERROR: " + e.getClass().getName() + " | " + e.getMessage();
         }
     }
-    private String checkSlot(Request r) {
+    public String checkSlot(Request r) {
         CheckSlotRequest req = (CheckSlotRequest) r;
 
         try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
@@ -126,16 +111,17 @@ public class DBconnector {
             return "ERROR:" + e.getMessage();
         }
     }
-    private String getTakenSlots(Request r) {
-        ShowOpenSlotsRequest req = (ShowOpenSlotsRequest) r;
-
+    public String getTakenSlots(Request r) {
+    	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
+    	LocalDateTime from = LocalDateTime.parse(req.getOrderDateTime()).minusHours(1).minusMinutes(30);
+    	LocalDateTime to = LocalDateTime.parse(req.getOrderDateTime()).plusHours(1).plusMinutes(30);
         try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
-            stmt.setTimestamp(1, Timestamp.valueOf(req.getFrom()));
-            stmt.setTimestamp(2, Timestamp.valueOf(req.getTo()));
+            stmt.setTimestamp(1, Timestamp.valueOf(from));
+            stmt.setTimestamp(2, Timestamp.valueOf(to));
 
             try (ResultSet rs = stmt.executeQuery()) {
                 StringBuilder sb = new StringBuilder();
-                while (rs.next()) sb.append(rs.getString(1)).append("\n");
+                while (rs.next()) sb.append(rs.getString(1)).append(",");
                 return sb.toString();
             }
             
@@ -145,24 +131,25 @@ public class DBconnector {
         }
 
     }
-    private String OrderNumber(Request r) {
-        try (PreparedStatement stmt = conn.prepareStatement(r.getQuery());
+    public String OrderNumber() {
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL(MAX(order_number), 0) + 1 AS next_num FROM `order`");
              ResultSet rs = stmt.executeQuery()) {
 
-            if (rs.next()) return "NEXT_ORDER_NUMBER:" + rs.getInt(1);
-            return "NEXT_ORDER_NUMBER:1";
+            if (rs.next()) return rs.getString(1);
+            
 
         } catch (SQLException e) {
             e.printStackTrace();
             return "ERROR:" + e.getMessage();
         }
+		return "";
     }
 
 
     /* ================= READ ORDER =================
        Make sure your ReadRequest SELECT uses order_datetime as the 2nd column.
     */
-    private String getOrder(Request r) {
+    public String getOrder(Request r) {
         String query = r.getQuery();
         String orderNum = ((ReadRequest) r).getOrderNum();
         String result = "Results:\n";
@@ -192,80 +179,33 @@ public class DBconnector {
     }
 
     /* ================= READ EMAIL ================= */
-    private String readEmail(Request r) {
-        int subId = ((ReadEmailRequest) r).getSubscriberId();
+    public String readEmail(String subId) {
 
         try {
-            PreparedStatement stmt = conn.prepareStatement(r.getQuery());
-            stmt.setInt(1, subId);
+            PreparedStatement stmt = conn.prepareStatement("SELECT email FROM `user` WHERE subscriber_id = ?");
+            stmt.setInt(1, Integer.parseInt(subId));
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
                 String email = rs.getString(1);
-                return "EMAIL:" + (email == null ? "" : email.trim());
+                return email;
             }
-            return "EMAIL:";
+            return "";
 
         } catch (SQLException e) {
             e.printStackTrace();
-            return "EMAIL_ERROR:" + e.getMessage();
+            return "";
         }
     }
 
 
    
 	/**
-	 * update number of guests in DB
-	 * @param r An UpdateRequest to handle
-	 * @return A message to the user
-	 */
-//	private String updateNumOfGuests(Request r) { 
-//		String query = r.getQuery();
-//		String orderNum = ((UpdateRequest)r).getOrderNum();
-//		int numberOfGuests = ((UpdateRequest)r).getNumberOfGuests();
-//		int rowsUpdated = 0;
-//    	try {
-//    		PreparedStatement stmt = conn.prepareStatement(query);
-//			stmt.setInt(1, numberOfGuests);
-//			stmt.setInt(2, Integer.parseInt(orderNum));
-//			rowsUpdated = stmt.executeUpdate();			
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//			return "";
-//		}
-//    	if(rowsUpdated == 0) return "an order with that number does not exist.";
-//    	return "Updating order " + orderNum + " to " + numberOfGuests + " guests";
-//	}
-//	/**
-//	 * update order's date in DB
-//	 * @param r an Update request for the date 
-//	 * @return A message to the user
-//	 */
-//	private String updateDate(Request r) {
-//		String query = r.getQuery();
-//		String orderNum = ((UpdateRequest)r).getOrderNum();
-//		String date = ((UpdateRequest)r).getDate();
-//		LocalDate orderDate = LocalDate.parse(date,formatter);
-//		int rowsUpdated = 0;
-//    	try {
-//    		PreparedStatement stmt=conn.prepareStatement(query);
-//			stmt.setDate(1, Date.valueOf(orderDate));
-//			stmt.setString(2, orderNum);
-//			rowsUpdated = stmt.executeUpdate();
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//			return "";
-//		}
-//    	//input check
-//    	if(rowsUpdated == 0) return "an order with that number does not exist.";
-//    	return "Updating order " + orderNum + " to " + date;
-//	}
-	/**
 	 * 
 	 * @param r A LoginRequest
 	 * @return The resulting string, a message or the subscriber if found
 	 */
-	private String checkLogin(Request r) {
+	public String checkLogin(Request r) {
 		String query = r.getQuery();
 		int subcriberId = ((LoginRequest)r).getId();
 		try {
@@ -296,7 +236,7 @@ public class DBconnector {
 	 * @param r a RegisterRequest to handle
 	 * @return The resulting string, message to the user
 	 */
-	private String addNewUser(Request r) {
+	public String addNewUser(Request r) {
 		String query = r.getQuery();
 		Subscriber user = ((RegisterRequest)r).getUser();
 		System.out.println("In add new user");
@@ -318,7 +258,7 @@ public class DBconnector {
 		
 	}
 	
-	private String cancelOrder(Request r) {
+	public String cancelOrder(Request r) {
 		String query = r.getQuery();
 		String orderNum = ((CancelRequest)r).getOrderNum();
 		int rowsDeleted = 0;
@@ -332,5 +272,23 @@ public class DBconnector {
 			e.printStackTrace();
 		}
 		return "order did not deleted";
+	}
+
+	public List<Table> getAllTables() {
+		ArrayList<Table> tables = new ArrayList<>();
+		try {
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM bistro.table_info");
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				int id = rs.getInt("table_number");
+				int capacity = rs.getInt("number_of_seats");
+				tables.add(new Table(id, capacity, false));
+			}
+			return tables;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 }

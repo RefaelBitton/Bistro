@@ -75,7 +75,7 @@ public class MainScreenController implements Initializable, IController {
     }
 
 	@Override
-	public void setResultText(String result) {
+	public void setResultText(Object result) {
 		return;
 	}
 }

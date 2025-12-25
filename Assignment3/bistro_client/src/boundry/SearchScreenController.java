@@ -66,8 +66,8 @@ public class SearchScreenController implements IController {
     	    alert.showAndWait();
     	}
     }
-    public void setResultText(String str) {
-    	resultsTxt.setText(str);
+    public void setResultText(Object str) {
+    	resultsTxt.setText((String)str);
     }
 
     public void setUser(User user) {

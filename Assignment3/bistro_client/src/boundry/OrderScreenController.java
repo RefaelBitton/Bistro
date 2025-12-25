@@ -10,7 +10,7 @@ import java.util.HashSet;
 
 import entities.CheckSlotRequest;
 import entities.OrderNumberRequest;
-import entities.ShowOpenSlotsRequest;
+import entities.ShowTakenSlotsRequest;
 import entities.Order;
 import entities.ReadEmailRequest;
 import entities.Subscriber;
@@ -97,6 +97,7 @@ public class OrderScreenController implements IController {
         resultTxt.clear();
 
         try {
+        	//*====================================== VALIDATIONS =============================*//
             LocalDate date = orderDatePicker.getValue();
             String time = timeComboBox.getValue();
             Integer guests = guestsComboBox.getValue();
@@ -119,7 +120,6 @@ public class OrderScreenController implements IController {
             pendingTime = time;
             pendingGuests = guests;
             pendingOrderDateTime = date + " " + time + ":00";
-
             if (!isLoggedIn.get()) {
                 String contact = (contactTxt.getText() == null) ? "" : contactTxt.getText().trim();
                 if (contact.isEmpty() || !isValidPhoneOrEmail(contact)) {
@@ -129,16 +129,19 @@ public class OrderScreenController implements IController {
                 pendingSubscriberIdStr = "0";
                 pendingContact = contact;
 
-                waitingSlotCheck = true;
-                resultTxt.setText("Checking availability...");
-                ClientUI.console.accept(new CheckSlotRequest(pendingOrderDateTime));
-                return;
+                
+                
+                
             }
+            waitingSlotCheck = true;
+            resultTxt.setText("Checking availability...");
+            
+            ClientUI.console.accept(new ShowTakenSlotsRequest(pendingGuests, pendingOrderDateTime));
 
-            int subId = ((Subscriber) user).getSubscriberID();
-            waitingForEmail = true;
-            resultTxt.setText("Fetching subscriber email...");
-            ClientUI.console.accept(new ReadEmailRequest(subId));
+//            int subId = ((Subscriber) user).getSubscriberID();
+//            waitingForEmail = true;
+//            resultTxt.setText("Fetching subscriber email...");
+//            ClientUI.console.accept(new ReadEmailRequest(subId));
 
         } catch (Exception e) {
             resultTxt.setText("❌ Invalid input.");
@@ -203,50 +206,48 @@ public class OrderScreenController implements IController {
     }
 
     @Override
-    public void setResultText(String result) {
-
+    public void setResultText(Object result) {
+    	Boolean resultBool = (Boolean) result;
         // 1) email -> then check slot
-        if (waitingForEmail) {
-            waitingForEmail = false;
-
-            if (result != null && result.startsWith("EMAIL:")) {
-                String email = result.substring("EMAIL:".length()).trim();
-                if (email.isEmpty()) {
-                    resultTxt.setText("❌ Subscriber email not found in DB.");
-                    return;
-                }
-                pendingSubscriberIdStr = String.valueOf(((Subscriber) user).getSubscriberID());
-                pendingContact = email;
-
-                waitingSlotCheck = true;
-                resultTxt.setText("Checking availability...");
-                ClientUI.console.accept(new CheckSlotRequest(pendingOrderDateTime));
-                return;
-            }
-
-            resultTxt.setText("❌ Unexpected response:\n" + result);
-            return;
-        }
+////        if (waitingForEmail) {
+////            waitingForEmail = false;
+////
+////            if (result != null && resultStr.startsWith("EMAIL:")) {
+////                String email = resultStr.substring("EMAIL:".length()).trim();
+////                if (email.isEmpty()) {
+////                    resultTxt.setText("❌ Subscriber email not found in DB.");
+////                    return;
+////                }
+////                pendingSubscriberIdStr = String.valueOf(((Subscriber) user).getSubscriberID());
+////                pendingContact = email;
+////
+////                waitingSlotCheck = true;
+////                resultTxt.setText("Checking availability...");
+////                ClientUI.console.accept(new CheckSlotRequest(pendingOrderDateTime));
+////                return;
+////            }
+//
+//            resultTxt.setText("❌ Unexpected response:\n" + result);
+//            return;
+//        }
 
         // 2) slot check
         if (waitingSlotCheck) {
             waitingSlotCheck = false;
 
-            if ("FREE".equals(result)) {
-                waitingNextOrderNumber = true;
-                resultTxt.setText("Generating order number...");
-                ClientUI.console.accept(new OrderNumberRequest());
+            if (resultBool) {
+                ClientUI.console.accept(new WriteRequest(pendingOrderDateTime, pendingGuests+"", pendingSubscriberIdStr, pendingContact));
                 return;
             }
 
-            if ("TAKEN".equals(result)) {
+            else{
                 LocalDateTime requested = parseDT(pendingOrderDateTime);
 
                 LocalDateTime open = LocalDateTime.of(pendingDate, LocalTime.of(11,0));
                 LocalDateTime last = LocalDateTime.of(pendingDate, LocalTime.of(21,30));
 
-                LocalDateTime from = requested.minusHours(2);
-                LocalDateTime to   = requested.plusHours(2);
+                LocalDateTime from = requested.minusHours(1).minusMinutes(30);
+                LocalDateTime to   = requested.plusHours(1).plusMinutes(30);
 
                 if (from.isBefore(open)) from = open;
                 if (to.isAfter(last)) to = last;
@@ -257,28 +258,30 @@ public class OrderScreenController implements IController {
                 }
 
                 waitingTakenList = true;
-                ClientUI.console.accept(new ShowOpenSlotsRequest(from.format(DT_FMT), to.format(DT_FMT)));
+                //Not final, an idea
+                ClientUI.console.accept(new ShowTakenSlotsRequest(pendingGuests, from.toString()));
+                ClientUI.console.accept(new ShowTakenSlotsRequest(pendingGuests, to.toString()));
                 return;
             }
 
-            resultTxt.setText("❌ Unexpected response:\n" + result);
-            return;
+            
         }
 
-        // 3) taken list -> suggestions (THIS IS WHERE YOUR BUG WAS: parsing/clamping)
+        // Will enter here if slot is taken, from each call to ShowTakenSlotsRequest above
         if (waitingTakenList) {
             waitingTakenList = false;
 
-            HashSet<String> taken = new HashSet<>();
-            if (result != null) {
-                for (String line : result.split("\n")) {
-                    line = line.trim();
-                    taken.add(line.substring(0, 19));
-                }
-            }
-
-            LocalDateTime requested = parseDT(pendingOrderDateTime);
-            String suggestions = buildSuggestions(pendingDate, requested, taken);
+            ClientUI.console.accept(new WriteRequest(/*Should be from/to*/, pendingGuests+"", pendingSubscriberIdStr, pendingContact));
+//            HashSet<String> taken = new HashSet<>();
+//            if (result != null) {
+//                for (String line : resultStr.split("\n")) {
+//                    line = line.trim();
+//                    taken.add(line.substring(0, 19));
+//                }
+//            }
+//
+//            LocalDateTime requested = parseDT(pendingOrderDateTime);
+//            String suggestions = buildSuggestions(pendingDate, requested, taken);
 
             if (suggestions.isEmpty()) {
                 resultTxt.setText("❌ This date and time is already taken.\nNo available slots found within ±2 hours.");
@@ -288,39 +291,5 @@ public class OrderScreenController implements IController {
             return;
         }
 
-        // 4) next order number -> build Order (with both numbers) -> WRITE
-        if (waitingNextOrderNumber) {
-            waitingNextOrderNumber = false;
-
-            if (result != null && result.startsWith("NEXT_ORDER_NUMBER:")) {
-                int orderNum = Integer.parseInt(result.substring("NEXT_ORDER_NUMBER:".length()).trim());
-                int confCode = 100000 + (orderNum);
-
-                ArrayList<String> args = new ArrayList<>();
-                args.add(String.valueOf(orderNum));
-                args.add(pendingDate.toString());
-                args.add(pendingTime);
-                args.add(String.valueOf(pendingGuests));
-                args.add(String.valueOf(confCode));
-                args.add(pendingSubscriberIdStr);
-                args.add(pendingContact);
-                Order order = new Order(args);
-
-                resultTxt.setText("Placing order...");
-                ClientUI.console.accept(new WriteRequest(order));
-                return;
-            }
-
-            resultTxt.setText("❌ Failed to generate order number.\n" + result);
-            return;
-        }
-
-        // 5) write result
-        if (result != null && result.startsWith("INTEGRITY_ERROR:")) {
-            resultTxt.setText("❌ Database constraint error:\n" + result);
-            return;
-        }
-
-        resultTxt.setText(result);
-    }
+      }
 }
