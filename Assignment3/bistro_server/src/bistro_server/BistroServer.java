@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import entities.JoinWaitlistRequest;
+import entities.LeaveWaitlistRequest;
 import entities.Order;
 import entities.Request;
 import entities.RequestHandler;
@@ -49,9 +51,10 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.LOGIN_REQUEST, dbcon::checkLogin);
         handlers.put(RequestType.REGISTER_REQUEST, dbcon::addNewUser);
         handlers.put(RequestType.CANCEL_REQUEST, dbcon::cancelOrder);
-        handlers.put(RequestType.CHECK_SLOT, dbcon::checkSlot);
         handlers.put(RequestType.GET_TAKEN_SLOTS, this::checkAvailability);
         handlers.put(RequestType.RESERVE_TABLE, this::reserveTable);
+        handlers.put(RequestType.JOIN_WAITLIST, this::handleJoinWaitlist);
+        handlers.put(RequestType.LEAVE_WAITLIST, this::handleLeaveWaitlist);
     }
     /**
      * Sending messages from client over to the database connector
@@ -175,6 +178,40 @@ public class BistroServer extends AbstractServer {
 		return waitlist.cancel(orderNumber);
 	}
     
+    private String handleJoinWaitlist(Request r) {
+        JoinWaitlistRequest req = (JoinWaitlistRequest) r;
+        Order order = req.getOrder();
+        int guests = Integer.parseInt(order.getNumberOfGuests());
+        ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, order.getOrderDateTime());
+        // 1. Check for immediate seating per requirement
+        if (checkAvailability(slotReq)) { // dummy method
+            // Seat immediately - skip waitlist
+            return "✅ Welcome! A table is available right now. Please proceed to your table.";
+        } else {
+            // 2. No immediate room -> Add to the Doubly Linked List
+            
+            // Retrieve the confirmation code from the order object
+            String confCode = order.getConfirmationCode();
+            
+            // Use the waitlist instance directly
+            BistroServer.waitlist.enqueue(order); 
+            
+            return "⏳ The restaurant is currently full. You have been added to the waiting list.\n" +
+                   "Confirmation Code: " + confCode + "\n" +
+                   "We will notify you at " + order.getContact() + " when a table is ready.";
+        }
+    }
+    private String handleLeaveWaitlist(Request r) {
+        String orderNum = ((LeaveWaitlistRequest)r).getOrderNum();
+        // Accessing the static waitlist instance in BistroServer to remove the node
+        boolean removed = BistroServer.waitlist.cancel(orderNum); 
+        
+        if (removed) {
+            return "✅ You have been removed from the waiting list.";
+        } else {
+            return "❌ Could not find a waitlist entry with that number.";
+        }
+    }
     public String reserveTable(Request r) {
     	ReserveRequest req = (ReserveRequest) r;
     	ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(
