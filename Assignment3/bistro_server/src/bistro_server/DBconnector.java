@@ -10,7 +10,6 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 
 import entities.CancelRequest;
-import entities.CheckSlotRequest;
 import entities.JoinWaitlistRequest;
 import entities.LeaveWaitlistRequest;
 import entities.LoginRequest;
@@ -52,7 +51,7 @@ public class DBconnector {
     public DBconnector(){
         try //connect DB
         {
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "123456789");
         	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -102,59 +101,8 @@ public class DBconnector {
             return "❌ ERROR: " + e.getClass().getName() + " | " + e.getMessage();
         }
     }
-    public String checkSlot(Request r) {
-        CheckSlotRequest req = (CheckSlotRequest) r;
+    
 
-        try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
-            stmt.setTimestamp(1, Timestamp.valueOf(req.getOrderDateTime()));
-    
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() ? "TAKEN" : "FREE";
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "ERROR:" + e.getMessage();
-        }
-    }
-    
-    private String handleLeaveWaitlist(Request r) {
-        String orderNum = ((LeaveWaitlistRequest)r).getOrderNum();
-        // Accessing the static waitlist instance in BistroServer to remove the node
-        boolean removed = BistroServer.waitlist.cancel(orderNum); 
-        
-        if (removed) {
-            return "✅ You have been removed from the waiting list.";
-        } else {
-            return "❌ Could not find a waitlist entry with that number.";
-        }
-    }
-    
-    /** * Handles a walk-in joining the waitlist at the terminal.
-     * Assumptions: checkImmediateAvailability(int guests) is implemented elsewhere.
-     */
-    private String handleJoinWaitlist(Request r) {
-        JoinWaitlistRequest req = (JoinWaitlistRequest) r;
-        Order order = req.getOrder();
-        int guests = Integer.parseInt(order.getNumberOfGuests());
-
-        // 1. Check for immediate seating per requirement
-        if (checkAvailability(guests)) { // dummy method
-            // Seat immediately - skip waitlist
-            return "✅ Welcome! A table is available right now. Please proceed to your table.";
-        } else {
-            // 2. No immediate room -> Add to the Doubly Linked List
-            
-            // Retrieve the confirmation code from the order object
-            String confCode = order.getConfirmationCode();
-            
-            // Use the waitlist instance directly
-            BistroServer.waitlist.enqueue(order); 
-            
-            return "⏳ The restaurant is currently full. You have been added to the waiting list.\n" +
-                   "Confirmation Code: " + confCode + "\n" +
-                   "We will notify you at " + order.getContact() + " when a table is ready.";
-        }
-    }
     
 
 	
