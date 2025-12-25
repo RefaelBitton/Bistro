@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 
 import entities.CancelRequest;
+import entities.CheckSlotRequest;
 import entities.LoginRequest;
 import entities.Order;
 import entities.ReadEmailRequest;
@@ -18,6 +19,7 @@ import entities.RegisterRequest;
 import entities.Request;
 import entities.RequestHandler;
 import entities.RequestType;
+import entities.ShowOpenSlotsRequest;
 import entities.Subscriber;
 import entities.WriteRequest;
 
@@ -27,6 +29,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -36,20 +39,16 @@ public class DBconnector {
 	/**The connection to the Database*/
     private Connection conn;
     /**formatter for parsing dates*/
-    private DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
-   /**client sends order datetime as: "yyyy-MM-dd HH:mm:ss"*/
-    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    /**A map for handling a request based on it's type,
-     *  and routing to the correct method */
     private HashMap<RequestType,RequestHandler> handlers; //managing requests by their Types
+    
+    
     /**
      * Constructor, initiating the connection and fields
      * */
     public DBconnector(){
-    	DateTimeFormatter.ofPattern("yyyy-MM-dd");
         try //connect DB
         {
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "shonv2014!");
         	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
         } catch (SQLException ex) {
@@ -64,6 +63,10 @@ public class DBconnector {
         handlers.put(RequestType.LOGIN_REQUEST, this::checkLogin);
         handlers.put(RequestType.REGISTER_REQUEST, this::addNewUser);
         handlers.put(RequestType.CANCEL_REQUEST, this::cancelOrder);
+        handlers.put(RequestType.CHECK_SLOT, this::checkSlot);
+        handlers.put(RequestType.SHOW_OPEN_SLOTS, this::getTakenSlots);
+        handlers.put(RequestType.ORDER_NUMBER, this::OrderNumber);
+
     }
 
     public String handleQueries(Object obj) {
@@ -73,80 +76,33 @@ public class DBconnector {
         return handler.handle(r);
     }
 
-    /** ================= WRITE ORDER =================
-       Uses ONLY a DATETIME column named: order_datetime
-
-       IMPORTANT: This assumes your WriteRequest query is:
-       INSERT INTO `order`
-       (order_number, order_datetime, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order, contact)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
-    */
     private String addOrder(Request r) {
         Order o = ((WriteRequest) r).getOrder();
 
-        try {
-            int nextCode = getNextConfirmationCode(); // increments on server
+        try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
+
+            stmt.setInt(1, Integer.parseInt(o.getOrderNumber()));
+            stmt.setTimestamp(2, Timestamp.valueOf(o.getOrderDateTime()));
+            stmt.setInt(3, Integer.parseInt(o.getNumberOfGuests()));
+            stmt.setInt(4, Integer.parseInt(o.getConfirmationCode()));
 
             int subId = 0;
             try { subId = Integer.parseInt(o.getSubscriberId()); } catch (Exception ignored) {}
-
-            String contact = (o.getContact() == null) ? "" : o.getContact().trim();
-            if (contact.isEmpty()) return "❌ Missing contact (phone/email).";
-
-            // Parse requested slot & normalize
-            LocalDateTime requested = LocalDateTime
-                    .parse(o.getOrderDateTime(), dateTimeFormatter)
-                    .withSecond(0).withNano(0);
-
-            // Guard: working hours 11:00 <= time < 22:00 (matches your client)
-            if (!isWithinWorkingHours(requested.toLocalTime())) {
-                return "❌ Selected time is outside working hours (11:00–22:00).";
-            }
-
-            // Exact slot check (date + time together)
-            if (isSlotTaken(requested)) {
-                String suggestions = getAvailableSlotsAround(requested, 2, 30);
-                if (suggestions.isEmpty()) {
-                    return "❌ This date and time is already taken.\nNo available slots found within ±2 hours.";
-                }
-                return "❌ This date and time is already taken.\nAvailable slots (±2 hours):\n" + suggestions;
-            }
-
-            PreparedStatement stmt = conn.prepareStatement(r.getQuery());
-
-            stmt.setInt(1, nextCode);        // order_number
-            stmt.setTimestamp(2, Timestamp.valueOf(requested));
-            stmt.setInt(3, Integer.parseInt(o.getNumberOfGuests()));
-            stmt.setInt(4, nextCode);        // confirmation_code
-
-            // Guest => NULL subscriber_id
             if (subId == 0) stmt.setNull(5, Types.INTEGER);
             else stmt.setInt(5, subId);
 
-            stmt.setDate(6, Date.valueOf(LocalDate.parse(o.getDateOfPlacingOrder(), formatter)));
-            stmt.setString(7, contact);
+            stmt.setDate(6, Date.valueOf(o.getDateOfPlacingOrder()));
+            stmt.setString(7, o.getContact());
 
             int rows = stmt.executeUpdate();
-
             if (rows == 1) {
-                return "✅ Order saved successfully!\nOrder Number: " + nextCode +
-                       "\nConfirmation Code: " + nextCode;
+                return "✅ Order saved successfully!\nOrder Number: " + o.getOrderNumber() +
+                       "\nConfirmation Code: " + o.getConfirmationCode();
             }
             return "❌ Order was not saved.";
 
         } catch (SQLIntegrityConstraintViolationException e) {
-            // UNIQUE(order_datetime) race condition safety
-            try {
-                LocalDateTime requested = LocalDateTime
-                        .parse(o.getOrderDateTime(), dateTimeFormatter)
-                        .withSecond(0).withNano(0);
-                String suggestions = getAvailableSlotsAround(requested, 2, 30);
-                if (!suggestions.isEmpty()) {
-                    return "❌ This date and time is already taken.\nAvailable slots (±2 hours):\n" + suggestions;
-                }
-            } catch (Exception ignored) {}
             return "❌ This date and time is already taken. Please choose another time.";
-
         } catch (SQLException e) {
             e.printStackTrace();
             return "❌ Database error: " + e.getMessage();
@@ -156,107 +112,52 @@ public class DBconnector {
             return "❌ ERROR: " + e.getClass().getName() + " | " + e.getMessage();
         }
     }
+    private String checkSlot(Request r) {
+        CheckSlotRequest req = (CheckSlotRequest) r;
 
-    /* ================= exact DATETIME slot check ================= */
-    private boolean isSlotTaken(LocalDateTime requested) throws SQLException {
-        String q = "SELECT 1 FROM `order` WHERE order_datetime = ? LIMIT 1";
-        try (PreparedStatement stmt = conn.prepareStatement(q)) {
-            stmt.setTimestamp(1, Timestamp.valueOf(requested.withSecond(0).withNano(0))); // 🔧 CHANGED (was setObject with LocalDateTime)
+        try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
+            stmt.setTimestamp(1, Timestamp.valueOf(req.getOrderDateTime()));
+    
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? "TAKEN" : "FREE";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "ERROR:" + e.getMessage();
+        }
+    }
+    private String getTakenSlots(Request r) {
+        ShowOpenSlotsRequest req = (ShowOpenSlotsRequest) r;
+
+        try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
+            stmt.setTimestamp(1, Timestamp.valueOf(req.getFrom()));
+            stmt.setTimestamp(2, Timestamp.valueOf(req.getTo()));
 
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
+                StringBuilder sb = new StringBuilder();
+                while (rs.next()) sb.append(rs.getString(1)).append("\n");
+                return sb.toString();
             }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "ERROR:" + e.getMessage();
+        }
+
+    }
+    private String OrderNumber(Request r) {
+        try (PreparedStatement stmt = conn.prepareStatement(r.getQuery());
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) return "NEXT_ORDER_NUMBER:" + rs.getInt(1);
+            return "NEXT_ORDER_NUMBER:1";
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "ERROR:" + e.getMessage();
         }
     }
 
-
-    /* ================= available-only suggestions ±2 hours ================= */
-    private String getAvailableSlotsAround(LocalDateTime requested, int hoursRadius, int stepMinutes) throws SQLException {
-        requested = requested.withSecond(0).withNano(0);
-        LocalDate day = requested.toLocalDate();
-
-        LocalDateTime from = requested.minusHours(hoursRadius);
-        LocalDateTime to   = requested.plusHours(hoursRadius);
-
-        // clamp to same day business hours: 11:00 <= t < 22:00
-        LocalDateTime open  = LocalDateTime.of(day, LocalTime.of(11, 0));
-        LocalDateTime close = LocalDateTime.of(day, LocalTime.of(22, 0)); // not inclusive
-
-        if (from.isBefore(open)) from = open;
-
-        // last candidate is 22:00 - stepMinutes (e.g., 21:30 for 30 mins)
-        LocalDateTime lastCandidate = close.minusMinutes(stepMinutes);
-        if (to.isAfter(lastCandidate)) to = lastCandidate;
-
-        if (from.isAfter(to)) return "";
-
-        Set<LocalDateTime> taken = getTakenSlotsInWindow(from, to);
-
-        DateTimeFormatter fmtTime = DateTimeFormatter.ofPattern("HH:mm");
-        StringBuilder sb = new StringBuilder();
-
-        for (LocalDateTime t = from; !t.isAfter(to); t = t.plusMinutes(stepMinutes)) {
-            LocalDateTime candidate = t.withSecond(0).withNano(0);
-
-            if (!isWithinWorkingHours(candidate.toLocalTime())) continue;
-
-            if (!taken.contains(candidate)) {
-                sb.append("• ")
-                  .append(candidate.toLocalDate())
-                  .append(" ")
-                  .append(candidate.toLocalTime().format(fmtTime))
-                  .append("\n");
-            }
-        }
-
-        // Limit message length (optional)
-        String[] lines = sb.toString().split("\n");
-        if (lines.length > 16) {
-            StringBuilder limited = new StringBuilder();
-            for (int i = 0; i < 16; i++) {
-                limited.append(lines[i]).append("\n");
-            }
-            return limited.toString();
-        }
-
-        return sb.toString();
-    }
-
-    private Set<LocalDateTime> getTakenSlotsInWindow(LocalDateTime from, LocalDateTime to) throws SQLException {
-        String q = "SELECT order_datetime FROM `order` WHERE order_datetime BETWEEN ? AND ?";
-
-        Set<LocalDateTime> set = new HashSet<>();
-
-        try (PreparedStatement stmt = conn.prepareStatement(q)) {
-            stmt.setObject(1, from.withSecond(0).withNano(0)); // ✅ LocalDateTime
-            stmt.setObject(2, to.withSecond(0).withNano(0));
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    LocalDateTime t = rs.getObject(1, LocalDateTime.class);
-                    if (t != null) {
-                        set.add(t.withSecond(0).withNano(0));
-                    }
-                }
-            }
-        }
-
-        return set;
-    }
-
-    // matches your client time generation: 11:00 <= t < 22:00
-    private boolean isWithinWorkingHours(LocalTime time) {
-        LocalTime opening = LocalTime.of(11, 0);
-        LocalTime closing = LocalTime.of(22, 0);
-        return !time.isBefore(opening) && time.isBefore(closing);
-    }
-
-    private int getNextConfirmationCode() throws SQLException {
-        try (Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT IFNULL(MAX(confirmation_code), 0) + 1 FROM `order`")) {
-            rs.next();
-            return rs.getInt(1);
-        }
-    }
 
     /* ================= READ ORDER =================
        Make sure your ReadRequest SELECT uses order_datetime as the 2nd column.
