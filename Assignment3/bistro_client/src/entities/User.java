@@ -7,7 +7,7 @@ import java.io.Serializable;
  * each user has at least an email and phone, and we use a type to distinguish
  * between different users  
  * */
-public abstract class User implements Serializable {
+public abstract class User implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private UserType type;
 	private String email;
