@@ -6,11 +6,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import entities.Order;
 import entities.Request;
+import entities.User;
 import ocsf.server.*;
 /**The server, extending the abstract server*/
 public class BistroServer extends AbstractServer {
      final public static int DEFAULT_PORT = 5556;
+     protected static WaitingList waitlist = new WaitingList();
      /**An array that holds the currently connected clients*/
      protected static List<ConnectionToClient> clients;
 
@@ -68,6 +71,17 @@ public class BistroServer extends AbstractServer {
 //        MainScreenServerController.refreshClientsLive();
 //    }
     
+    public void enterWaitingList(Order order) {
+    	waitlist.enqueue(order);
+    }
+    
+    public Order seatNextInWaitlist() {
+		return waitlist.dequeue();
+	}
+    
+    public boolean cancelFromWaitlist(String orderNumber) {
+		return waitlist.cancel(orderNumber);
+	}
     
     /**Starting the server
      * @param p the port to listen on
