@@ -33,6 +33,8 @@ public class OrderScreenController implements IController {
     @FXML private ComboBox<Integer> guestsComboBox;
     @FXML private TextArea resultTxt;
 
+
+    //  NEW guest contact UI
     @FXML private HBox contactBox;
     @FXML private TextField contactTxt;
 
@@ -105,7 +107,7 @@ public class OrderScreenController implements IController {
                 resultTxt.setText("❌ Selected time is outside working hours (11:00–22:00).");
                 return;
             }
-
+            
             if (date.equals(LocalDate.now())) {
                 if (LocalDateTime.of(date, chosen).isBefore(LocalDateTime.now().plusHours(1))) {
                     resultTxt.setText("❌ If ordering today, choose a time at least 1 hour from now.");
@@ -271,7 +273,7 @@ public class OrderScreenController implements IController {
             if (result != null) {
                 for (String line : result.split("\n")) {
                     line = line.trim();
-                    if (line.length() >= 19) taken.add(line.substring(0, 19));
+                    taken.add(line.substring(0, 19));
                 }
             }
 

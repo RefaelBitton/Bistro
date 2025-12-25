@@ -29,6 +29,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -39,6 +40,8 @@ public class DBconnector {
     private Connection conn;
     /**formatter for parsing dates*/
     private HashMap<RequestType,RequestHandler> handlers; //managing requests by their Types
+    
+    
     /**
      * Constructor, initiating the connection and fields
      * */
@@ -105,7 +108,8 @@ public class DBconnector {
             return "❌ Database error: " + e.getMessage();
         } catch (Exception e) {
             e.printStackTrace();
-            return "❌ Error saving order.";
+            //return "❌ Error saving order.";
+            return "❌ ERROR: " + e.getClass().getName() + " | " + e.getMessage();
         }
     }
     private String checkSlot(Request r) {
@@ -113,6 +117,7 @@ public class DBconnector {
 
         try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
             stmt.setTimestamp(1, Timestamp.valueOf(req.getOrderDateTime()));
+    
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next() ? "TAKEN" : "FREE";
             }
@@ -133,10 +138,12 @@ public class DBconnector {
                 while (rs.next()) sb.append(rs.getString(1)).append("\n");
                 return sb.toString();
             }
+            
         } catch (SQLException e) {
             e.printStackTrace();
             return "ERROR:" + e.getMessage();
         }
+
     }
     private String OrderNumber(Request r) {
         try (PreparedStatement stmt = conn.prepareStatement(r.getQuery());
@@ -150,9 +157,6 @@ public class DBconnector {
             return "ERROR:" + e.getMessage();
         }
     }
-
-
-
 
 
     /* ================= READ ORDER =================
@@ -295,6 +299,7 @@ public class DBconnector {
 	private String addNewUser(Request r) {
 		String query = r.getQuery();
 		Subscriber user = ((RegisterRequest)r).getUser();
+		System.out.println("In add new user");
 		try {
 			PreparedStatement stmt = conn.prepareStatement(query);
 			stmt.setString(1, user.getFirstName()+" "+user.getLastName());
