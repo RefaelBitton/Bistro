@@ -29,4 +29,10 @@ public abstract class Request implements Serializable {
 	public RequestType getType() {
 		return type;
 	}
+	/**
+	 * @param type the request's type
+	 * */
+	public void setType(RequestType type) {
+		this.type = type;
+	}
 }
