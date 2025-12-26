@@ -16,22 +16,27 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `table_open_bistro`
+-- Table structure for table `table`
 --
 
-DROP TABLE IF EXISTS `table_open_bistro`;
+DROP TABLE IF EXISTS `table`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `table_open_bistro` (
-  `order_number` int NOT NULL,
-  `table_number` int DEFAULT NULL,
-  `date` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`order_number`),
-  KEY `table_number_idx` (`table_number`),
-  CONSTRAINT `order_number` FOREIGN KEY (`order_number`) REFERENCES `order` (`order_number`),
-  CONSTRAINT `table_number` FOREIGN KEY (`table_number`) REFERENCES `table` (`table_number`)
+CREATE TABLE `table` (
+  `table_number` int NOT NULL,
+  `number_of_seats` int DEFAULT NULL,
+  PRIMARY KEY (`table_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `table`
+--
+
+LOCK TABLES `table` WRITE;
+/*!40000 ALTER TABLE `table` DISABLE KEYS */;
+/*!40000 ALTER TABLE `table` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -42,4 +47,4 @@ CREATE TABLE `table_open_bistro` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-16 18:53:10
+-- Dump completed on 2025-12-24 23:33:22

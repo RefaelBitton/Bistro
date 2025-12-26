@@ -28,8 +28,8 @@ public class BistroClient extends AbstractClient{
 	 */
     @Override
     protected void handleMessageFromServer(Object msg) { 
-    	String result = (String)msg;
-    	controller.setResultText(result);
+    	
+    	controller.setResultText(msg);
     }
     /**Setting the controller field whenever a screen is switched*/
     public void setController(IController controller) {

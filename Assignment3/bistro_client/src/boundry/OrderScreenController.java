@@ -2,126 +2,156 @@ package boundry;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.time.format.ResolverStyle;
-import java.util.ArrayList;
-
-import entities.Order;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import entities.ReserveRequest;
 import entities.User;
-import entities.WriteRequest;
+import entities.UserType;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import entities.Subscriber;
 
 public class OrderScreenController implements IController {
-	
-	private User user;
-	
-    DateTimeFormatter formatter;
-	@FXML
-	public void initialize() {
-		formatter =DateTimeFormatter
-	            .ofPattern("dd/MM/uuuu")
-	            .withResolverStyle(ResolverStyle.STRICT); // forces real dates
-		ClientUI.console.setController(this);
-	}
-	
-	@FXML
-    private TextField ConfirmationCodeTxt;
 
-    @FXML
-    private TextField NumberOfGuestsTxt;
+    private User user;
 
-    @FXML
-    private Button OrderBtn;
+    @FXML private DatePicker orderDatePicker;
+    @FXML private ComboBox<String> timeComboBox;
+    @FXML private ComboBox<Integer> guestsComboBox;
+    @FXML private TextArea resultTxt;
 
-    @FXML
-    private TextField OrderDateTxt;
 
-    @FXML
-    private TextField SubscriberIdTxt;
+    //  NEW guest contact UI
+    @FXML private HBox contactBox;
+    @FXML private TextField contactTxt;
 
-    @FXML
-    private TextField dateOfPlacingOrderTxt;
+    private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
+    private Integer pendingGuests;
+    private String pendingSubscriberIdStr;
+    private String pendingContact;
+    private String pendingOrderDateTime;
+               
 
-    @FXML
-    private TextField orderNumTxt;
     
-    @FXML
-    private TextArea resultTxt;
+
 
     @FXML
-    private Button cancelBtn;
-    
+    public void initialize() {
+        ClientUI.console.setController(this);
+
+        contactBox.visibleProperty().bind(isLoggedIn.not());
+        contactBox.managedProperty().bind(isLoggedIn.not());
+
+        for (int i = 1; i <= 20; i++) guestsComboBox.getItems().add(i);
+
+        LocalDate today = LocalDate.now();
+        LocalDate maxDate = today.plusMonths(1);
+
+        orderDatePicker.setDayCellFactory(dp -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                if (empty || date.isBefore(today) || date.isAfter(maxDate)) setDisable(true);
+            }
+        });
+
+        orderDatePicker.valueProperty().addListener((obs, oldDate, newDate) -> updateAvailableTimes(newDate));
+    }
+
+    private void updateAvailableTimes(LocalDate selectedDate) {
+        timeComboBox.getItems().clear();
+        if (selectedDate == null) return;
+
+        LocalTime opening = LocalTime.of(11, 0);
+        LocalTime closing = LocalTime.of(22, 0);
+        LocalDateTime nowPlusHour = LocalDateTime.now().plusHours(1);
+
+        for (LocalTime t = opening; t.isBefore(closing); t = t.plusMinutes(30)) {
+            LocalDateTime candidate = LocalDateTime.of(selectedDate, t);
+            if (selectedDate.equals(LocalDate.now()) && candidate.isBefore(nowPlusHour)) continue;
+            timeComboBox.getItems().add(t.toString()); // HH:mm
+        }
+    }
+
     @FXML
     void OnOrderClick(ActionEvent event) {
-    	ArrayList<String> args = new ArrayList<>();
-    	boolean exceptionRaised = false;
-    	int orderNum = 0;
-    	int numberOfGuests = 0;
-    	int confirmationCode = 0;
-    	int subscriberId = 0;
-    	//Input checks
-    	try {
-    		//parsing integers fields
-    		orderNum = Integer.parseInt(orderNumTxt.getText().trim());
-    		numberOfGuests = Integer.parseInt(NumberOfGuestsTxt.getText().trim());
-    		confirmationCode = Integer.parseInt(ConfirmationCodeTxt.getText().trim());
-    		subscriberId = Integer.parseInt(SubscriberIdTxt.getText().trim());
-    		if(orderNum<=0 || numberOfGuests <=0 || confirmationCode <=0 || subscriberId <=0) {
-    			exceptionRaised = true;
-    		}
-    	} catch (NumberFormatException e) { //wrong input handling
-    		exceptionRaised = true;
-    		orderNumTxt.clear();
-    		NumberOfGuestsTxt.clear();
-    		ConfirmationCodeTxt.clear();
-    		SubscriberIdTxt.clear();
-    	}
-    	//parsing date fields
-    	try {
-    		LocalDate.parse(OrderDateTxt.getText().trim(),formatter);
-    		LocalDate.parse(dateOfPlacingOrderTxt.getText().trim(),formatter);
-    	} catch (DateTimeParseException e) { //wrong input handling
-    		exceptionRaised = true;
-    		OrderDateTxt.clear();
-    		dateOfPlacingOrderTxt.clear();
-    	}
-    	if(exceptionRaised) {
-    		Alert alert = new Alert(AlertType.ERROR);
-    	    alert.setTitle("Error Occurred");
-    	    alert.setHeaderText("Input Validation Failed");
-    	    alert.setContentText("you cannot enter non-positive number or not existing date");
-    	    alert.showAndWait();
-    	}
-    	else {
-    		args.add(orderNumTxt.getText().trim());
-    		args.add(OrderDateTxt.getText().trim());
-        	args.add(NumberOfGuestsTxt.getText().trim());
-        	args.add(ConfirmationCodeTxt.getText().trim());
-        	args.add(SubscriberIdTxt.getText().trim());
-        	args.add(dateOfPlacingOrderTxt.getText().trim());
-        	WriteRequest r = new WriteRequest(new Order(args)); //creating request with the new order
-        	ClientUI.console.accept(r); //sending request to client
-        	resultTxt.setText(r.getOrder().toString()); //printing the new order details on the screen
-    	}
-    }
-    
-    @FXML
-    void onCancelClick(ActionEvent event) throws IOException {
-    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
-    }
-    
-    public void setResultText(String result) {
-    	resultTxt.setText(result);
+        resultTxt.clear();
+
+        try {
+        	//*====================================== VALIDATIONS =============================*//
+            LocalDate date = orderDatePicker.getValue();
+            String time = timeComboBox.getValue();
+            Integer guests = guestsComboBox.getValue();
+            if (date == null || time == null || guests == null) throw new IllegalArgumentException();
+
+            LocalTime chosen = LocalTime.parse(time);
+            if (chosen.isBefore(LocalTime.of(11,0)) || !chosen.isBefore(LocalTime.of(22,0))) {
+                resultTxt.setText("❌ Selected time is outside working hours (11:00–22:00).");
+                return;
+            }
+            
+            if (date.equals(LocalDate.now())) {
+                if (LocalDateTime.of(date, chosen).isBefore(LocalDateTime.now().plusHours(1))) {
+                    resultTxt.setText("❌ If ordering today, choose a time at least 1 hour from now.");
+                    return;
+                }
+            }
+
+            pendingGuests = guests;
+            pendingOrderDateTime = date + " " + time + ":00";
+            if (!isLoggedIn.get()) {
+                String contact = (contactTxt.getText() == null) ? "" : contactTxt.getText().trim();
+                if (contact.isEmpty() || !isValidPhoneOrEmail(contact)) {
+                    resultTxt.setText("❌ Guest must enter a valid phone OR email.");
+                    return;
+                }
+                pendingSubscriberIdStr = "0";
+                pendingContact = contact;
+
+                
+                
+                
+            }else {
+            	pendingSubscriberIdStr = String.valueOf(((Subscriber)user).getSubscriberID());
+				pendingContact = ((Subscriber)user).getEmail();
+            }
+            
+            ClientUI.console.accept(new ReserveRequest(pendingOrderDateTime, pendingGuests+"", pendingSubscriberIdStr, pendingContact));
+
+
+        } catch (Exception e) {
+            resultTxt.setText("❌ Invalid input.");
+        }
     }
 
+    private boolean isValidPhoneOrEmail(String s) {
+        boolean looksEmail = s.contains("@") && s.contains(".") && s.indexOf('@') > 0;
+        String digits = s.replaceAll("[^0-9]", "");
+        boolean looksPhone = digits.length() >= 9 && digits.length() <= 15;
+        return looksEmail || looksPhone;
+    }
+
+    @FXML
+    void onCancelClick(ActionEvent event) throws IOException {
+        ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
+    }
+
+    @Override
     public void setUser(User user) {
-    	this.user = user;
-    }    
-}
+        this.user = user;
+        isLoggedIn.set(user != null && user.getType() != UserType.GUEST);
+    }
+
+
+    @Override
+    public void setResultText(Object result) {
+    	System.out.println("OrderScreenController received result: " + result);
+    	String res = (String) result;
+    	resultTxt.clear();
+    	resultTxt.setText(res);
+		}
+    }

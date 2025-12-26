@@ -83,8 +83,8 @@ public class RegisterScreenController implements IController{
     }
 
 	@Override
-	public void setResultText(String result) {
-		resultTxt.setText(result);
+	public void setResultText(Object result) {
+		resultTxt.setText((String)result);
 	}
     
     public void setUser(User user) {

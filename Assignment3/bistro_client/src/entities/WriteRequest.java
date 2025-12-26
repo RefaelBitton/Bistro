@@ -5,16 +5,39 @@ package entities;
 public class WriteRequest extends Request {
 
 	private static final long serialVersionUID = 1L;
-	private Order order;
-	public WriteRequest(Order order) { //all the fields needed to write to DB when creating new order
-		super(RequestType.WRITE_ORDER ,
-        	    "INSERT INTO `order` (order_number, order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order) "
-        	  + "VALUES(?, ?, ?, ?, ?, ?);");
-		this.order = order;
-	}	
-	
-	public Order getOrder() {
-		return order;
+    private String orderDateTime;       // yyyy-MM-dd HH:mm:ss
+    private String numberOfGuests;
+    private String subscriberId;        // "0" means guest
+    private String contact;             // phone/email or subscriber email
+	public WriteRequest(String orderDateTime, String numberOfGuests, String subscriberId, String contact) {
+	    super(
+	        RequestType.WRITE_ORDER,
+	        "INSERT INTO `order` " +
+	        "(order_number, order_datetime, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order, contact, status) " +
+	        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+	    );
+	    this.orderDateTime = orderDateTime;
+	    this.numberOfGuests = numberOfGuests;
+	    this.subscriberId = subscriberId;
+	    this.contact = contact;
 	}
+	
+	public String getOrderDateTime() {
+		return orderDateTime;
+	}
+
+	public String getNumberOfGuests() {
+		return numberOfGuests;
+	}
+
+	public String getSubscriberId() {
+		return subscriberId;
+	}
+
+
+	public String getContact() {
+		return contact;
+	}
+	
 
 }

@@ -29,6 +29,7 @@ public class Console {
   	/**sending request to server*/
     public void accept(Request r) 
     {
+    	System.out.println("in accept");
     	try {
 			bc.sendToServer(r);
 		} catch (IOException e) {

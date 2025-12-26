@@ -16,21 +16,34 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `user`
+-- Table structure for table `order`
 --
 
-DROP TABLE IF EXISTS `user`;
+DROP TABLE IF EXISTS `order`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user` (
-  `full_name` varchar(100) DEFAULT NULL,
-  `subscriber_id` int NOT NULL,
-  `username` varchar(100) DEFAULT NULL,
-  `phone_number` varchar(10) DEFAULT NULL,
-  `email` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`subscriber_id`)
+CREATE TABLE `order` (
+  `order_number` int NOT NULL,
+  `order_datetime` datetime DEFAULT NULL,
+  `number_of_guests` int DEFAULT NULL,
+  `confirmation_code` int DEFAULT NULL,
+  `subscriber_id` int DEFAULT NULL,
+  `date_of_placing_order` date DEFAULT NULL,
+  `contact` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`order_number`),
+  UNIQUE KEY `order_datetime_UNIQUE` (`order_datetime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `order`
+--
+
+LOCK TABLES `order` WRITE;
+/*!40000 ALTER TABLE `order` DISABLE KEYS */;
+INSERT INTO `order` VALUES (1,'2025-12-25 13:00:00',4,1,NULL,'2025-12-24','0506421020'),(2,'2025-12-25 13:30:00',4,2,123,'2025-12-24','hav@gmail.com');
+/*!40000 ALTER TABLE `order` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -41,4 +54,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-16 18:53:10
+-- Dump completed on 2025-12-24 23:33:22

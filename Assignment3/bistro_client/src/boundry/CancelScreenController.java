@@ -64,7 +64,7 @@ public class CancelScreenController implements IController{
     	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
     }
     
-	public void setResultText(String result) {
+	public void setResultText(Object result) {
 		return;
 	}
 	
