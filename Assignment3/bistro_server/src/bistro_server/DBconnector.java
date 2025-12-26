@@ -1,6 +1,5 @@
 package bistro_server;
 
-import java.sql.*;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -8,6 +7,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 import entities.CancelRequest;
 import entities.LoginRequest;
@@ -18,11 +23,6 @@ import entities.Request;
 import entities.ShowTakenSlotsRequest;
 import entities.Subscriber;
 import entities.Table;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A class that handles all operations on the database, receiving requests and handling them 
@@ -39,8 +39,8 @@ public class DBconnector {
     public DBconnector(){
         try //connect DB
         {
-			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "123456789");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -256,7 +256,7 @@ public class DBconnector {
 		}catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return "order did not deleted";
+		return "order was not deleted";
 	}
 
 	public List<Table> getAllTables() {
@@ -275,5 +275,19 @@ public class DBconnector {
 		}
 		
 		return null;
+	}
+	public String updateDetails(Request r) {
+		String query = r.getQuery();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			int rowsUpdated = stmt.executeUpdate();
+			if(rowsUpdated > 0)
+				return "Details updated successfully.";
+			else
+				return "No details were updated.";
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "Error updating details: " + e.getMessage();
+		}
 	}
 }

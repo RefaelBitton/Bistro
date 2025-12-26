@@ -20,8 +20,8 @@ import entities.ReserveRequest;
 import entities.ShowTakenSlotsRequest;
 import entities.Table;
 import entities.WriteRequest;
-import entities.User;
-import ocsf.server.*;
+import ocsf.server.AbstractServer;
+import ocsf.server.ConnectionToClient;
 /**The server, extending the abstract server*/
 public class BistroServer extends AbstractServer {
      final public static int DEFAULT_PORT = 5556;
@@ -55,6 +55,7 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.RESERVE_TABLE, this::reserveTable);
         handlers.put(RequestType.JOIN_WAITLIST, this::handleJoinWaitlist);
         handlers.put(RequestType.LEAVE_WAITLIST, this::handleLeaveWaitlist);
+        handlers.put(RequestType.UPDATE_DETAILS, dbcon::updateDetails);
     }
     /**
      * Sending messages from client over to the database connector
