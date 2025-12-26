@@ -56,7 +56,9 @@ public class Console {
         	FXMLLoader loader = new FXMLLoader(getClass().getResource(newScreenPath));
         	Parent root = loader.load();
         	Object main = loader.getController();
-        	((IController)main).setUser(user);
+        	if (user != null) {
+        		((IController)main).setUser(user);
+        	}
         	Scene scene = new Scene(root);
         	Stage primaryStage = new Stage();
         	((Node)event.getSource()).getScene().getWindow().hide();    // Hide primary window (current window)
