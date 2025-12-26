@@ -1,24 +1,19 @@
-// ======================= boundry/OrderScreenController.java =======================
 package boundry;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-
-import entities.Order;
-import entities.ReadEmailRequest;
-import entities.Subscriber;
+import entities.ReserveRequest;
 import entities.User;
 import entities.UserType;
-import entities.WriteRequest;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import entities.Subscriber;
 
 public class OrderScreenController implements IController {
 
@@ -28,54 +23,43 @@ public class OrderScreenController implements IController {
     @FXML private ComboBox<String> timeComboBox;
     @FXML private ComboBox<Integer> guestsComboBox;
     @FXML private TextArea resultTxt;
-    @FXML private Button OrderBtn;
-    @FXML private Button cancelBtn;
 
-    // ✅ NEW guest contact UI
+
+    //  NEW guest contact UI
     @FXML private HBox contactBox;
     @FXML private TextField contactTxt;
 
-    // subscriber logged in => true, guest => false
     private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
-
-    // subscriber order flow: first READ_EMAIL then WRITE_ORDER
-    private boolean waitingForEmail = false;
-    private LocalDate pendingDate;
-    private String pendingTime;
     private Integer pendingGuests;
-    private int pendingSubscriberId;
+    private String pendingSubscriberIdStr;
+    private String pendingContact;
+    private String pendingOrderDateTime;
+               
+
+    
+
 
     @FXML
     public void initialize() {
         ClientUI.console.setController(this);
 
-        // ✅ exactly in your requested format
         contactBox.visibleProperty().bind(isLoggedIn.not());
         contactBox.managedProperty().bind(isLoggedIn.not());
 
-        // Guests: 1–20
-        for (int i = 1; i <= 20; i++) {
-            guestsComboBox.getItems().add(i);
-        }
+        for (int i = 1; i <= 20; i++) guestsComboBox.getItems().add(i);
 
         LocalDate today = LocalDate.now();
         LocalDate maxDate = today.plusMonths(1);
 
-        // Restrict date picker
         orderDatePicker.setDayCellFactory(dp -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
-                if (empty || date.isBefore(today) || date.isAfter(maxDate)) {
-                    setDisable(true);
-                }
+                if (empty || date.isBefore(today) || date.isAfter(maxDate)) setDisable(true);
             }
         });
 
-        // Update time options when date changes
-        orderDatePicker.valueProperty().addListener((obs, oldDate, newDate) -> {
-            updateAvailableTimes(newDate);
-        });
+        orderDatePicker.valueProperty().addListener((obs, oldDate, newDate) -> updateAvailableTimes(newDate));
     }
 
     private void updateAvailableTimes(LocalDate selectedDate) {
@@ -86,15 +70,10 @@ public class OrderScreenController implements IController {
         LocalTime closing = LocalTime.of(22, 0);
         LocalDateTime nowPlusHour = LocalDateTime.now().plusHours(1);
 
-        for (LocalTime time = opening; time.isBefore(closing); time = time.plusMinutes(30)) {
-            LocalDateTime candidate = LocalDateTime.of(selectedDate, time);
-
-            // Only restrict time if the date is today
-            if (selectedDate.equals(LocalDate.now())) {
-                if (candidate.isBefore(nowPlusHour)) continue;
-            }
-
-            timeComboBox.getItems().add(time.toString());
+        for (LocalTime t = opening; t.isBefore(closing); t = t.plusMinutes(30)) {
+            LocalDateTime candidate = LocalDateTime.of(selectedDate, t);
+            if (selectedDate.equals(LocalDate.now()) && candidate.isBefore(nowPlusHour)) continue;
+            timeComboBox.getItems().add(t.toString()); // HH:mm
         }
     }
 
@@ -103,53 +82,49 @@ public class OrderScreenController implements IController {
         resultTxt.clear();
 
         try {
+        	//*====================================== VALIDATIONS =============================*//
             LocalDate date = orderDatePicker.getValue();
             String time = timeComboBox.getValue();
             Integer guests = guestsComboBox.getValue();
+            if (date == null || time == null || guests == null) throw new IllegalArgumentException();
 
-            if (date == null || time == null || guests == null) {
-                throw new IllegalArgumentException();
+            LocalTime chosen = LocalTime.parse(time);
+            if (chosen.isBefore(LocalTime.of(11,0)) || !chosen.isBefore(LocalTime.of(22,0))) {
+                resultTxt.setText("❌ Selected time is outside working hours (11:00–22:00).");
+                return;
+            }
+            
+            if (date.equals(LocalDate.now())) {
+                if (LocalDateTime.of(date, chosen).isBefore(LocalDateTime.now().plusHours(1))) {
+                    resultTxt.setText("❌ If ordering today, choose a time at least 1 hour from now.");
+                    return;
+                }
             }
 
-            // GUEST: must provide contact (phone OR email)
+            pendingGuests = guests;
+            pendingOrderDateTime = date + " " + time + ":00";
             if (!isLoggedIn.get()) {
                 String contact = (contactTxt.getText() == null) ? "" : contactTxt.getText().trim();
                 if (contact.isEmpty() || !isValidPhoneOrEmail(contact)) {
                     resultTxt.setText("❌ Guest must enter a valid phone OR email.");
                     return;
                 }
+                pendingSubscriberIdStr = "0";
+                pendingContact = contact;
 
-                ArrayList<String> args = new ArrayList<>();
-                args.add(date.toString());        // 0: order date
-                args.add(time);                   // 1: time (UI only; DB may ignore)
-                args.add(guests.toString());      // 2: guests
-                args.add("0");                    // 3: subscriberId=0 (server converts to NULL)
-                args.add(contact);                // 4: contact
-
-                ClientUI.console.accept(new WriteRequest(new Order(args)));
-                return;
+                
+                
+                
+            }else {
+            	pendingSubscriberIdStr = String.valueOf(((Subscriber)user).getSubscriberID());
+				pendingContact = ((Subscriber)user).getEmail();
             }
+            
+            ClientUI.console.accept(new ReserveRequest(pendingOrderDateTime, pendingGuests+"", pendingSubscriberIdStr, pendingContact));
 
-            // SUBSCRIBER: first READ_EMAIL, then WRITE_ORDER
-            int subId = ((Subscriber) user).getSubscriberID();
-
-            waitingForEmail = true;
-            pendingDate = date;
-            pendingTime = time;
-            pendingGuests = guests;
-            pendingSubscriberId = subId;
-
-            resultTxt.setText("Fetching subscriber email...");
-            ClientUI.console.accept(new ReadEmailRequest(subId));
 
         } catch (Exception e) {
-            resultTxt.setText(
-                "❌ Invalid input.\n\n" +
-                "• Select a valid date (today – 1 month ahead)\n" +
-                "• If today: select time at least 1 hour from now\n" +
-                "• Select number of guests (1–20)\n" +
-                "• If guest: enter phone OR email"
-            );
+            resultTxt.setText("❌ Invalid input.");
         }
     }
 
@@ -167,52 +142,16 @@ public class OrderScreenController implements IController {
 
     @Override
     public void setUser(User user) {
-    	System.out.println("OrderScreen setUser() called. user=" + user +
-                " type=" + (user == null ? "null" : user.getType()));
         this.user = user;
         isLoggedIn.set(user != null && user.getType() != UserType.GUEST);
     }
 
+
     @Override
-    public void setResultText(String result) {
-
-        // If we are waiting for the subscriber email, parse it here
-        if (waitingForEmail) {
-
-            if (result != null && result.startsWith("EMAIL:")) {
-                String email = result.substring("EMAIL:".length()).trim();
-
-                waitingForEmail = false;
-
-                if (email.isEmpty()) {
-                    resultTxt.setText("❌ Subscriber email not found in DB.");
-                    return;
-                }
-
-                ArrayList<String> args = new ArrayList<>();
-                args.add(pendingDate.toString());
-                args.add(pendingTime);
-                args.add(pendingGuests.toString());
-                args.add(String.valueOf(pendingSubscriberId));
-                args.add(email); // ✅ contact = subscriber email
-
-                resultTxt.setText("Placing order...");
-                ClientUI.console.accept(new WriteRequest(new Order(args)));
-                return;
-            }
-
-            if (result != null && result.startsWith("EMAIL_ERROR:")) {
-                waitingForEmail = false;
-                resultTxt.setText("❌ Error reading email:\n" + result);
-                return;
-            }
-
-            waitingForEmail = false;
-            resultTxt.setText("❌ Unexpected response:\n" + result);
-            return;
-        }
-
-        // Normal responses (order saved / validation / etc.)
-        resultTxt.setText(result);
+    public void setResultText(Object result) {
+    	System.out.println("OrderScreenController received result: " + result);
+    	String res = (String) result;
+    	resultTxt.clear();
+    	resultTxt.setText(res);
+		}
     }
-}

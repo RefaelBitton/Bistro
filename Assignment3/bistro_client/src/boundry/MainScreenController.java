@@ -30,7 +30,7 @@ public class MainScreenController implements Initializable, IController {
     private Button viewHistoryBtn;
     
     @FXML
-    private Button waitBtn;
+    private Button terminalBtn;
     
     @FXML
     private Button changePersonalDetailsBtn;
@@ -75,7 +75,17 @@ public class MainScreenController implements Initializable, IController {
     }
 
 	@Override
-	public void setResultText(String result) {
+	public void setResultText(Object result) {
 		return;
+	}
+	
+	/**
+	 * Handled when the user clicks "Enter Terminal".
+	 * Switches the view to the Terminal GUI.
+	 */
+	@FXML
+	void onTerminalClick(ActionEvent event) throws Exception {
+	    // Navigate to the terminal screen while passing the current user context
+	    ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
 	}
 }

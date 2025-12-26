@@ -117,8 +117,8 @@ public class LoginScreenController implements IController{
      * setting the server response
      */
 	@Override
-	public void setResultText(String result) {
-		serverResponse = result;
+	public void setResultText(Object result) {
+		serverResponse = (String)result;
 		
 	}
 	

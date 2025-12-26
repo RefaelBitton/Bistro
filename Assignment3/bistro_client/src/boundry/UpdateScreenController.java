@@ -131,8 +131,8 @@ public class UpdateScreenController implements IController {
     	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
     }
     
-    public void setResultText(String result) {
-    	resultTxt.setText(result);
+    public void setResultText(Object result) {
+    	resultTxt.setText((String)result);
     }
     
     public void setUser(User user) {
