@@ -41,7 +41,7 @@ public class ClientScreenController implements IController {
 
     @FXML
     void onLogOutBtnClick(ActionEvent event) {
-		ClientUI.console.switchScreen(this, event, "/boundry/LoginScreen.fxml", null);
+		ClientUI.console.switchScreen(this, event, "/boundry/loginScreen.fxml", null);
 
     }
 
@@ -53,7 +53,7 @@ public class ClientScreenController implements IController {
 
     @FXML
     void onOrderManagementClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/OrderManagementScreen.fxml", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/AppOrderManagementScreen.fxml", user);
     }
 
 	@Override

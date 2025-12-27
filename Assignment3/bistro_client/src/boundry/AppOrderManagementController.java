@@ -35,6 +35,10 @@ public class AppOrderManagementController implements IController {
     @FXML
     private Button newOrderBtn;
 
+    @FXML
+    void initialize() {
+    	ClientUI.console.setController(this);
+    }
     
     /**
 	 * Handles the action when the back button is clicked.
