@@ -33,9 +33,6 @@ public class LoginScreenController implements IController{
     private Button guestBtn;
 
     @FXML
-    private Button logInBtn;
-
-    @FXML
     private Button registerBtn;
 
     @FXML
@@ -46,6 +43,12 @@ public class LoginScreenController implements IController{
     
     @FXML
     private Button exitBtn;
+    
+    @FXML
+    private Button terminalBtn;
+    
+    @FXML
+    private Button appBtn;
     
     /**
      * when the user clicks 'enter as guest'
@@ -84,7 +87,6 @@ public class LoginScreenController implements IController{
         		String fname = args[0].split(" ")[0];
         		String lname = args[0].split(" ")[1];
         		user = new Subscriber(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
-        		ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
         	}
         	else{
         		Alert alert = new Alert(AlertType.ERROR);
@@ -104,6 +106,19 @@ public class LoginScreenController implements IController{
     	}
     	
     }
+    
+    @FXML
+    void onTerminalClick(ActionEvent event) throws IOException, InterruptedException {
+    	onLoginClick(event);
+    	ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
+    }
+    
+    @FXML
+    void onAppClick(ActionEvent event) throws IOException, InterruptedException {
+    	onLoginClick(event);
+    	ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
+    }
+    
     /**
      * when the user clicks on 'Register'
      * @param event

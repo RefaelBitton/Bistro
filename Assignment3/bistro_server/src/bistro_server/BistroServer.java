@@ -91,6 +91,12 @@ public class BistroServer extends AbstractServer {
         MainScreenServerController.refreshClientsLive();
     }
     
+    @Override
+    protected void clientException(ConnectionToClient client, Throwable exception) {
+        System.out.println("Client exception: " + client);
+        clients.remove(client);
+        MainScreenServerController.refreshClientsLive();
+    }
 
 //    @Override
 //    protected void clientException(ConnectionToClient client, Throwable exception) {
