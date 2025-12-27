@@ -105,15 +105,7 @@ public class waitListController implements IController{
     
     @FXML
     void OnBackBtnClick(ActionEvent event) {
-    	if(user.getType() == UserType.GUEST) {
-            ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
-    	}
-    	else if(user.getType() == UserType.SUBSCRIBER) {
-    		ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
-    	}
-    	else {
-    		ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
-    	}
+        ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
     }
     
     
