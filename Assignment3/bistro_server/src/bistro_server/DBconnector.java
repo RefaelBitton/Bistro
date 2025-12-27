@@ -276,6 +276,7 @@ public class DBconnector {
 		
 		return null;
 	}
+	
 	public String updateDetails(Request r) {
 		String query = r.getQuery();
 		try {
@@ -289,5 +290,31 @@ public class DBconnector {
 			e.printStackTrace();
 			return "Error updating details: " + e.getMessage();
 		}
+	}
+	
+	public String getOrderHistory(Request r) {
+		String query = r.getQuery();
+		String result = "";
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			ResultSet rs = stmt.executeQuery();
+
+			if (!rs.next()) return "No order history found.";
+
+			do {
+				result += "Order Number: " + rs.getString("order_number") + ", ";
+				result += "Order DateTime: " + rs.getString("order_datetime") + ", ";
+				result += "Guests: " + rs.getString("number_of_guests") + ", ";
+				result += "Confirmation Code: " + rs.getString("confirmation_code") + ", ";
+				result += "Placed On: " + rs.getString("date_of_placing_order") + ", ";
+				result += "Status: " + rs.getString("status") + "\n";
+			} while (rs.next());
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "❌ Error retrieving order history.";
+		}
+
+		return result;
 	}
 }

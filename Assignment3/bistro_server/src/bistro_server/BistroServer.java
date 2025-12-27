@@ -28,8 +28,10 @@ public class BistroServer extends AbstractServer {
      protected static WaitingList waitlist = new WaitingList();
      /**An array that holds the currently connected clients*/
      protected static List<ConnectionToClient> clients;
+     /**An array that holds the tables in the restaurant*/
      private static List<Table> tables;
-    private HashMap<RequestType,RequestHandler> handlers; //managing requests by their Types
+     /**A map that holds the request handlers for each request type*/
+    private HashMap<RequestType,RequestHandler> handlers;
 
     
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -56,6 +58,7 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.JOIN_WAITLIST, this::handleJoinWaitlist);
         handlers.put(RequestType.LEAVE_WAITLIST, this::handleLeaveWaitlist);
         handlers.put(RequestType.UPDATE_DETAILS, dbcon::updateDetails);
+        handlers.put(RequestType.ORDER_HISTORY,dbcon::getOrderHistory);
     }
     /**
      * Sending messages from client over to the database connector
@@ -89,11 +92,10 @@ public class BistroServer extends AbstractServer {
     }
     
 
-//    @Override
-//    protected void clientException(ConnectionToClient client, Throwable exception) {
-//        clients.remove(client);
-//        MainScreenServerController.refreshClientsLive();
-//    }
+    @Override
+    protected void clientException(ConnectionToClient client, Throwable exception) {
+        exception.printStackTrace();
+    }
 
     /**Checking if there are available tables for the given order
 	 * @param o the order to check availability for
