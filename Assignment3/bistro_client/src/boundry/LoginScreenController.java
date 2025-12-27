@@ -76,7 +76,7 @@ public class LoginScreenController implements IController{
     	if (!exceptionRaised) {
         	LoginRequest r = new LoginRequest(id);
         	ClientUI.console.accept(r);
-        	Thread.sleep(1000);
+        	Thread.sleep(200); // wait for server response
         	if(!serverResponse.equals("Not found")) {
         		System.out.println(serverResponse);
         		String[] args = serverResponse.split(",");
@@ -84,7 +84,7 @@ public class LoginScreenController implements IController{
         		String fname = args[0].split(" ")[0];
         		String lname = args[0].split(" ")[1];
         		user = new Subscriber(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
-        		ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
+        		ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
         	}
         	else{
         		Alert alert = new Alert(AlertType.ERROR);

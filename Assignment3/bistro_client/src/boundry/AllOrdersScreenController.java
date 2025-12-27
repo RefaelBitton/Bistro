@@ -21,6 +21,11 @@ public class AllOrdersScreenController implements IController {
 
     @FXML
     private TextArea orderHistoryText;
+    
+    @FXML
+    void initialize() {
+    	ClientUI.console.setController(this);
+    }
     /**
 	 * Handles the back button click event.
 	 * Navigates to the appropriate screen based on user type.

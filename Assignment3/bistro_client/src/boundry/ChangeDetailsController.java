@@ -4,6 +4,7 @@ import entities.Subscriber;
 import entities.UpdateDetailsRequest;
 import entities.User;
 import entities.UserType;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -32,6 +33,11 @@ public class ChangeDetailsController implements IController {
     private TextField userNameTxt;
 
     @FXML
+    void initialize() {
+    	System.out.println("initialize ChangeDetailsController");
+    	ClientUI.console.setController(this);
+    }
+    @FXML
     void onBackBtnClick(ActionEvent event) {
     	if(user.getType() ==UserType.SUBSCRIBER) {
     		ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
@@ -54,10 +60,10 @@ public class ChangeDetailsController implements IController {
     		query += " phone_number = '" + phoneNumberTxt.getText() + "',";
     	}
     	if(!userNameTxt.getText().isEmpty()) {
-			query += " user_name = '" + userNameTxt.getText() + "',";
+			query += " username = '" + userNameTxt.getText() + "',";
 		}
     	query = query.substring(0, query.length() - 1); // remove last comma
-    	query += " WHERE user_id = " + user.getSubscriberID();
+    	query += " WHERE subscriber_id = " + user.getSubscriberID();
     	UpdateDetailsRequest req = new UpdateDetailsRequest(query);
     	ClientUI.console.accept(req);
     	
@@ -65,12 +71,13 @@ public class ChangeDetailsController implements IController {
 
 	@Override
 	public void setResultText(Object result) {
-		Alert alert = new Alert(AlertType.INFORMATION);
-		alert.setTitle("Update Details");
-		alert.setHeaderText(null);
-		alert.setContentText((String) result);
-		alert.showAndWait();
-	}
+		 Platform.runLater(() -> {
+		        Alert alert = new Alert(AlertType.INFORMATION);
+		        alert.setTitle("Update Details");
+		        alert.setHeaderText(null);
+		        alert.setContentText((String) result);
+		        alert.showAndWait();
+		    });	}
 
 	@Override
 	public void setUser(User user) {

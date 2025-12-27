@@ -92,10 +92,10 @@ public class BistroServer extends AbstractServer {
     }
     
 
-    @Override
-    protected void clientException(ConnectionToClient client, Throwable exception) {
-        exception.printStackTrace();
-    }
+//    @Override
+//    protected void clientException(ConnectionToClient client, Throwable exception) {
+//        exception.printStackTrace();
+//    }
 
     /**Checking if there are available tables for the given order
 	 * @param o the order to check availability for
