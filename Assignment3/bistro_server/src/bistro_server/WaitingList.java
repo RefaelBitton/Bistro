@@ -27,18 +27,20 @@ public class WaitingList {
     }
 
     /** Removes the person at the front when a table is free  */
-    public Order dequeue() {
-        if (head == null) return null;
-        Order order = head.getOrder();
-        head = head.next;
-        if (head != null) head.prev = null;
-        else tail = null;
-        size--;
-        return order;
+    public Order dequeue(WaitlistNode node) {
+    	WaitlistNode current = head;
+        while (current != null) {
+            if (current.equals(node)) {
+                removeNode(current);
+                return current.getOrder();
+            }
+            current = current.next;
+        }
+        return null;
     }
 
     /** * Handles customer cancellation from anywhere in the queue 
-     * Searches by order number or confirmation code
+     * Searches by order number
      */
     public boolean cancel(String orderNumber) {
         WaitlistNode current = head;
@@ -63,4 +65,5 @@ public class WaitingList {
     }
 
     public int getSize() { return size; }
+    public WaitlistNode getHead() { return head; }
 }

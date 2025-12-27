@@ -17,4 +17,7 @@ public class WaitlistNode {
     }
 
     public Order getOrder() { return order; }
+    public boolean equals(WaitlistNode other) {
+		return this.order.getOrderNumber().equals(other.getOrder().getOrderNumber());
+	}
 }

@@ -85,15 +85,18 @@ public class BistroServer extends AbstractServer {
     /**
      * Removing a client from the array
      */
-    @Override
-    protected void clientDisconnected(ConnectionToClient client) {
-        clients.remove(client);
-        MainScreenServerController.refreshClientsLive();
-    }
+//    @Override
+//    protected void clientDisconnected(ConnectionToClient client) {
+//        clients.remove(client);
+//        MainScreenServerController.refreshClientsLive();
+//    }
     
+    
+    /**
+     * Removing a client from the array
+     */
     @Override
     protected void clientException(ConnectionToClient client, Throwable exception) {
-        System.out.println("Client exception: " + client);
         clients.remove(client);
         MainScreenServerController.refreshClientsLive();
     }
@@ -148,22 +151,26 @@ public class BistroServer extends AbstractServer {
 	   
     }
     
-    private String handleLeaveWaitlist(Request r) {
+    /** * Handles a customer leaving the waitlist
+	 * Searches by order number
+	 * @param r the LeaveWaitlistRequest containing the order number
+	 */
+    public String handleLeaveWaitlist(Request r) {
         String orderNum = ((LeaveWaitlistRequest)r).getOrderNum();
         // Accessing the static waitlist instance in BistroServer to remove the node
         boolean removed = BistroServer.waitlist.cancel(orderNum); 
         
         if (removed) {
-            return "✅ You have been removed from the waiting list.";
+            return "You have been removed from the waiting list.";
         } else {
-            return "❌ Could not find a waitlist entry with that number.";
+            return "Could not find a waitlist entry with that number.";
         }
     }
     
     /** * Handles a walk-in joining the waitlist at the terminal.
-     * Assumptions: checkImmediateAvailability(int guests) is implemented elsewhere.
+     * @param r the JoinWaitlistRequest containing the order details
      */
-    private String handleJoinWaitlist(Request r) {
+    public String handleJoinWaitlist(Request r) {
         JoinWaitlistRequest req = (JoinWaitlistRequest) r;
         Order order = req.getOrder();
         int guests = Integer.parseInt(order.getNumberOfGuests());
@@ -171,7 +178,7 @@ public class BistroServer extends AbstractServer {
         // 1. Check for immediate seating per requirement
         if (checkAvailability(slotReq)) { // dummy method
             // Seat immediately - skip waitlist
-            return "✅ Welcome! A table is available right now. Please proceed to your table.";
+            return "Welcome! A table is available right now. Please proceed to your table.";
         } else {
             // 2. No immediate room -> Add to the Doubly Linked List
             
@@ -181,11 +188,32 @@ public class BistroServer extends AbstractServer {
             // Use the waitlist instance directly
             BistroServer.waitlist.enqueue(order); 
             
-            return "⏳ The restaurant is currently full. You have been added to the waiting list.\n" +
+            return "The restaurant is currently full. You have been added to the waiting list.\n" +
                    "Confirmation Code: " + confCode + "\n" +
                    "We will notify you at " + order.getContact() + " when a table is ready.";
         }
     }
+    
+    // will be called when a table is freed up
+    public Order seatFromWaitlist() {
+    	WaitlistNode current = waitlist.getHead();
+    	Boolean seated = false;
+    	while (!seated || current != null) {
+    		Order currentOrder = current.getOrder();
+    		seated = checkAvailability(new ShowTakenSlotsRequest(
+    				Integer.parseInt(currentOrder.getNumberOfGuests()), currentOrder.getOrderDateTime())); // orderDateTime will be current time
+    		if (!seated) {
+    			current = current.next;
+    		}
+    		else {
+    			
+    			waitlist.dequeue(current);
+    			return currentOrder;
+    		}
+
+		}
+    	return null;
+	}
     
     public Boolean addNewOrder(Request r) {
     	WriteRequest req = (WriteRequest) r;
@@ -214,17 +242,9 @@ public class BistroServer extends AbstractServer {
     	System.out.println("Order added to database.");
     	return true;
     }
-    public void enterWaitingList(Order order) {
-    	waitlist.enqueue(order);
-    }
     
-    public Order seatNextInWaitlist() {
-		return waitlist.dequeue();
-	}
+    // this function will be called when a table is freed up
     
-    public boolean cancelFromWaitlist(String orderNumber) {
-		return waitlist.cancel(orderNumber);
-	}
     
     public String reserveTable(Request r) {
     	ReserveRequest req = (ReserveRequest) r;

@@ -40,7 +40,7 @@ public class DBconnector {
         try //connect DB
         {
 			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "123456789");
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 

@@ -42,4 +42,8 @@ public class Order implements Serializable {
     public String getSubscriberId() { return subscriberId; }
     public String getDateOfPlacingOrder() { return dateOfPlacingOrder; }
     public String getContact() { return contact; }
+    
+    public boolean equals(Order ord) {
+		return this.orderNumber.equals(ord.getOrderNumber());
+	}
 }
