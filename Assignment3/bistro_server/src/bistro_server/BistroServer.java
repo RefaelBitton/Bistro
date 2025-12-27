@@ -85,11 +85,11 @@ public class BistroServer extends AbstractServer {
     /**
      * Removing a client from the array
      */
-//    @Override
-//    protected void clientDisconnected(ConnectionToClient client) {
-//        clients.remove(client);
-//        MainScreenServerController.refreshClientsLive();
-//    }
+    @Override
+    protected void clientDisconnected(ConnectionToClient client) {
+        clients.remove(client);
+        MainScreenServerController.refreshClientsLive();
+    }
     
     
     /**
