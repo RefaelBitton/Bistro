@@ -3,8 +3,10 @@ package boundry;
 import java.util.Optional;
 
 import entities.CancelRequest;
+import entities.LeaveWaitlistRequest;
 import entities.User;
 import entities.UserType;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -35,6 +37,8 @@ public class AppOrderManagementController implements IController {
     @FXML
     private Button newOrderBtn;
 
+    @FXML
+    private Button leaveWaitingListBtn;
     @FXML
     void initialize() {
     	ClientUI.console.setController(this);
@@ -85,7 +89,7 @@ public class AppOrderManagementController implements IController {
     	    alert.showAndWait();
     	}
     	else {
-        	Alert alert = new Alert(AlertType.CONFIRMATION);
+    		Alert alert = new Alert(AlertType.CONFIRMATION);
         	alert.setTitle("Confirmation");
         	alert.setHeaderText("Your order will be deleted");
         	alert.setContentText("Are you sure you want to continue?");
@@ -95,6 +99,19 @@ public class AppOrderManagementController implements IController {
             	ClientUI.console.accept(c);
         	}
     	}
+    }
+    
+    @FXML
+    void onleaveWaitingListClick(ActionEvent event) {
+    	LeaveWaitlistRequest leaveRequest = new LeaveWaitlistRequest(orderNumTxt.getText().trim());
+    		Alert alert = new Alert(AlertType.CONFIRMATION);
+        	alert.setTitle("Confirmation");
+        	alert.setHeaderText("Your order will be removed from the waiting list");
+        	alert.setContentText("Are you sure you want to continue?");
+        	Optional<ButtonType> result = alert.showAndWait();
+        	if (result.isPresent() && result.get() == ButtonType.OK) {
+        		ClientUI.console.accept(leaveRequest);
+        	}
     }
 
     @FXML
@@ -112,12 +129,17 @@ public class AppOrderManagementController implements IController {
 
 	@Override
 	public void setResultText(Object result) {
-		Alert alert = new Alert(AlertType.INFORMATION);
-	    alert.setTitle("Order Cancellation Result");
-	    alert.setHeaderText(null);
-	    alert.setContentText((String) result);
-	    alert.showAndWait();
-	}
+		Platform.runLater(()->{
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setTitle("Order Cancellation Result");
+		    alert.setHeaderText(null);
+		    alert.setContentText((String) result);
+		    alert.showAndWait();
+		}
+		);
+
+		
+	   }
 
 	@Override
 	public void setUser(User user) {
