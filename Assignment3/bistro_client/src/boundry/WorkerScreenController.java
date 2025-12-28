@@ -1,5 +1,6 @@
 package boundry;
 
+import entities.Guest;
 import entities.User;
 import entities.UserType;
 import javafx.beans.property.BooleanProperty;
@@ -37,6 +38,9 @@ public class WorkerScreenController implements IController {
 
     @FXML
     private Button waitingListBtn;
+    
+    @FXML
+    private Button registerBtn;
     
     private BooleanProperty isManager = new SimpleBooleanProperty(false);
     @FXML
@@ -90,6 +94,16 @@ public class WorkerScreenController implements IController {
     @FXML
     void onWaitingListClick(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/CurrentStateScreen", user);
+    }
+    
+    /**
+     * when the user clicks on 'Register'
+     * @param event
+     */
+    @FXML
+    void onRegisterClick(ActionEvent event) {
+    	this.user = new Guest(null, null);
+    	ClientUI.console.switchScreen(this, event, "/boundry/registerScreen.fxml",user);
     }
 
 	@Override
