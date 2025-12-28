@@ -28,16 +28,16 @@ public class TerminalOrderManagementScreen implements IController {
     private Button backBtn;
 
     @FXML
-    private Button forgotOrderBtn;
+    private Button lostMyCodeBtn;
 
     @FXML
     private TextField confCodeTxt;
 
     @FXML
-    private Button finishOrderBtn;
+    private Button leaveTableBtn;
 
     @FXML
-    private Button newOrderBtn;
+    private Button getTableBtn;
     
     @FXML
     private TextField contactTxt;
@@ -68,7 +68,7 @@ public class TerminalOrderManagementScreen implements IController {
 	 * @param event The action event triggered by clicking the cancel order button.
 	 */
     @FXML
-    void onForgotOrderClick(ActionEvent event) {
+    void onLostMyCodeClick(ActionEvent event) {
 
         String contact;
 
@@ -124,15 +124,25 @@ public class TerminalOrderManagementScreen implements IController {
 
 
     @FXML
-    void onFinishOrderClick(ActionEvent event) {
+    void onLeaveTableClick(ActionEvent event) {
     	//navigate to finish order screen (not implemented yet)
     	ClientUI.console.switchScreen(this, event, "/boundry/FinishOrderScreen.fxml", user);
 
     }
 
     @FXML
-    void onNewOrderClick(ActionEvent event) {
+    void onGetTableClick(ActionEvent event) {
+    	String confcode = confCodeTxt.getText().trim();
+    	if (confcode.isEmpty()) {
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Error Occurred");
+			alert.setContentText("Please enter your confirmation code.");
+			alert.showAndWait();
+			return;
+		}
+    	
     	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml", user);
+    	
 
     }
 
