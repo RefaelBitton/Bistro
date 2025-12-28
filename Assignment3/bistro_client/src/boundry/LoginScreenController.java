@@ -58,7 +58,7 @@ public class LoginScreenController implements IController{
     @FXML
     void onGuestClick(ActionEvent event) throws IOException {
     	this.user = new Guest(null, null);
-    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
     }
     /**
      * when the user clicks 'terminal'
@@ -68,43 +68,7 @@ public class LoginScreenController implements IController{
      */   
     @FXML
     void onTerminalClick(ActionEvent event) throws IOException, InterruptedException {
-    	int id = 0;
-    	boolean exceptionRaised = false;
-    	try {
-    		id = Integer.parseInt(subscriberId.getText().trim());
-    		exceptionRaised = id<=0;
-    	} catch (NumberFormatException e) {
-    		exceptionRaised = true;
-    	}
-    	if (!exceptionRaised) {
-        	LoginRequest r = new LoginRequest(id);
-        	ClientUI.console.accept(r);
-        	Thread.sleep(200); // wait for server response
-        	if(!serverResponse.equals("Not found")) {
-        		System.out.println(serverResponse);
-        		String[] args = serverResponse.split(",");
-        		//args = [0] - full name [1] - sub_id [2] - username [3] - phone number [4] - email
-        		String fname = args[0].split(" ")[0];
-        		String lname = args[0].split(" ")[1];
-        		user = new Subscriber(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
-            	ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
-        	}
-        	else{
-        		Alert alert = new Alert(AlertType.ERROR);
-        	    alert.setTitle("Error Occurred");
-        	    alert.setHeaderText("Input Validation Failed");
-        	    alert.setContentText("That user doesn't exist, please check your credentials");
-        	    alert.showAndWait();
-        	}    		
-    	}
-    	
-    	else {
-    		Alert alert = new Alert(AlertType.ERROR);
-    		alert.setTitle("Error Occurred");
-    		alert.setHeaderText("Input Validation Failed");
-    		alert.setContentText("an id must be a positive integer");
-    		alert.showAndWait();
-    	}
+    	login("/boundry/TerminalScreen.fxml", event);
     }
     
     /**
@@ -115,6 +79,10 @@ public class LoginScreenController implements IController{
      */ 
     @FXML
     void onAppClick(ActionEvent event) throws IOException, InterruptedException {
+    	login("/boundry/ClientScreen.fxml", event);
+    	
+    }
+    public void login(String screen,ActionEvent event) throws IOException, InterruptedException {
     	int id = 0;
     	boolean exceptionRaised = false;
     	try {
@@ -134,7 +102,7 @@ public class LoginScreenController implements IController{
         		String fname = args[0].split(" ")[0];
         		String lname = args[0].split(" ")[1];
         		user = new Subscriber(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
-            	ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
+            	ClientUI.console.switchScreen(this, event, screen, user);
         	}
         	else{
         		Alert alert = new Alert(AlertType.ERROR);
@@ -152,7 +120,8 @@ public class LoginScreenController implements IController{
     		alert.setContentText("an id must be a positive integer");
     		alert.showAndWait();
     	}
-    }
+		
+	}
     
     /**
      * setting the server response

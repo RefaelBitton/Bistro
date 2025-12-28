@@ -33,6 +33,7 @@ public class BistroServer extends AbstractServer {
      /**A map that holds the request handlers for each request type*/
     private HashMap<RequestType,RequestHandler> handlers;
     private HashMap<Table, Order> currentBistro;
+    public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 10), LocalTime.of(18, 30));
 
     
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -123,7 +124,6 @@ public class BistroServer extends AbstractServer {
     	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
     	ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(req.getNumberOfGuests(), req.getOrderDateTime());
     	String open_orders_in_time_string = dbcon.getTakenSlots(slotReq);
-    	System.out.println("Open orders in time string: " + open_orders_in_time_string);
 		String[] open_orders_in_time_array = open_orders_in_time_string.split(",");
 		ArrayList<Integer> guests_in_time = new ArrayList<>();
 		for (String s : open_orders_in_time_array) {
@@ -271,9 +271,7 @@ public class BistroServer extends AbstractServer {
 				Integer.parseInt(req.getNumberOfGuests()), req.getOrderDateTime());
     	Boolean available = checkAvailability(slotReq);
 		if (available) {
-			System.out.println("Table available, adding new order.");
 			addNewOrder(req);
-			System.out.println("Order added successfully.");
 			return "Reservation confirmed.";
 		}
 		else{

@@ -4,6 +4,7 @@ import java.util.Optional;
 import entities.CheckConfCodeRequest;
 import entities.User;
 import entities.UserType;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
@@ -14,13 +15,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
 import javafx.scene.control.ButtonBar;
 
 /**
  * Controller class for managing orders in the application.
  */
-public class TerminalOrderManagementScreen implements IController {
+public class TerminalOrderManagementScreenController implements IController {
 	private User user;
 	private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
 
@@ -40,16 +40,10 @@ public class TerminalOrderManagementScreen implements IController {
     private Button getTableBtn;
     
     @FXML
-    private TextField contactTxt;
-
-    @FXML
-    private HBox contactBox;
-    
     void initialize() {
     	ClientUI.console.setController(this);
-    	contactBox.visibleProperty().bind(isLoggedIn.not());
-        contactBox.managedProperty().bind(isLoggedIn.not());
     }
+   
     
     /**
 	 * Handles the action when the back button is clicked.
@@ -58,7 +52,7 @@ public class TerminalOrderManagementScreen implements IController {
 	 * @param event The action event triggered by clicking the back button.
 	 */
     @FXML
-    void onBackClick(ActionEvent event) {
+    void onbackClick(ActionEvent event) {
 			ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
 		}
 	
@@ -148,9 +142,14 @@ public class TerminalOrderManagementScreen implements IController {
 
 	@Override
 	public void setResultText(Object result) {
-		Alert alert = new Alert(AlertType.INFORMATION);
+		Platform.runLater(() -> 
+		{Alert alert = new Alert(AlertType.INFORMATION);
+		alert.setTitle("Error Occurred");
+        alert.setHeaderText("Invalid contact");
 	    alert.setContentText((String) result);
 	    alert.showAndWait();
+		}
+	    );
 	}
 
 	@Override
