@@ -6,20 +6,20 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="boundry.terminalOrderManagementController">
    <children>
-      <TextField fx:id="confirmationCodeText" layoutX="197.0" layoutY="89.0" />
+      <TextField fx:id="confCode" layoutX="197.0" layoutY="89.0" />
       <Text layoutX="79.0" layoutY="106.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Confirmation code: " />
       <Text layoutX="169.0" layoutY="62.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Order Management">
          <font>
             <Font size="30.0" />
          </font>
       </Text>
-      <TextField fx:id="emailText" layoutX="198.0" layoutY="124.0" />
+      <TextField fx:id="email" layoutX="198.0" layoutY="124.0" />
       <Text layoutX="153.0" layoutY="141.0" strokeType="OUTSIDE" strokeWidth="0.0" text="email:" />
-      <Button fx:id="lostMyCodeBtn" layoutX="153.0" layoutY="200.0" mnemonicParsing="false" onAction="#onLostMyCodeClick" text="Lost My Code" />
-      <Button fx:id="leaveTableBtn" layoutX="260.0" layoutY="200.0" mnemonicParsing="false" onAction="#onLeaveTableClick" text="Leave Table" />
-      <Button fx:id="getTableBtn" layoutX="363.0" layoutY="200.0" mnemonicParsing="false" onAction="#onGetTableClick" text="Get Table" />
-      <Button fx:id="backBtn" layoutX="279.0" layoutY="244.0" mnemonicParsing="false" onAction="#onbackClick" text="Back" />
+      <Button fx:id="lostMyCodeBtn" layoutX="153.0" layoutY="200.0" mnemonicParsing="false" text="Lost My Code" />
+      <Button fx:id="leaveTableBtn" layoutX="260.0" layoutY="200.0" mnemonicParsing="false" text="Leave Table" />
+      <Button fx:id="getTableBtn" layoutX="363.0" layoutY="200.0" mnemonicParsing="false" text="Get Table" />
+      <Button fx:id="backBtn" layoutX="279.0" layoutY="244.0" mnemonicParsing="false" onAction="#OnBackClick" text="Back" />
    </children>
 </AnchorPane>

@@ -15,15 +15,15 @@ import java.util.ArrayList;
 
 public class TerminalScreenController implements IController {
     private User user;
-
     
-
+    @FXML private Button haveOrderBtn;
+    @FXML private Button dontHaveOrderBtn;
+    @FXML private Button logOutBtn;
+  
     @FXML
     public void initialize() {
         ClientUI.console.setController(this);
     }
-
-    
 
     @Override
     public void setResultText(Object result) {
@@ -36,10 +36,17 @@ public class TerminalScreenController implements IController {
     }
     
     @FXML
+    void onHaveOrderClick(ActionEvent event) {
+    	ClientUI.console.switchScreen(this, event, "/boundry/terminalOrderManagementScreen.fxml",user);
+    }
+    
+    @FXML
+    void onDontHaveOrderClick(ActionEvent event) {
+    	ClientUI.console.switchScreen(this, event, "/boundry/ImmidiateArrival.fxml",user);
+    }
+    
+    @FXML
     void OnLogoutClick(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/loginScreen.fxml",null);
-    }
-
-
-    
+    }    
 }

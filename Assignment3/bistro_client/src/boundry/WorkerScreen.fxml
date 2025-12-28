@@ -5,7 +5,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="boundry.WorkerScreenController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="boundry.WorkerScreenController">
    <children>
       <Text layoutX="197.0" layoutY="64.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Workers Screen">
          <font>
@@ -19,7 +19,8 @@
       <Button fx:id="reportBtn" layoutX="261.0" layoutY="165.0" mnemonicParsing="false" onAction="#onReportClick" text="Reports" />
       <Button fx:id="orderBtn" layoutX="430.0" layoutY="165.0" mnemonicParsing="false" onAction="#onNewOrderBtn" text="New Or Existing Order" />
       <Button fx:id="subscriberDetailsBtn" layoutX="76.0" layoutY="227.0" mnemonicParsing="false" onAction="#onSubscriberDetailsClick" text="Subscribers Details" />
-      <Button fx:id="logOutBtn" layoutX="264.0" layoutY="227.0" mnemonicParsing="false" onAction="#onLogOutClick" text="Log Out" />
+      <Button fx:id="logOutBtn" layoutX="261.0" layoutY="295.0" mnemonicParsing="false" onAction="#onLogOutClick" text="Log Out" />
       <Button fx:id="bistroManagementBtn" layoutX="430.0" layoutY="227.0" mnemonicParsing="false" onAction="#onBistroManagementClick" text="Bistro Management" />
+      <Button fx:id="registerBtn" layoutX="261.0" layoutY="227.0" mnemonicParsing="false" onAction="#onRegisterClick" text="Register" />
    </children>
 </AnchorPane>
