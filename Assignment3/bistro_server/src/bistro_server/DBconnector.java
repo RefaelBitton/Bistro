@@ -41,7 +41,7 @@ public class DBconnector {
         try //connect DB
         {
 			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "shonv2014!");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -331,6 +331,56 @@ public class DBconnector {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return "❌ Error retrieving order history.";
+		}
+
+		return result;
+	}
+	public String getAllActiveOrders(Request r) {
+		String query = r.getQuery();
+		String result = "";
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			ResultSet rs = stmt.executeQuery();
+
+			if (!rs.next()) return "No active orders found.";
+
+			do {
+				result += "Order Number: " + rs.getString("order_number") + ", ";
+				result += "Order DateTime: " + rs.getString("order_datetime") + ", ";
+				result += "Guests: " + rs.getString("number_of_guests") + ", ";
+				result += "Confirmation Code: " + rs.getString("confirmation_code") + ", ";
+				result += "Subscriber ID: " + rs.getString("subscriber_id") + ", ";
+				result += "Placed On: " + rs.getString("date_of_placing_order") + ", ";
+				result += "Contact: " + rs.getString("contact") + ", ";
+				result += "Status: " + rs.getString("status") + "\n";
+			} while (rs.next());
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "❌ Error retrieving active orders.";
+		}
+		return result;
+	}
+	public String getAllSubscribers(Request r) {
+		String query = r.getQuery();
+		String result = "";
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			ResultSet rs = stmt.executeQuery();
+
+			if (!rs.next()) return "No subscribers found.";
+
+			do {
+				result += "Subscriber ID: " + rs.getString("subscriber_id") + ", ";
+				result += "Name: " + rs.getString("full_name") + ", ";
+				result += "Username: " + rs.getString("username") + ", ";
+				result += "Phone: " + rs.getString("phone_number") + ", ";
+				result += "Email: " + rs.getString("email") + "\n";
+			} while (rs.next());
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "❌ Error retrieving subscribers.";
 		}
 
 		return result;

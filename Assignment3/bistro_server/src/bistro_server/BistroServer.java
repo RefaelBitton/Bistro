@@ -65,6 +65,8 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.UPDATE_DETAILS, dbcon::updateDetails);
         handlers.put(RequestType.ORDER_HISTORY,dbcon::getOrderHistory);
         handlers.put(RequestType.CHECK_CONFCODE, dbcon::checkConfCode);
+        handlers.put(RequestType.GET_ALL_ACTIVE_ORDERS, dbcon::getAllActiveOrders);
+        handlers.put(RequestType.GET_ALL_SUBSCRIBERS, dbcon::getAllSubscribers);
     }
     /**
      * Sending messages from client over to the database connector
@@ -91,11 +93,11 @@ public class BistroServer extends AbstractServer {
     /**
      * Removing a client from the array
      */
-//    @Override
-//    protected void clientDisconnected(ConnectionToClient client) {
-//        clients.remove(client);
-//        MainScreenServerController.refreshClientsLive();
-//    }
+    @Override
+    protected void clientDisconnected(ConnectionToClient client) {
+        clients.remove(client);
+        MainScreenServerController.refreshClientsLive();
+    }
     
     
     /**
@@ -179,50 +181,60 @@ public class BistroServer extends AbstractServer {
     
     public String handleJoinWaitlist(Request r) {
         JoinWaitlistRequest req = (JoinWaitlistRequest) r;
-        Order order = req.getOrder();
-        int guests = Integer.parseInt(order.getNumberOfGuests());
-        ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, order.getOrderDateTime());
-        // 1. Check for immediate seating per requirement
-        if (checkAvailability(slotReq)) { // dummy method
-            // Seat immediately - skip waitlist
-            return "Welcome! A table is available right now. Please proceed to your table.";
-        } else {
-            // 2. No immediate room -> Add to the Doubly Linked List
-            
-            // Retrieve the confirmation code from the order object
-            String confCode = order.getConfirmationCode();
-            
-            // Use the waitlist instance directly
-            BistroServer.waitlist.enqueue(order); 
-            
-            return "The restaurant is currently full. You have been added to the waiting list.\n" +
-                   "Confirmation Code: " + confCode + "\n" +
-                   "We will notify you at " + order.getContact() + " when a table is ready.";
+        int guests = Integer.parseInt(req.getNumberOfGuests());
+        ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, req.getOrderDateTime());
+
+        // 1. Check for immediate seating using existing logic
+        if (checkAvailability(slotReq)) { 
+        	addNewOrder(new WriteRequest(
+        			req.getOrderDateTime(),
+        			req.getNumberOfGuests(),
+        			req.getSubscriberId(),
+        			req.getContact()
+        		));
+            return "SUCCESS: Table is ready! Please proceed to your table.";
+        } 
+
+        // 2. If no seats and user hasn't confirmed via popup yet
+        if (!req.isWaitlistEntry()) {
+            return "PROMPT: NO_SEATS_FOUND";
         }
+
+        
+        Order waitlistOrder = addNewOrder(new WriteRequest(
+			req.getOrderDateTime(),
+			req.getNumberOfGuests(),
+			req.getSubscriberId(),
+			req.getContact()
+		));
+        String orderNum = waitlistOrder.getOrderNumber();
+        // Add to the DLL queue
+        BistroServer.waitlist.enqueue(waitlistOrder); 
+        
+        return "The restaurant is full. You've been added to the waitlist.\n" +
+               "Order Number: " + orderNum + "\n" +
+               "Confirmation Code: " + waitlistOrder.getConfirmationCode();
     }
     
     // will be called when a table is freed up
     public Order seatFromWaitlist() {
-    	WaitlistNode current = waitlist.getHead();
-    	Boolean seated = false;
-    	while (!seated || current != null) {
-    		Order currentOrder = current.getOrder();
-    		seated = checkAvailability(new ShowTakenSlotsRequest(
-    				Integer.parseInt(currentOrder.getNumberOfGuests()), currentOrder.getOrderDateTime())); // orderDateTime will be current time
-    		if (!seated) {
-    			current = current.next;
-    		}
-    		else {
-    			
-    			waitlist.dequeue(current);
-    			return currentOrder;
-    		}
-
-		}
-    	return null;
-	}
+        // 1. Standard for-each loop made possible by implementing Iterable
+        for (Order currentOrder : waitlist) {
+            int guests = Integer.parseInt(currentOrder.getNumberOfGuests());
+            
+            // 2. Check if this specific order fits current availability
+            ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, currentOrder.getOrderDateTime());
+            if (checkAvailability(slotReq)) {
+                // 3. Remove this specific order from the list and return it
+                waitlist.cancel(currentOrder.getOrderNumber());
+                return currentOrder;
+            }
+            // If not a fit, the iterator automatically moves to the next node
+        }
+        return null; // No one currently in the waitlist fits the free spot
+    }
     
-    public Boolean addNewOrder(Request r) {
+    public Order addNewOrder(Request r) {
     	WriteRequest req = (WriteRequest) r;
     	System.out.println("Adding new order for subscriber ID: " + req.getSubscriberId());
     	String email;
@@ -247,7 +259,7 @@ public class BistroServer extends AbstractServer {
     	Order o = new Order(args);
     	dbcon.addOrder(o,req.getQuery());
     	System.out.println("Order added to database.");
-    	return true;
+    	return o;
     }
     
     // this function will be called when a table is freed up
