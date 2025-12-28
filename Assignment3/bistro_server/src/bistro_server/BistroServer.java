@@ -59,6 +59,8 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.LEAVE_WAITLIST, this::handleLeaveWaitlist);
         handlers.put(RequestType.UPDATE_DETAILS, dbcon::updateDetails);
         handlers.put(RequestType.ORDER_HISTORY,dbcon::getOrderHistory);
+        handlers.put(RequestType.GET_ALL_ACTIVE_ORDERS, dbcon::getAllActiveOrders);
+        handlers.put(RequestType.GET_ALL_SUBSCRIBERS, dbcon::getAllSubscribers);
     }
     /**
      * Sending messages from client over to the database connector
