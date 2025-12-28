@@ -43,5 +43,18 @@ public class Table implements Serializable, Comparable<Table> {
 		else
 		return 0;
 	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Table other = (Table) obj;
+		if (id != other.getId())
+			return false;
+		return true;
+	}
 	
 }

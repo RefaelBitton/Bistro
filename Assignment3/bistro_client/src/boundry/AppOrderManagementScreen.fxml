@@ -16,11 +16,12 @@
             <Font size="30.0" />
          </font>
       </Text>
-      <Button fx:id="cancelOrderBtn" layoutX="326.0" layoutY="258.0" mnemonicParsing="false" onAction="#onCancelOrderClick" text="Cancel an Order" />
-      <Button fx:id="finishOrderBtn" layoutX="104.0" layoutY="258.0" mnemonicParsing="false" onAction="#onFinishOrderClick" text="Pay For Your Order" />
+      <Button fx:id="cancelOrderBtn" layoutX="367.0" layoutY="258.0" mnemonicParsing="false" onAction="#onCancelOrderClick" text="Cancel an Order" />
+      <Button fx:id="finishOrderBtn" layoutX="32.0" layoutY="258.0" mnemonicParsing="false" onAction="#onFinishOrderClick" text="Pay For Your Order" />
       <TextField fx:id="confCodeTxt" layoutX="279.0" layoutY="189.0" />
       <Label layoutX="14.0" layoutY="193.0" text="Confirmation Code (For paying or cancelling):" />
       <TextField fx:id="orderNumTxt" layoutX="279.0" layoutY="219.0" />
       <Label layoutX="14.0" layoutY="223.0" text="Order Number (For paying or cancelling):" />
+      <Button fx:id="leaveWaitingListBtn" layoutX="115.0" layoutY="297.0" mnemonicParsing="false" onAction="#onleaveWaitingListClick" prefHeight="34.0" prefWidth="300.0" text="Leave Waiting List (Only Order Number Needed)" />
    </children>
 </AnchorPane>

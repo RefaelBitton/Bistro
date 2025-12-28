@@ -32,7 +32,13 @@ public class MainScreenServerController {
         instance = this;
         refreshClientsText();
     }
-
+    public void updateTxt(String msg) {
+		if (instance == null) return;
+		Platform.runLater(() -> {
+			String currentText = instance.resultTxt.getText();
+			instance.resultTxt.setText(currentText + "\n" + msg);
+		});
+	}
     public static void refreshClientsLive() {
         if (instance == null) return;
         Platform.runLater(() -> instance.refreshClientsText());

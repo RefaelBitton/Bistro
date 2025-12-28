@@ -128,7 +128,7 @@ public class OrderScreenController implements IController {
         }
     }
 
-    private boolean isValidPhoneOrEmail(String s) {
+    public static boolean isValidPhoneOrEmail(String s) {
         boolean looksEmail = s.contains("@") && s.contains(".") && s.indexOf('@') > 0;
         String digits = s.replaceAll("[^0-9]", "");
         boolean looksPhone = digits.length() >= 9 && digits.length() <= 15;
