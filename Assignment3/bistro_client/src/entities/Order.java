@@ -24,7 +24,6 @@ public class Order implements Serializable {
     public Order(ArrayList<String> args) {
     	this.orderNumber = args.get(0);
         this.orderDateTime =args.get(1); 
-
         this.numberOfGuests = args.get(2);
         this.confirmationCode = args.get(3);
         this.subscriberId = args.get(4);
@@ -42,4 +41,9 @@ public class Order implements Serializable {
     public String getSubscriberId() { return subscriberId; }
     public String getDateOfPlacingOrder() { return dateOfPlacingOrder; }
     public String getContact() { return contact; }
+    
+    @Override
+    public boolean equals(Object ord) {
+		return this.orderNumber.equals(((Order)ord).getOrderNumber());
+	}
 }

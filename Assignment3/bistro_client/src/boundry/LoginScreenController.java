@@ -33,9 +33,6 @@ public class LoginScreenController implements IController{
     private Button guestBtn;
 
     @FXML
-    private Button logInBtn;
-
-    @FXML
     private Button registerBtn;
 
     @FXML
@@ -47,6 +44,12 @@ public class LoginScreenController implements IController{
     @FXML
     private Button exitBtn;
     
+    @FXML
+    private Button terminalBtn;
+    
+    @FXML
+    private Button appBtn;
+    
     /**
      * when the user clicks 'enter as guest'
      * @param event
@@ -55,16 +58,31 @@ public class LoginScreenController implements IController{
     @FXML
     void onGuestClick(ActionEvent event) throws IOException {
     	this.user = new Guest(null, null);
-    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
     }
     /**
-     * when the user clicks 'login'
+     * when the user clicks 'terminal'
      * @param event
      * @throws IOException
      * @throws InterruptedException
-     */
+     */   
     @FXML
-    void onLoginClick(ActionEvent event) throws IOException, InterruptedException {
+    void onTerminalClick(ActionEvent event) throws IOException, InterruptedException {
+    	login("/boundry/TerminalScreen.fxml", event);
+    }
+    
+    /**
+     * when the user clicks 'App'
+     * @param event
+     * @throws IOException
+     * @throws InterruptedException
+     */ 
+    @FXML
+    void onAppClick(ActionEvent event) throws IOException, InterruptedException {
+    	login("/boundry/ClientScreen.fxml", event);
+    	
+    }
+    public void login(String screen,ActionEvent event) throws IOException, InterruptedException {
     	int id = 0;
     	boolean exceptionRaised = false;
     	try {
@@ -76,7 +94,7 @@ public class LoginScreenController implements IController{
     	if (!exceptionRaised) {
         	LoginRequest r = new LoginRequest(id);
         	ClientUI.console.accept(r);
-        	Thread.sleep(1000);
+        	Thread.sleep(200); // wait for server response
         	if(!serverResponse.equals("Not found")) {
         		System.out.println(serverResponse);
         		String[] args = serverResponse.split(",");
@@ -84,7 +102,7 @@ public class LoginScreenController implements IController{
         		String fname = args[0].split(" ")[0];
         		String lname = args[0].split(" ")[1];
         		user = new Subscriber(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
-        		ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
+            	ClientUI.console.switchScreen(this, event, screen, user);
         	}
         	else{
         		Alert alert = new Alert(AlertType.ERROR);
@@ -102,17 +120,9 @@ public class LoginScreenController implements IController{
     		alert.setContentText("an id must be a positive integer");
     		alert.showAndWait();
     	}
-    	
-    }
-    /**
-     * when the user clicks on 'Register'
-     * @param event
-     */
-    @FXML
-    void onRegisterClick(ActionEvent event) {
-    	this.user = new Guest(null, null);
-    	ClientUI.console.switchScreen(this, event, "/boundry/registerScreen.fxml",user);
-    }
+		
+	}
+    
     /**
      * setting the server response
      */

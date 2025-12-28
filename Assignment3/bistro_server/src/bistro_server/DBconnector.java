@@ -1,6 +1,5 @@
 package bistro_server;
 
-import java.sql.*;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -8,33 +7,23 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 import entities.CancelRequest;
-import entities.JoinWaitlistRequest;
-import entities.LeaveWaitlistRequest;
+import entities.CheckConfCodeRequest;
 import entities.LoginRequest;
 import entities.Order;
-import entities.ReadEmailRequest;
 import entities.ReadRequest;
 import entities.RegisterRequest;
 import entities.Request;
-import entities.RequestHandler;
-import entities.RequestType;
 import entities.ShowTakenSlotsRequest;
 import entities.Subscriber;
 import entities.Table;
-import entities.WriteRequest;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
 
 /**
  * A class that handles all operations on the database, receiving requests and handling them 
@@ -51,8 +40,8 @@ public class DBconnector {
     public DBconnector(){
         try //connect DB
         {
-			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "123456789");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "shonv2014!");
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -62,6 +51,30 @@ public class DBconnector {
         }
 
 
+    }
+    public  String checkConfCode(Request r) {
+    	CheckConfCodeRequest req = (CheckConfCodeRequest) r;
+    	String res="";
+    	try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
+    		stmt.setString(1, req.getcontact());
+    		stmt.setTimestamp(2, Timestamp.valueOf(BistroServer.dateTime));
+    		stmt.setTimestamp(3, Timestamp.valueOf(BistroServer.dateTime));
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				res+=rs.getString(1)+"\n";
+			} 
+			if(res.equals("")) {
+				return "no confiramtion codes found for your contact";
+			}
+			else {
+				ServerUI.updateInScreen("your relevent confiramtion codes for this contact are:\n"+res);
+			}
+			return "potential confiramtion codes has been sent to your contact";
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "ERROR:" + e.getMessage();
+		}
+		
     }
 
 
@@ -102,7 +115,6 @@ public class DBconnector {
         }
     }
     
-
     
 
 	
@@ -269,13 +281,13 @@ public class DBconnector {
 		}catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return "order did not deleted";
+		return "order was not deleted";
 	}
 
 	public List<Table> getAllTables() {
 		ArrayList<Table> tables = new ArrayList<>();
 		try {
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table`;");
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `tables`;");
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				int id = rs.getInt("table_number");
@@ -288,5 +300,96 @@ public class DBconnector {
 		}
 		
 		return null;
+	}
+	
+	public String updateDetails(Request r) {
+		String query = r.getQuery();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			int rowsUpdated = stmt.executeUpdate();
+			if(rowsUpdated > 0)
+				return "Details updated successfully.";
+			else
+				return "No details were updated.";
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "Error updating details: " + e.getMessage();
+		}
+	}
+	
+	public String getOrderHistory(Request r) {
+		String query = r.getQuery();
+		String result = "";
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			ResultSet rs = stmt.executeQuery();
+
+			if (!rs.next()) return "No order history found.";
+
+			do {
+				result += "Order Number: " + rs.getString("order_number") + ", ";
+				result += "Order DateTime: " + rs.getString("order_datetime") + ", ";
+				result += "Guests: " + rs.getString("number_of_guests") + ", ";
+				result += "Confirmation Code: " + rs.getString("confirmation_code") + ", ";
+				result += "Placed On: " + rs.getString("date_of_placing_order") + ", ";
+				result += "Status: " + rs.getString("status") + "\n";
+			} while (rs.next());
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "❌ Error retrieving order history.";
+		}
+
+		return result;
+	}
+	public String getAllActiveOrders(Request r) {
+		String query = r.getQuery();
+		String result = "";
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			ResultSet rs = stmt.executeQuery();
+
+			if (!rs.next()) return "No active orders found.";
+
+			do {
+				result += "Order Number: " + rs.getString("order_number") + ", ";
+				result += "Order DateTime: " + rs.getString("order_datetime") + ", ";
+				result += "Guests: " + rs.getString("number_of_guests") + ", ";
+				result += "Confirmation Code: " + rs.getString("confirmation_code") + ", ";
+				result += "Subscriber ID: " + rs.getString("subscriber_id") + ", ";
+				result += "Placed On: " + rs.getString("date_of_placing_order") + ", ";
+				result += "Contact: " + rs.getString("contact") + ", ";
+				result += "Status: " + rs.getString("status") + "\n";
+			} while (rs.next());
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "❌ Error retrieving active orders.";
+		}
+		return result;
+	}
+	public String getAllSubscribers(Request r) {
+		String query = r.getQuery();
+		String result = "";
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			ResultSet rs = stmt.executeQuery();
+
+			if (!rs.next()) return "No subscribers found.";
+
+			do {
+				result += "Subscriber ID: " + rs.getString("subscriber_id") + ", ";
+				result += "Name: " + rs.getString("full_name") + ", ";
+				result += "Username: " + rs.getString("username") + ", ";
+				result += "Phone: " + rs.getString("phone_number") + ", ";
+				result += "Email: " + rs.getString("email") + "\n";
+			} while (rs.next());
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "❌ Error retrieving subscribers.";
+		}
+
+		return result;
 	}
 }
