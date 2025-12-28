@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import entities.CancelRequest;
+import entities.CheckConfCodeRequest;
 import entities.LoginRequest;
 import entities.Order;
 import entities.ReadRequest;
@@ -50,6 +51,23 @@ public class DBconnector {
         }
 
 
+    }
+    public  String checkConfCode(Request r) {
+    	CheckConfCodeRequest req = (CheckConfCodeRequest) r;
+    	String res="";
+    	try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
+			stmt.setInt(1, Integer.parseInt(req.getcontact()));
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				res+=rs.getString(1)+"\n";
+			} 
+			ServerUI.updateInScreen(res);
+			return "potential confiramtion codes has been sent to your contact";
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "ERROR:" + e.getMessage();
+		}
+		
     }
 
 

@@ -32,6 +32,7 @@ public class BistroServer extends AbstractServer {
      private static List<Table> tables;
      /**A map that holds the request handlers for each request type*/
     private HashMap<RequestType,RequestHandler> handlers;
+    private HashMap<Table, Order> currentBistro;
 
     
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -48,6 +49,10 @@ public class BistroServer extends AbstractServer {
         tables = dbcon.getAllTables();
         tables.sort(null);
         handlers = new HashMap<>();
+        currentBistro=new HashMap<>();
+        for(Table t:tables) {
+			currentBistro.put(t, null);
+		}
         handlers.put(RequestType.WRITE_ORDER, this::addNewOrder);
         handlers.put(RequestType.READ_ORDER, dbcon::getOrder);
         handlers.put(RequestType.LOGIN_REQUEST, dbcon::checkLogin);
@@ -59,6 +64,7 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.LEAVE_WAITLIST, this::handleLeaveWaitlist);
         handlers.put(RequestType.UPDATE_DETAILS, dbcon::updateDetails);
         handlers.put(RequestType.ORDER_HISTORY,dbcon::getOrderHistory);
+        handlers.put(RequestType.CHECK_CONFCODE, dbcon::checkConfCode);
         handlers.put(RequestType.GET_ALL_ACTIVE_ORDERS, dbcon::getAllActiveOrders);
         handlers.put(RequestType.GET_ALL_SUBSCRIBERS, dbcon::getAllSubscribers);
     }
@@ -172,6 +178,7 @@ public class BistroServer extends AbstractServer {
     /** * Handles a walk-in joining the waitlist at the terminal.
      * @param r the JoinWaitlistRequest containing the order details
      */
+    
     public String handleJoinWaitlist(Request r) {
         JoinWaitlistRequest req = (JoinWaitlistRequest) r;
         int guests = Integer.parseInt(req.getNumberOfGuests());
