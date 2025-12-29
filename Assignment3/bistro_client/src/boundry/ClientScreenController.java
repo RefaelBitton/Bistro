@@ -22,6 +22,8 @@ public class ClientScreenController implements IController {
     @FXML
     private Button orderManagementBtn;
     
+    @FXML
+    private Button waitingListBtn;
     
     private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
     
@@ -54,6 +56,11 @@ public class ClientScreenController implements IController {
     @FXML
     void onOrderManagementClick(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/AppOrderManagementScreen.fxml", user);
+    }
+    
+    @FXML
+    void onWaitingListClick(ActionEvent event) {
+    	ClientUI.console.switchScreen(this, event, "/boundry/queueWaitListScreen.fxml", user);
     }
 
 	@Override
