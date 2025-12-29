@@ -6,6 +6,7 @@ import entities.Guest;
 import entities.LoginRequest;
 import entities.Subscriber;
 import entities.User;
+import entities.UserType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -30,7 +31,10 @@ public class LoginScreenController implements IController{
 		ClientUI.console.setController(this);
 	}
     @FXML
-    private Button guestBtn;
+    private Button guestTerminalBtn;
+    
+    @FXML
+    private Button guestAppBtn;
 
     @FXML
     private Button registerBtn;
@@ -51,15 +55,27 @@ public class LoginScreenController implements IController{
     private Button appBtn;
     
     /**
-     * when the user clicks 'enter as guest'
+     * when the user clicks 'enter terminal as guest'
      * @param event
      * @throws IOException
      */
     @FXML
-    void onGuestClick(ActionEvent event) throws IOException {
+    void onGuestTerminalClick(ActionEvent event) throws IOException {
+    	this.user = new Guest(null, null);
+    	ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
+    }
+    
+    /**
+     * when the user clicks 'enter terminal as guest'
+     * @param event
+     * @throws IOException
+     */
+    @FXML
+    void onGuestAppClick(ActionEvent event) throws IOException {
     	this.user = new Guest(null, null);
     	ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
     }
+    
     /**
      * when the user clicks 'terminal'
      * @param event
@@ -68,7 +84,12 @@ public class LoginScreenController implements IController{
      */   
     @FXML
     void onTerminalClick(ActionEvent event) throws IOException, InterruptedException {
-    	login("/boundry/TerminalScreen.fxml", event);
+    	if(user.getType() == UserType.BISTRO_REP || user.getType() == UserType.MANAGER) {
+    		login("/boundry/WorkerScreen.fxml", event);
+    	}
+    	else {
+        	login("/boundry/TerminalScreen.fxml", event);
+    	}
     }
     
     /**
@@ -79,8 +100,12 @@ public class LoginScreenController implements IController{
      */ 
     @FXML
     void onAppClick(ActionEvent event) throws IOException, InterruptedException {
-    	login("/boundry/ClientScreen.fxml", event);
-    	
+    	if(user.getType() == UserType.BISTRO_REP || user.getType() == UserType.MANAGER) {
+    		login("/boundry/WorkerScreen.fxml", event);
+    	}
+    	else {
+        	login("/boundry/ClientScreen.fxml", event);
+    	}
     }
     public void login(String screen,ActionEvent event) throws IOException, InterruptedException {
     	int id = 0;
