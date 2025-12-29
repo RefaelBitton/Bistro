@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/bistro_client"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
-	<classpathentry kind="lib" path="C:/Users/refae/Downloads/Ex-03-WorkbenchJDBC/mysql-connector-j-9.5.0.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/javaFx">
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/javaFX">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
@@ -14,12 +11,8 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-<<<<<<< HEAD
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/javaFX"/>
+	<classpathentry kind="lib" path="C:/Users/refae/Downloads/mysql-connector-j-9.5.0/mysql-connector-j-9.5.0/mysql-connector-j-9.5.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/bistro_client"/>
-	<classpathentry kind="lib" path="C:/Users/refae/Downloads/mysql-connector-j-9.5.0/mysql-connector-j-9.5.0/mysql-connector-j-9.5.0.jar"/>
-=======
->>>>>>> branch 'refael' of https://github.com/RefaelBitton/Bistro.git
 	<classpathentry kind="output" path="bin"/>
 </classpath>
