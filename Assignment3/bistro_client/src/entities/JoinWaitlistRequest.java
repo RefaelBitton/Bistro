@@ -5,15 +5,26 @@ package entities;
  */
 public class JoinWaitlistRequest extends Request {
     private static final long serialVersionUID = 1L;
-    private Order order;
-
-    public JoinWaitlistRequest(Order order) {
+    private String orderDateTime;
+    private String numberOfGuests;
+    private String subscriberId;
+    private String contact;
+    private boolean isWaitlistEntry = false;
+    
+    public JoinWaitlistRequest(String orderDateTime, String numberOfGuests, String subscriberId, String contact) {
         // You can leave the query string empty if the server handles logic internally
         super(RequestType.JOIN_WAITLIST, ""); 
-        this.order = order;
+        this.orderDateTime = orderDateTime;
+        this.numberOfGuests = numberOfGuests;
+        this.subscriberId = subscriberId;
+        this.contact = contact;
     }
+    
+    public boolean isWaitlistEntry() { return isWaitlistEntry; }
+    public void setWaitlistEntry(boolean isWaitlistEntry) { this.isWaitlistEntry = isWaitlistEntry; }
+    public String getOrderDateTime() { return orderDateTime; }
+    public String getNumberOfGuests() { return numberOfGuests; }
+    public String getSubscriberId() { return subscriberId; }
+    public String getContact() { return contact; }
 
-    public Order getOrder() {
-        return order;
-    }
 }

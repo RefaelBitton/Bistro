@@ -35,10 +35,10 @@ public class OrderScreenController implements IController {
     private String pendingContact;
     private String pendingOrderDateTime;
                
+    @FXML private Button orderBtn;
+    @FXML private Button backBtn;
 
     
-
-
     @FXML
     public void initialize() {
         ClientUI.console.setController(this);
@@ -128,7 +128,7 @@ public class OrderScreenController implements IController {
         }
     }
 
-    private boolean isValidPhoneOrEmail(String s) {
+    public static boolean isValidPhoneOrEmail(String s) {
         boolean looksEmail = s.contains("@") && s.contains(".") && s.indexOf('@') > 0;
         String digits = s.replaceAll("[^0-9]", "");
         boolean looksPhone = digits.length() >= 9 && digits.length() <= 15;
@@ -136,8 +136,16 @@ public class OrderScreenController implements IController {
     }
 
     @FXML
-    void onCancelClick(ActionEvent event) throws IOException {
-        ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
+    void onBackClick(ActionEvent event) throws IOException {
+    	if(user.getType() == UserType.GUEST) {
+            ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
+    	}
+    	else if(user.getType() == UserType.SUBSCRIBER) {
+    		ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
+    	}
+    	else {
+    		ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
+    	}
     }
 
     @Override

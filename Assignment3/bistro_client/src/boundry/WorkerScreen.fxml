@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Text layoutX="197.0" layoutY="64.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Workers Screen">
+         <font>
+            <Font size="30.0" />
+         </font>
+      </Text>
+      <Button layoutX="76.0" layoutY="107.0" mnemonicParsing="false" text="Change Details" />
+      <Button layoutX="429.0" layoutY="107.0" mnemonicParsing="false" text="History" />
+      <Button layoutX="261.0" layoutY="107.0" mnemonicParsing="false" text="Waiting List" />
+      <Button layoutX="76.0" layoutY="165.0" mnemonicParsing="false" text="Orders Details" />
+      <Button layoutX="261.0" layoutY="165.0" mnemonicParsing="false" text="Reports" />
+      <Button layoutX="430.0" layoutY="165.0" mnemonicParsing="false" text="New Or Existing Order" />
+      <Button layoutX="76.0" layoutY="227.0" mnemonicParsing="false" text="Subscribers Details" />
+      <Button layoutX="264.0" layoutY="227.0" mnemonicParsing="false" text="Log Out" />
+      <Button layoutX="430.0" layoutY="227.0" mnemonicParsing="false" text="Bistro Management" />
+   </children>
+</AnchorPane>

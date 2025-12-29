@@ -15,7 +15,9 @@
             <Font size="24.0" />
          </font>
       </Label>
-      <Button fx:id="cancelBtn" layoutX="252.0" layoutY="147.0" mnemonicParsing="false" onAction="#onCancelClick" text="cancel order" />
+      <Button fx:id="cancelBtn" layoutX="252.0" layoutY="171.0" mnemonicParsing="false" onAction="#onCancelClick" text="cancel order" />
       <Button fx:id="backBtn" layoutX="267.0" layoutY="233.0" mnemonicParsing="false" onAction="#OnBackBtnClick" text="back" />
+      <Label layoutX="148.0" layoutY="133.0" text="confirmation code:" />
+      <TextField fx:id="confCodeTxt" layoutX="260.0" layoutY="129.0" onAction="#onCancelClick" />
    </children>
 </AnchorPane>
