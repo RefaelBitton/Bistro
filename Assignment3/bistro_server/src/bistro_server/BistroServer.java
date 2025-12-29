@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import entities.JoinWaitlistRequest;
 import entities.LeaveWaitlistRequest;
@@ -26,7 +27,9 @@ import ocsf.server.ConnectionToClient;
 /**The server, extending the abstract server*/
 public class BistroServer extends AbstractServer {
      final public static int DEFAULT_PORT = 5556;
-     protected static WaitingList waitlist = new WaitingList();
+     protected static WaitingList waitlistJustArrived = new WaitingList();
+     protected static WaitingList waitlistOrderedInAdvance = new WaitingList();
+
      /**An array that holds the currently connected clients*/
      protected static List<ConnectionToClient> clients;
      /**An array that holds the tables in the restaurant*/
@@ -177,6 +180,8 @@ public class BistroServer extends AbstractServer {
         }
     }
     
+    public List<>
+    
     /** * Handles a walk-in joining the waitlist at the terminal.
      * @param r the JoinWaitlistRequest containing the order details
      */
@@ -225,6 +230,10 @@ public class BistroServer extends AbstractServer {
             
             // 2. Check if this specific order fits current availability
             ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, currentOrder.getOrderDateTime());
+            
+            List<Integer> guestList = prepareGuestsInTimeList(slotReq);
+            Set<Table> orderedCurrentBistro = currentBistro.keySet();
+            
             if (checkAvailability(slotReq)) {
                 // 3. Remove this specific order from the list and return it
                 waitlist.cancel(currentOrder.getOrderNumber());
