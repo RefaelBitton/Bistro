@@ -95,9 +95,8 @@ public class DBconnector {
 	
  public String getTakenSlots(Request r) {
     	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
-    	LocalDateTime parsed = LocalDateTime.parse(req.getOrderDateTime(), f);
-    	LocalDateTime from = LocalDateTime.parse(parsed.toString()).minusHours(1).minusMinutes(30);
-    	LocalDateTime to = LocalDateTime.parse(parsed.toString()).plusHours(1).plusMinutes(30);
+    	LocalDateTime from = req.getFrom();
+    	LocalDateTime to = req.getTo();
         try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
             stmt.setTimestamp(1, Timestamp.valueOf(from));
             stmt.setTimestamp(2, Timestamp.valueOf(to));
