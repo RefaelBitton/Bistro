@@ -32,6 +32,7 @@ public class BistroServer extends AbstractServer {
      private static List<Table> tables;
      /**A map that holds the request handlers for each request type*/
     private HashMap<RequestType,RequestHandler> handlers;
+    
 
     
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -53,7 +54,7 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.LOGIN_REQUEST, dbcon::checkLogin);
         handlers.put(RequestType.REGISTER_REQUEST, dbcon::addNewUser);
         handlers.put(RequestType.CANCEL_REQUEST, dbcon::cancelOrder);
-        handlers.put(RequestType.GET_TAKEN_SLOTS, this::checkAvailability);
+        //handlers.put(RequestType.GET_TAKEN_SLOTS, this::checkAvailability);
         handlers.put(RequestType.RESERVE_TABLE, this::reserveTable);
         handlers.put(RequestType.JOIN_WAITLIST, this::handleJoinWaitlist);
         handlers.put(RequestType.LEAVE_WAITLIST, this::handleLeaveWaitlist);
@@ -112,19 +113,19 @@ public class BistroServer extends AbstractServer {
 	 * @param o the order to check availability for
 	 * @return whether there are available tables for the order
 	 * */
-    public synchronized Boolean checkAvailability(Request r) {
+    public synchronized Boolean checkAvailability(List<Table> tables, List<Integer> guests_in_time) {
  	
-    	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
-    	ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(req.getNumberOfGuests(), req.getOrderDateTime());
-    	String open_orders_in_time_string = dbcon.getTakenSlots(slotReq);
-    	System.out.println("Open orders in time string: " + open_orders_in_time_string);
-		String[] open_orders_in_time_array = open_orders_in_time_string.split(",");
-		ArrayList<Integer> guests_in_time = new ArrayList<>();
-		for (String s : open_orders_in_time_array) {
-			if (!s.isEmpty())
-				guests_in_time.add(Integer.parseInt(s));
-		}
-		guests_in_time.add(req.getNumberOfGuests());
+//    	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
+//    	ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(req.getNumberOfGuests(), req.getOrderDateTime());
+//    	String open_orders_in_time_string = dbcon.getTakenSlots(slotReq);
+//    	System.out.println("Open orders in time string: " + open_orders_in_time_string);
+//		String[] open_orders_in_time_array = open_orders_in_time_string.split(",");
+//		ArrayList<Integer> guests_in_time = new ArrayList<>();
+//		for (String s : open_orders_in_time_array) {
+//			if (!s.isEmpty())
+//				guests_in_time.add(Integer.parseInt(s));
+//		}
+//    	guests_in_time.add(req.getNumberOfGuests());
 		if (guests_in_time.size()>tables.size()) {
 			return false;
 		}
@@ -231,7 +232,10 @@ public class BistroServer extends AbstractServer {
     	WriteRequest req = (WriteRequest) r;
     	System.out.println("Adding new order for subscriber ID: " + req.getSubscriberId());
     	String email;
-    	if (!req.getSubscriberId().equals("0")) {
+    	if (!req.getSubscriberId().equals("0")) {		if (!s.isEmpty())
+//			guests_in_time.add(Integer.parseInt(s));
+//	}
+//
     		email = dbcon.readEmail(req.getSubscriberId());
     	}
     	else {
@@ -262,7 +266,9 @@ public class BistroServer extends AbstractServer {
     	ReserveRequest req = (ReserveRequest) r;
     	ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(
 				Integer.parseInt(req.getNumberOfGuests()), req.getOrderDateTime());
-    	Boolean available = checkAvailability(slotReq);
+    	List<Integer> guests_in_time = prepareGuestsInTimeList(slotReq);
+    	//prepare tables copy
+    	Boolean available = checkAvailability(tables, guests_in_time);
 		if (available) {
 			System.out.println("Table available, adding new order.");
 			addNewOrder(req);
@@ -283,10 +289,13 @@ public class BistroServer extends AbstractServer {
              StringBuilder sb = new StringBuilder("No available tables at requested time. Available slots:\n");
              boolean thereAreOptions = false;
              while (!before.isAfter(after)) {
-            	 
-            	 ShowTakenSlotsRequest newSlotReq = new ShowTakenSlotsRequest(
-            			 Integer.parseInt(req.getNumberOfGuests()), before.format(DT_FMT).toString());
-            	 if (checkAvailability(newSlotReq)) {
+            	 guests_in_time = prepareGuestsInTimeList(
+						 new ShowTakenSlotsRequest(
+								 Integer.parseInt(req.getNumberOfGuests()), 
+								 before.format(DT_FMT).toString()
+						 )
+				 );
+            	 if (checkAvailability(tables, guests_in_time)) {
             		 thereAreOptions = true;
             		 sb.append(before.format(DT_FMT).toString()).append("\n");
             	 }
@@ -295,6 +304,23 @@ public class BistroServer extends AbstractServer {
              return (thereAreOptions)? sb.toString() : "No available tables at requested time or near it.";
              
 		}
+    }
+    
+    
+    private List<Integer> prepareGuestsInTimeList(Request r, ) {
+    	ShowTakenSlotsRequest slotReq = (ShowTakenSlotsRequest) r;
+    	String open_orders_in_time_string = dbcon.getTakenSlots(slotReq);
+    	System.out.println("Open orders in time string: " + open_orders_in_time_string);
+		String[] open_orders_in_time_array = open_orders_in_time_string.split(",");
+		ArrayList<Integer> guests_in_time = new ArrayList<>();
+		//prepare guests in time list
+		for (String s : open_orders_in_time_array) {
+			if (!s.isEmpty())
+				guests_in_time.add(Integer.parseInt(s));
+		}
+    	guests_in_time.add(slotReq.getNumberOfGuests());
+    	return guests_in_time;
+		
     }
     /**Starting the server
      * @param p the port to listen on
