@@ -1,19 +1,32 @@
 package entities;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 /**
  * a class that represents a request to show taken slots for a given number of guests and date/time
  * */
 public class ShowTakenSlotsRequest extends Request {
-
-    private static final String Q =
-            "SELECT number_of_guests FROM `order` WHERE status = 'OPEN' AND order_datetime BETWEEN ? AND ?;";
-
+	private static DateTimeFormatter f=DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final long serialVersionUID = 1L;
     private int numberOfGuests;
     private String orderDateTime;
+    private LocalDateTime from;
+    private LocalDateTime to;
     public ShowTakenSlotsRequest(int numberOfGuests, String orderDateTime) {
-        super(RequestType.GET_TAKEN_SLOTS, Q);
+        super(RequestType.GET_TAKEN_SLOTS, "SELECT number_of_guests FROM `order` WHERE status = 'OPEN' AND order_datetime BETWEEN ? AND ?;");
         this.numberOfGuests = numberOfGuests;
         this.orderDateTime = orderDateTime;
+    	LocalDateTime parsed = LocalDateTime.parse(orderDateTime, f);
+        this.from = parsed; 
+        this.to = LocalDateTime.parse(parsed.toString()).plusHours(2);
+    }
+    public ShowTakenSlotsRequest(int numberOfGuests, String orderDateTime,LocalDateTime from,LocalDateTime to) {
+        super(RequestType.GET_TAKEN_SLOTS, "SELECT number_of_guests FROM `order` WHERE status = 'OPEN' AND order_datetime BETWEEN ? AND ?;");
+        this.numberOfGuests = numberOfGuests;
+        this.orderDateTime = orderDateTime;
+    	this.from=from;
+    	this.to=to;
     }
 
     public int getNumberOfGuests() {
@@ -23,5 +36,14 @@ public class ShowTakenSlotsRequest extends Request {
     public String getOrderDateTime() {
 		return orderDateTime;
 	}
-
+    
+    public LocalDateTime getFrom() {
+ 		return from;
+    }
+    
+    public LocalDateTime getTo() {
+   		return to;
+    }
 }
+
+

@@ -95,9 +95,8 @@ public class DBconnector {
 	
  public String getTakenSlots(Request r) {
     	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
-    	LocalDateTime parsed = LocalDateTime.parse(req.getOrderDateTime(), f);
-    	LocalDateTime from = LocalDateTime.parse(parsed.toString()).minusHours(1).minusMinutes(30);
-    	LocalDateTime to = LocalDateTime.parse(parsed.toString()).plusHours(1).plusMinutes(30);
+    	LocalDateTime from = req.getFrom();
+    	LocalDateTime to = req.getTo();
         try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
             stmt.setTimestamp(1, Timestamp.valueOf(from));
             stmt.setTimestamp(2, Timestamp.valueOf(to));
@@ -313,6 +312,56 @@ public class DBconnector {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return "❌ Error retrieving order history.";
+		}
+
+		return result;
+	}
+	public String getAllActiveOrders(Request r) {
+		String query = r.getQuery();
+		String result = "";
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			ResultSet rs = stmt.executeQuery();
+
+			if (!rs.next()) return "No active orders found.";
+
+			do {
+				result += "Order Number: " + rs.getString("order_number") + ", ";
+				result += "Order DateTime: " + rs.getString("order_datetime") + ", ";
+				result += "Guests: " + rs.getString("number_of_guests") + ", ";
+				result += "Confirmation Code: " + rs.getString("confirmation_code") + ", ";
+				result += "Subscriber ID: " + rs.getString("subscriber_id") + ", ";
+				result += "Placed On: " + rs.getString("date_of_placing_order") + ", ";
+				result += "Contact: " + rs.getString("contact") + ", ";
+				result += "Status: " + rs.getString("status") + "\n";
+			} while (rs.next());
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "❌ Error retrieving active orders.";
+		}
+		return result;
+	}
+	public String getAllSubscribers(Request r) {
+		String query = r.getQuery();
+		String result = "";
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			ResultSet rs = stmt.executeQuery();
+
+			if (!rs.next()) return "No subscribers found.";
+
+			do {
+				result += "Subscriber ID: " + rs.getString("subscriber_id") + ", ";
+				result += "Name: " + rs.getString("full_name") + ", ";
+				result += "Username: " + rs.getString("username") + ", ";
+				result += "Phone: " + rs.getString("phone_number") + ", ";
+				result += "Email: " + rs.getString("email") + "\n";
+			} while (rs.next());
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "❌ Error retrieving subscribers.";
 		}
 
 		return result;
