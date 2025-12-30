@@ -10,5 +10,4 @@ public class LoginRequest extends Request {
 	public int getId() {
 		return subscriberId;
 	}
-
 }

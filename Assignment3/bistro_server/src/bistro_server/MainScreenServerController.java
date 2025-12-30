@@ -24,6 +24,11 @@ public class MainScreenServerController {
 
     @FXML
     private TextArea resultTxt;
+    
+    @FXML
+    private TextArea resultTxt1;
+    
+    
 
     private static MainScreenServerController instance;
 
@@ -32,7 +37,13 @@ public class MainScreenServerController {
         instance = this;
         refreshClientsText();
     }
-
+    public void updateTxt(String msg) {
+		if (instance == null) return;
+		Platform.runLater(() -> {
+			String currentText = instance.resultTxt1.getText();
+			instance.resultTxt1.setText(currentText + "\n" + msg);
+		});
+	}
     public static void refreshClientsLive() {
         if (instance == null) return;
         Platform.runLater(() -> instance.refreshClientsText());
