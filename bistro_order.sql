@@ -30,6 +30,7 @@ CREATE TABLE `order` (
   `subscriber_id` int DEFAULT NULL,
   `date_of_placing_order` date DEFAULT NULL,
   `contact` varchar(45) DEFAULT NULL,
+  `status` enum('OPEN','CLOSED','CANCELLED') DEFAULT NULL,
   PRIMARY KEY (`order_number`),
   UNIQUE KEY `order_datetime_UNIQUE` (`order_datetime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -41,7 +42,7 @@ CREATE TABLE `order` (
 
 LOCK TABLES `order` WRITE;
 /*!40000 ALTER TABLE `order` DISABLE KEYS */;
-INSERT INTO `order` VALUES (1,'2025-12-25 13:00:00',4,1,NULL,'2025-12-24','0506421020'),(2,'2025-12-25 13:30:00',4,2,123,'2025-12-24','hav@gmail.com');
+INSERT INTO `order` VALUES (1,'2025-12-25 13:00:00',4,1,NULL,'2025-12-24','0506421020','CANCELLED'),(2,'2025-12-25 13:30:00',4,2,123,'2025-12-24','hav@gmail.com','CANCELLED');
 /*!40000 ALTER TABLE `order` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -54,4 +55,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-24 23:33:22
+-- Dump completed on 2025-12-30 14:50:12
