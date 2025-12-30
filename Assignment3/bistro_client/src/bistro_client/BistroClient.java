@@ -1,5 +1,9 @@
 package bistro_client;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 import boundry.IController;
 import javafx.application.Platform;
@@ -10,6 +14,9 @@ import ocsf.client.*;
 public class BistroClient extends AbstractClient{
 	/**The controller of the screen currently being displayed*/
     private IController controller;
+    public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 1), LocalTime.of(15, 00));
+    public static DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     /**
      * creating client and connecting it to server
      * @param host

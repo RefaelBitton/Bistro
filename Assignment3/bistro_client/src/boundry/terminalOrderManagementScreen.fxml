@@ -18,6 +18,6 @@
       <Button fx:id="leaveTableBtn" layoutX="189.0" layoutY="257.0" mnemonicParsing="false" onAction="#onLeaveTableClick" prefHeight="26.0" prefWidth="89.0" text="Leave Table" />
       <Button fx:id="getTableBtn" layoutX="305.0" layoutY="257.0" mnemonicParsing="false" onAction="#onGetTableClick" prefHeight="26.0" prefWidth="81.0" text="Get Table" />
       <Button fx:id="backBtn" layoutX="279.0" layoutY="326.0" mnemonicParsing="false" onAction="#onbackClick" text="Back" />
-      <TextField fx:id="confirmationCodeText" layoutX="181.0" layoutY="118.0" />
+      <TextField fx:id="confCodeTxt" layoutX="181.0" layoutY="118.0" />
    </children>
 </AnchorPane>
