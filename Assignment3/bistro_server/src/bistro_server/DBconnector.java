@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import entities.CancelRequest;
+import entities.CheckConfCodeRequest;
 import entities.LoginRequest;
 import entities.Order;
 import entities.ReadRequest;
@@ -39,8 +40,8 @@ public class DBconnector {
     public DBconnector(){
         try //connect DB
         {
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "123456789");
+			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -50,6 +51,30 @@ public class DBconnector {
         }
 
 
+    }
+    public  String checkConfCode(Request r) {
+    	CheckConfCodeRequest req = (CheckConfCodeRequest) r;
+    	String res="";
+    	try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
+    		stmt.setString(1, req.getcontact());
+    		stmt.setTimestamp(2, Timestamp.valueOf(BistroServer.dateTime));
+    		stmt.setTimestamp(3, Timestamp.valueOf(BistroServer.dateTime));
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				res+=rs.getString(1)+"\n";
+			} 
+			if(res.equals("")) {
+				return "no confiramtion codes found for your contact";
+			}
+			else {
+				ServerUI.updateInScreen("your relevent confiramtion codes for this contact are:\n"+res);
+			}
+			return "potential confiramtion codes has been sent to your contact";
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "ERROR:" + e.getMessage();
+		}
+		
     }
 
 
@@ -196,10 +221,10 @@ public class DBconnector {
 			ResultSet rs =stmt.executeQuery();
 			if(rs.next()) {
 				String res = "";
-				for (int i = 1; i <= 4; i++) {
+				for (int i = 1; i <= 5; i++) {
 					res+=rs.getString(i)+",";				
 				}
-				res+=rs.getString(5);
+				res+=rs.getString(6);
 				return res;
 			}
 			else{
