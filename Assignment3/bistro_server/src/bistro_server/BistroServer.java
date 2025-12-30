@@ -184,14 +184,16 @@ public class BistroServer extends AbstractServer {
         List<Integer> guestList = prepareGuestsInTimeList(slotReq);
         List<Table> tablesCopy = sortTables(currentBistro.keySet());
         // 1. Check for immediate seating using existing logic
+        Order waitlistOrder;
         if (checkAvailability(tablesCopy, guestList)) { 
-        	addNewOrder(new WriteRequest(
+        	waitlistOrder = addNewOrder(new WriteRequest(
         			req.getOrderDateTime(),
         			req.getNumberOfGuests(),
         			req.getSubscriberId(),
         			req.getContact()
         		));
-            return "SUCCESS: Table is ready! Please proceed to your table.";
+            return "SUCCESS: Table is ready! Please proceed to your table. "
+            		+ "Your confirmation code: " + (waitlistOrder.getConfirmationCode());
         } 
 
         // 2. If no seats and user hasn't confirmed via popup yet
@@ -200,7 +202,7 @@ public class BistroServer extends AbstractServer {
         }
 
         
-        Order waitlistOrder = addNewOrder(new WriteRequest(
+        waitlistOrder = addNewOrder(new WriteRequest(
 			req.getOrderDateTime(),
 			req.getNumberOfGuests(),
 			req.getSubscriberId(),

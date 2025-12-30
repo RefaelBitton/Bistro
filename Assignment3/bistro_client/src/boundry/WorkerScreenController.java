@@ -52,48 +52,48 @@ public class WorkerScreenController implements IController {
 
     @FXML
     void onBistroManagementClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/BistroManagementScreen", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/BistroManagementScreen.fxml", user);
     }
 
     @FXML
     void onChangeDetailsClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/ChangeDetailsScreen", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/ChangeDetailsScreen.fxml", user);
     }
 
     @FXML
     void onHistoryBtnClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/HistoryScreen", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/HistoryScreen.fxml", user);
     }
 
     @FXML
     void onLogOutClick(ActionEvent event) {
-		ClientUI.console.switchScreen(this, event, "/boundry/loginScreen", null);
+		ClientUI.console.switchScreen(this, event, "/boundry/loginScreen.fxml", null);
     }
 
     @FXML
     void onNewOrderBtn(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml", user);
     }
 
     @FXML
     void onOrderDetailsClick(ActionEvent event) {
-		ClientUI.console.switchScreen(this, event, "/boundry/AllOrdersScreen", user);
+		ClientUI.console.switchScreen(this, event, "/boundry/AllOrdersScreen.fxml", user);
     }
 
     @FXML
     void onReportClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/ReportScreen", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/ReportScreen.fxml", user);
 
     }
 
     @FXML
     void onSubscriberDetailsClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/SubscriberInfoScreen", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/SubscriberInfoScreen.fxml", user);
     }
 
     @FXML
     void onWaitingListClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/CurrentStateScreen", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/CurrentStateScreen.fxml", user);
     }
     
     /**

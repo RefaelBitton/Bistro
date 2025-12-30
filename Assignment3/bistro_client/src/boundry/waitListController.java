@@ -22,6 +22,7 @@ public class waitListController implements IController {
     @FXML private Label idLabel;
     @FXML private TextArea resultTxt;
     @FXML private Button backBtn;
+    @FXML private Button submitBtn;
 
     @FXML
     public void initialize() {
