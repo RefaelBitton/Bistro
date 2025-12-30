@@ -222,10 +222,10 @@ public class DBconnector {
 			ResultSet rs =stmt.executeQuery();
 			if(rs.next()) {
 				String res = "";
-				for (int i = 1; i <= 4; i++) {
+				for (int i = 1; i <= 5; i++) {
 					res+=rs.getString(i)+",";				
 				}
-				res+=rs.getString(5);
+				res+=rs.getString(6);
 				return res;
 			}
 			else{
