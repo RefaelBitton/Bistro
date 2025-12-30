@@ -29,18 +29,6 @@ public class WaitingList implements Iterable<Order>{
         size++;
     }
     
-    /** Adds a existing order to the front of the waitlist (priority) */
-    public void enqueueToHead(Order order) {
-        WaitlistNode newNode = new WaitlistNode(order);
-        if (head == null) {
-            head = tail = newNode;
-        } else {
-            newNode.next = head;
-            head.prev = newNode;
-            head = newNode;
-        }
-        size++;
-    }
 
     /** Removes the person at the front when a table is free  */
     public Order dequeue(WaitlistNode node) {

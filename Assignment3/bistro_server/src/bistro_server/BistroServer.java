@@ -71,7 +71,6 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.ORDER_HISTORY,dbcon::getOrderHistory);
         handlers.put(RequestType.GET_ALL_ACTIVE_ORDERS, dbcon::getAllActiveOrders);
         handlers.put(RequestType.GET_ALL_SUBSCRIBERS, dbcon::getAllSubscribers);
-        handlers.put(RequestType.TRY_SEAT,this::trySeat);
     }
     /**
      * Sending messages from client over to the database connector
@@ -171,7 +170,7 @@ public class BistroServer extends AbstractServer {
     public String handleLeaveWaitlist(Request r) {
         String orderNum = ((LeaveWaitlistRequest)r).getOrderNum();
         // Accessing the static waitlist instance in BistroServer to remove the node
-        boolean removed = BistroServer.waitlist.cancel(orderNum); 
+        boolean removed = BistroServer.waitlistJustArrived.cancel(orderNum); 
         
         if (removed) {
             return "You have been removed from the waiting list.";
@@ -180,7 +179,6 @@ public class BistroServer extends AbstractServer {
         }
     }
     
-    public List<>
     
     /** * Handles a walk-in joining the waitlist at the terminal.
      * @param r the JoinWaitlistRequest containing the order details
@@ -189,9 +187,10 @@ public class BistroServer extends AbstractServer {
         JoinWaitlistRequest req = (JoinWaitlistRequest) r;
         int guests = Integer.parseInt(req.getNumberOfGuests());
         ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, req.getOrderDateTime());
-
+        List<Integer> guestList = prepareGuestsInTimeList(slotReq);
+        List<Table> tablesCopy = sortTables(currentBistro.keySet());
         // 1. Check for immediate seating using existing logic
-        if (checkAvailability(slotReq)) { 
+        if (checkAvailability(tablesCopy, guestList)) { 
         	addNewOrder(new WriteRequest(
         			req.getOrderDateTime(),
         			req.getNumberOfGuests(),
@@ -215,7 +214,7 @@ public class BistroServer extends AbstractServer {
 		));
         String orderNum = waitlistOrder.getOrderNumber();
         // Add to the DLL queue
-        BistroServer.waitlist.enqueue(waitlistOrder); 
+        BistroServer.waitlistJustArrived.enqueue(waitlistOrder); 
         
         return "The restaurant is full. You've been added to the waitlist.\n" +
                "Order Number: " + orderNum + "\n" +
@@ -223,18 +222,17 @@ public class BistroServer extends AbstractServer {
     }
     
     // will be called when a table is freed up
-    public Order seatFromWaitlist() {
+    public Order seatFromWaitlist(WaitingList waitlist) {
         // 1. Standard for-each loop made possible by implementing Iterable
         for (Order currentOrder : waitlist) {
             int guests = Integer.parseInt(currentOrder.getNumberOfGuests());
             
             // 2. Check if this specific order fits current availability
             ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, currentOrder.getOrderDateTime());
-            
             List<Integer> guestList = prepareGuestsInTimeList(slotReq);
-            Set<Table> orderedCurrentBistro = currentBistro.keySet();
+            List<Table> tablesCopy = sortTables(currentBistro.keySet());
             
-            if (checkAvailability(slotReq)) {
+            if (checkAvailability(tablesCopy, guestList)) {
                 // 3. Remove this specific order from the list and return it
                 waitlist.cancel(currentOrder.getOrderNumber());
                 return currentOrder;
@@ -243,6 +241,15 @@ public class BistroServer extends AbstractServer {
         }
         return null; // No one currently in the waitlist fits the free spot
     }
+    
+    public List<Table> sortTables(Set <Table> tableSet) {
+		List<Table> tableList = new ArrayList<>();
+		for (Table t : tableSet) {
+			tableList.add(t);
+		}
+		tableList.sort(null);
+		return tableList;
+	}
     
     public Order addNewOrder(Request r) {
     	WriteRequest req = (WriteRequest) r;
@@ -337,11 +344,7 @@ public class BistroServer extends AbstractServer {
 		
     }
     
-    
-    public String trySeat(Request r) {
-    	String confCode = ((TrySeatRequest)r).getConfirmationCode();
-    	
-    }
+
     /**Starting the server
      * @param p the port to listen on
      * */
