@@ -126,33 +126,36 @@ public class BistroServer extends AbstractServer {
 	 * @param o the order to check availability for
 	 * @return whether there are available tables for the order
 	 * */
-    public synchronized Boolean checkAvailability(List<Table> tables, List<Integer> guests_in_time) {
-
+    public synchronized int checkAvailability(List<Table> tables, List<Integer> guests_in_time) {
+		Table resultTable = null;
 		if (guests_in_time.size()>tables.size()) {
-			return false;
+			return -1;
 		}
-		for(int guests : guests_in_time) {
+		for(int i = 0; i<guests_in_time.size(); i++) {
 			boolean seated = false;
 			for (Table t : tables) {
-				if (!t.isTaken() && t.getCapacity()>=guests) {
+				if (!t.isTaken() && t.getCapacity()>=guests_in_time.get(i)) {
 					t.setTaken(true);
+					if (i==guests_in_time.size()-1) {
+						resultTable = t;
+					}
 					seated = true;
 					break;
 				}
 			}
 			if (!seated) {
 				//reset tables
-				for (Table t : tables) {
-					t.setTaken(false);
-				}
-				return false;
+//				for (Table t : tables) {
+//					t.setTaken(false);
+//				}
+				return -1;
 			}
 		}
 		//reset tables
-		for (Table t : tables) {
-			t.setTaken(false);
-			}
-    	return true;
+//		for (Table t : tables) {
+//			t.setTaken(false);
+//		}
+    	return resultTable.getId();
 	   
     }
     
@@ -185,13 +188,27 @@ public class BistroServer extends AbstractServer {
         List<Table> tablesCopy = sortTables(currentBistro.keySet());
         // 1. Check for immediate seating using existing logic
         Order waitlistOrder;
-        if (checkAvailability(tablesCopy, guestList)) { 
+        int tableId = checkAvailability(tablesCopy, guestList);
+        System.out.println("Checked availability for walk-in: tableId = " + tableId);
+        Table desiredTable = null;
+        
+        if (tableId != -1) { 
         	waitlistOrder = addNewOrder(new WriteRequest(
         			req.getOrderDateTime(),
         			req.getNumberOfGuests(),
         			req.getSubscriberId(),
         			req.getContact()
         		));
+        	for (Table t : tablesCopy) {
+        		System.out.println("Checking table with ID: " + t.getId());
+        		if (t.getId() == tableId) {
+        			System.out.println("Found desired table with ID: " + t.getId());
+					desiredTable = t;
+					break;
+				}
+        	}
+        	currentBistro.put(desiredTable, waitlistOrder); // Seat at the first available table
+        	
             return "SUCCESS: Table is ready! Please proceed to your table. "
             		+ "Your confirmation code: " + (waitlistOrder.getConfirmationCode());
         } 
@@ -228,7 +245,7 @@ public class BistroServer extends AbstractServer {
             List<Integer> guestList = prepareGuestsInTimeList(slotReq);
             List<Table> tablesCopy = sortTables(currentBistro.keySet());
             
-            if (checkAvailability(tablesCopy, guestList)) {
+            if (checkAvailability(tablesCopy, guestList) != -1) {
                 // 3. Remove this specific order from the list and return it
                 waitlist.cancel(currentOrder.getOrderNumber());
                 return currentOrder;
@@ -241,6 +258,7 @@ public class BistroServer extends AbstractServer {
     public List<Table> sortTables(Set <Table> tableSet) {
 		List<Table> tableList = new ArrayList<>();
 		for (Table t : tableSet) {
+			System.out.println("Adding table with ID: " + t.getId() + " and capacity: " + t.getCapacity());
 			tableList.add(t);
 		}
 		tableList.sort(null);
@@ -294,8 +312,8 @@ public class BistroServer extends AbstractServer {
 				);
     	List<Integer> guests_in_time = prepareGuestsInTimeList(slotReq);
     	//prepare tables copy
-    	Boolean available = checkAvailability(tables, guests_in_time);
-		if (available) {
+    	int available = checkAvailability(tables, guests_in_time);
+		if (available != -1) {
 			addNewOrder(req);
 			return "Reservation confirmed.";
 		}
@@ -310,7 +328,7 @@ public class BistroServer extends AbstractServer {
 						 after
 						 );
             	 guests_in_time = prepareGuestsInTimeList(slotReq);
-            	 if (checkAvailability(tables, guests_in_time)) {
+            	 if (checkAvailability(tables, guests_in_time) != -1) {
             		 thereAreOptions = true;
             		 sb.append(before.format(DT_FMT).toString()).append("\n");
             	 }
