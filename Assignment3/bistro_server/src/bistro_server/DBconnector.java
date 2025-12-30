@@ -41,7 +41,7 @@ public class DBconnector {
         try //connect DB
         {
 
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "123456789");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
         	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
 
 
@@ -101,13 +101,12 @@ public class DBconnector {
 
             int rows = stmt.executeUpdate();
             if (rows == 1) {
+            	System.out.println("Order added to DB: " + o.getOrderNumber());
                 return "✅ Order saved successfully!\nOrder Number: " + o.getOrderNumber() +
                        "\nConfirmation Code: " + o.getConfirmationCode();
             }
             return "❌ Order was not saved.";
 
-        } catch (SQLIntegrityConstraintViolationException e) {
-            return "❌ This date and time is already taken. Please choose another time.";
         } catch (SQLException e) {
             e.printStackTrace();
             return "❌ Database error: " + e.getMessage();
@@ -393,5 +392,25 @@ public class DBconnector {
 		}
 
 		return result;
+	}
+	public String getOrderFromConfCode(String query, String confCode) {
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setString(1, confCode);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString("order_number")+","+
+					   rs.getString("order_datetime")+","
+					   +rs.getString("number_of_guests")+","
+					   +rs.getString("confirmation_code")+","
+					   +rs.getString("subscriber_id")+","
+					   +rs.getString("date_of_placing_order")+","
+					   +rs.getString("contact");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return "Not found";
 	}
 }

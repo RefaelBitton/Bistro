@@ -6,11 +6,14 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import entities.GetTableRequest;
 import entities.JoinWaitlistRequest;
 import entities.LeaveWaitlistRequest;
 import entities.Order;
@@ -36,12 +39,15 @@ public class BistroServer extends AbstractServer {
      private static List<Table> tables;
      /**A map that holds the request handlers for each request type*/
     private HashMap<RequestType,RequestHandler> handlers;
+    
+
     private HashMap<Table,Order> currentBistro;
-    public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 10), LocalTime.of(18, 30));
+    public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 1), LocalTime.of(15, 00));
     
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
      /**A connection to the database*/
      DBconnector dbcon;
+     
     /**
      * 
      * @param port the port to connect to
@@ -75,6 +81,8 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.CHECK_CONFCODE, dbcon::checkConfCode);
         handlers.put(RequestType.GET_ALL_ACTIVE_ORDERS, dbcon::getAllActiveOrders);
         handlers.put(RequestType.GET_ALL_SUBSCRIBERS, dbcon::getAllSubscribers);
+        //handlers.put(RequestType.TRY_SEAT,this::trySeat);
+        handlers.put(RequestType.GET_TABLE, this::getTableForOrder);
     }
     /**
      * Sending messages from client over to the database connector
@@ -111,21 +119,22 @@ public class BistroServer extends AbstractServer {
     /**
      * Removing a client from the array
      */
-    @Override
-    protected void clientException(ConnectionToClient client, Throwable exception) {
-        clients.remove(client);
-        MainScreenServerController.refreshClientsLive();
-    }
-
 //    @Override
 //    protected void clientException(ConnectionToClient client, Throwable exception) {
-//        exception.printStackTrace();
+//        clients.remove(client);
+//        MainScreenServerController.refreshClientsLive();
 //    }
+
+    @Override
+    protected void clientException(ConnectionToClient client, Throwable exception) {
+        exception.printStackTrace();
+    }
 
     /**Checking if there are available tables for the given order
 	 * @param o the order to check availability for
 	 * @return whether there are available tables for the order
 	 * */
+ 	
     public synchronized int checkAvailability(List<Table> tables, List<Integer> guests_in_time) {
 		Table resultTable = null;
 		if (guests_in_time.size()>tables.size()) {
@@ -200,15 +209,14 @@ public class BistroServer extends AbstractServer {
         			req.getContact()
         		));
         	for (Table t : tablesCopy) {
-        		System.out.println("Checking table with ID: " + t.getId());
         		if (t.getId() == tableId) {
-        			System.out.println("Found desired table with ID: " + t.getId());
 					desiredTable = t;
 					break;
 				}
         	}
+        	waitlistOrder.setSittingtime(BistroServer.dateTime);
         	currentBistro.put(desiredTable, waitlistOrder); // Seat at the first available table
-        	
+
             return "SUCCESS: Table is ready! Please proceed to your table. "
             		+ "Your confirmation code: " + (waitlistOrder.getConfirmationCode());
         } 
@@ -289,15 +297,15 @@ public class BistroServer extends AbstractServer {
     	args.add(req.getSubscriberId());
     	args.add(email);
     	Order o = new Order(args);
-    	dbcon.addOrder(o,req.getQuery());
-    	System.out.println("Order added to database.");
+    
+    	System.out.println(	dbcon.addOrder(o,req.getQuery()));
     	return o;
     }
     
     // this function will be called when a table is freed up
     
     
-    public String reserveTableInAdvance(Request r) {
+    public synchronized String reserveTableInAdvance(Request r) {
     	ReserveRequest req = (ReserveRequest) r;
     	LocalDateTime requested =LocalDateTime.parse(req.getOrderDateTime(), DT_FMT);
 		LocalDate requestedDate = requested.toLocalDate();
@@ -313,6 +321,9 @@ public class BistroServer extends AbstractServer {
     	List<Integer> guests_in_time = prepareGuestsInTimeList(slotReq);
     	//prepare tables copy
     	int available = checkAvailability(tables, guests_in_time);
+    	for (Table t : tables) {
+    		t.setTaken(false);
+    	}
 		if (available != -1) {
 			addNewOrder(req);
 			return "Reservation confirmed.";
@@ -331,6 +342,9 @@ public class BistroServer extends AbstractServer {
             	 if (checkAvailability(tables, guests_in_time) != -1) {
             		 thereAreOptions = true;
             		 sb.append(before.format(DT_FMT).toString()).append("\n");
+            	 }
+            	 for (Table t : tables) {
+            		 t.setTaken(false);
             	 }
             	 before = before.plusMinutes(30);
              }
@@ -356,6 +370,7 @@ public class BistroServer extends AbstractServer {
 		
     }
     
+    
 
     /**Starting the server
      * @param p the port to listen on
@@ -375,4 +390,62 @@ public class BistroServer extends AbstractServer {
             System.out.println("ERROR - Could not listen for clients!");
         }
     }
+    public String getTableForOrder(Request r) {
+		GetTableRequest req = (GetTableRequest) r;
+		for (Entry<Table, Order> entry : currentBistro.entrySet()) {
+			Order order = entry.getValue();
+			if (order != null && order.getConfirmationCode().equals(req.getConfcode())) {
+				return entry.getKey().toString();
+			}
+		}
+		//waitlistJustArrived, waitListOrderedInAdvance
+		for( Order o : waitlistOrderedInAdvance) {
+			if (o.getConfirmationCode().equals(req.getConfcode())) {
+				return "Your table will be available soon.";
+			}
+		}
+		for( Order o : waitlistJustArrived) {
+			if (o.getConfirmationCode().equals(req.getConfcode())) {
+				return "You are currently on the waitlist.";
+			}
+		}
+		String[] args = dbcon.getOrderFromConfCode(req.getQuery(), req.getConfcode()).split(",");
+		if (args[0].equals("Not found")) {
+			return "No order found with that number";
+		}
+		String date = args[1];
+		int number_of_guests = Integer.parseInt(args[2]);
+		
+		LocalDateTime orderDate = LocalDateTime.parse(date, DT_FMT);
+//		if(orderDate.isBefore(LocalDateTime.now().minusMinutes(15)) || orderDate.isAfter(LocalDateTime.now().plusMinutes(15))) {
+//			return "Your reservation is for " + orderDate.format(DT_FMT).toString()+" Please arrive within 15 minutes of your reservation time.";
+//		}
+		if(orderDate.isBefore(BistroServer.dateTime.minusMinutes(15)) || orderDate.isAfter(BistroServer.dateTime.plusMinutes(15))) {
+			return "Your reservation is for " + orderDate.format(DT_FMT).toString()+" Please arrive within 15 minutes of your reservation time.";
+		}
+		List<Integer> guests_in_time = prepareGuestsInTimeList(new ShowTakenSlotsRequest(number_of_guests,date));
+		List<Table> tablesCopy = sortTables(currentBistro.keySet());
+		int tableId = checkAvailability(tablesCopy, guests_in_time);
+		Order o = new Order(Arrays.asList(args),1);
+		if (tableId != -1) {
+        	for (Table t : tablesCopy) {
+        		System.out.println("Checking table with ID: " + t.getId());
+        		if (t.getId() == tableId) {
+        			System.out.println("Found desired table with ID: " + t.getId());
+        			o.setSittingtime(BistroServer.dateTime);
+					currentBistro.put(t, o); // Seat at the first available table
+					break;
+				}
+        	}
+			return "Your table is ready! Please proceed to table number "+tableId+".";
+		}
+		else {
+			waitlistOrderedInAdvance.enqueue(o);
+			return "No available tables at the moment. Please wait to be seated.";
+		}
+		
+		
+		
+		
+	}
 }

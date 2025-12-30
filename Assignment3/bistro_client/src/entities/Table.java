@@ -57,4 +57,8 @@ public class Table implements Serializable, Comparable<Table> {
 		return true;
 	}
 	
+	public String toString() {
+		return "Table Number: " + id + ", Capacity: " + capacity;
+	}
+	
 }

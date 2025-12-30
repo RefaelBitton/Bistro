@@ -3,6 +3,8 @@ package boundry;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Optional;
+
+import bistro_client.BistroClient;
 import entities.JoinWaitlistRequest;
 import entities.User;
 import entities.UserType;
@@ -61,10 +63,11 @@ public class waitListController implements IController {
                              String.valueOf(((entities.Subscriber)user).getSubscriberID()) : "0";
         String finalContact = (user.getType() == UserType.SUBSCRIBER && contactInput.isEmpty()) ? 
                              user.getPhone() : contactInput;
+        String altDateTime = BistroClient.dateTime.format(BistroClient.fmt);
 
         // 4. Send Request
         ClientUI.console.accept(new JoinWaitlistRequest(
-            orderDateTime, guests, subscriberId, finalContact
+            altDateTime, guests, subscriberId, finalContact
         ));
     }
 
