@@ -127,16 +127,7 @@ public class BistroServer extends AbstractServer {
 	 * @return whether there are available tables for the order
 	 * */
     public synchronized Boolean checkAvailability(List<Table> tables, List<Integer> guests_in_time) {
-    	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
-    	ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(req.getNumberOfGuests(), req.getOrderDateTime());
-    	String open_orders_in_time_string = dbcon.getTakenSlots(slotReq);
-		String[] open_orders_in_time_array = open_orders_in_time_string.split(",");
-		ArrayList<Integer> guests_in_time = new ArrayList<>();
-		for (String s : open_orders_in_time_array) {
-			if (!s.isEmpty())
-				guests_in_time.add(Integer.parseInt(s));
-		}
-		guests_in_time.add(req.getNumberOfGuests());
+
 		if (guests_in_time.size()>tables.size()) {
 			return false;
 		}
