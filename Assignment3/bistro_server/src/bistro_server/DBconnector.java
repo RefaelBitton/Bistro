@@ -391,4 +391,18 @@ public class DBconnector {
 
 		return result;
 	}
+	public String getOrderFromConfCode(String query, String confCode) {
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setString(1, confCode);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString("order_datetime");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return "Not found";
+	}
 }

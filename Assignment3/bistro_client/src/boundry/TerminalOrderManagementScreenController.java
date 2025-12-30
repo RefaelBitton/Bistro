@@ -2,6 +2,7 @@ package boundry;
 
 import java.util.Optional;
 import entities.CheckConfCodeRequest;
+import entities.GetTableRequest;
 import entities.User;
 import entities.UserType;
 import javafx.application.Platform;
@@ -127,15 +128,15 @@ public class TerminalOrderManagementScreenController implements IController {
     @FXML
     void onGetTableClick(ActionEvent event) {
     	String confcode = confCodeTxt.getText().trim();
-    	if (confcode.isEmpty()) {
+    	if (confcode.isEmpty() ||  !confcode.matches("\\d+")) {
 			Alert alert = new Alert(AlertType.ERROR);
 			alert.setTitle("Error Occurred");
-			alert.setContentText("Please enter your confirmation code.");
+			alert.setContentText("Please enter a valid confirmation code.");
 			alert.showAndWait();
 			return;
 		}
+    	ClientUI.console.accept(new GetTableRequest(confcode));
     	
-    	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml", user);
     	
 
     }
