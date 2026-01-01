@@ -3,6 +3,7 @@ package boundry;
 import java.util.Optional;
 import entities.CheckConfCodeRequest;
 import entities.GetTableRequest;
+import entities.LeaveTableRequest;
 import entities.User;
 import entities.UserType;
 import javafx.application.Platform;
@@ -120,9 +121,18 @@ public class TerminalOrderManagementScreenController implements IController {
 
     @FXML
     void onLeaveTableClick(ActionEvent event) {
-    	//navigate to finish order screen (not implemented yet)
-    	ClientUI.console.switchScreen(this, event, "/boundry/FinishOrderScreen.fxml", user);
-
+    	String confcode = confCodeTxt.getText().trim();
+		if (confcode.isEmpty() ||  !confcode.matches("\\d+")) {
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Error Occurred");
+			alert.setContentText("Please enter a valid confirmation code.");
+			alert.showAndWait();
+			return;
+		}
+		LeaveTableRequest leaveTableRequest = new LeaveTableRequest(confcode);
+		ClientUI.console.accept(leaveTableRequest);
+		
+    	
     }
 
     @FXML
@@ -145,8 +155,8 @@ public class TerminalOrderManagementScreenController implements IController {
 	public void setResultText(Object result) {
 		Platform.runLater(() -> 
 		{Alert alert = new Alert(AlertType.INFORMATION);
-		alert.setTitle("Error Occurred");
-        alert.setHeaderText("Invalid contact");
+		alert.setTitle("Operation result");
+        alert.setHeaderText(null);
 	    alert.setContentText((String) result);
 	    alert.showAndWait();
 		}

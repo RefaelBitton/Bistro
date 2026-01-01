@@ -16,6 +16,7 @@ import java.util.List;
 
 import entities.CancelRequest;
 import entities.CheckConfCodeRequest;
+import entities.LeaveTableRequest;
 import entities.LoginRequest;
 import entities.Order;
 import entities.ReadRequest;
@@ -130,7 +131,7 @@ public class DBconnector {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 StringBuilder sb = new StringBuilder();
-                while (rs.next()) sb.append(rs.getString(1)).append(",");
+                while (rs.next()) sb.append(rs.getString(1)).append(":").append(rs.getString(2)).append(",");
                 return sb.toString();
             }
             
@@ -412,5 +413,27 @@ public class DBconnector {
 		}
 		
 		return "Not found";
+	}
+	public String closeOrder(LeaveTableRequest r) {
+		String query = r.getQuery();
+		String confcode = r.getConfCode();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+			stmt.setInt(1, Integer.parseInt(confcode));
+			ResultSet rs = stmt.executeQuery();
+			if(rs.next()) {
+				rs.updateString("status", "CLOSED");
+				rs.updateRow();
+				return rs.getString("subscriber_id");
+			}
+			else {
+				return "Not found";
+			}
+		
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return "Error";
 	}
 }

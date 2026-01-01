@@ -58,7 +58,7 @@ public class Table implements Serializable, Comparable<Table> {
 	}
 	
 	public String toString() {
-		return "Table Number: " + id + ", Capacity: " + capacity;
+		return "Table Number: " + id + ", Capacity: " + capacity+", "+ (isTaken ? "Taken" : "Available");
 	}
 	
 }
