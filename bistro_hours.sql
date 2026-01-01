@@ -16,27 +16,25 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `table`
+-- Table structure for table `hours`
 --
 
-DROP TABLE IF EXISTS `table`;
+DROP TABLE IF EXISTS `hours`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `table` (
-  `table_number` int NOT NULL,
-  `number_of_seats` int DEFAULT NULL,
-  PRIMARY KEY (`table_number`)
+CREATE TABLE `hours` (
+  `open` datetime DEFAULT NULL,
+  `end` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `table`
+-- Dumping data for table `hours`
 --
 
-LOCK TABLES `table` WRITE;
-/*!40000 ALTER TABLE `table` DISABLE KEYS */;
-INSERT INTO `table` VALUES (1,2);
-/*!40000 ALTER TABLE `table` ENABLE KEYS */;
+LOCK TABLES `hours` WRITE;
+/*!40000 ALTER TABLE `hours` DISABLE KEYS */;
+/*!40000 ALTER TABLE `hours` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -48,4 +46,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-01-01 11:00:11
+-- Dump completed on 2026-01-01 11:00:10
