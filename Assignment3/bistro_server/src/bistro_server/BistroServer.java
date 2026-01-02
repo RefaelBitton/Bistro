@@ -25,7 +25,8 @@ import ocsf.server.ConnectionToClient;
 /**The server, extending the abstract server*/
 public class BistroServer extends AbstractServer {
      final public static int DEFAULT_PORT = 5556;
-     protected static WaitingList waitlist = new WaitingList();
+     protected static WaitingList waitlistJustArrived = new WaitingList();
+     protected static WaitingList waitlistOrderInAdvanced = new WaitingList();
      /**An array that holds the currently connected clients*/
      protected static List<ConnectionToClient> clients;
      /**An array that holds the tables in the restaurant*/
@@ -158,7 +159,7 @@ public class BistroServer extends AbstractServer {
     public String handleLeaveWaitlist(Request r) {
         String orderNum = ((LeaveWaitlistRequest)r).getOrderNum();
         // Accessing the static waitlist instance in BistroServer to remove the node
-        boolean removed = BistroServer.waitlist.cancel(orderNum); 
+        boolean removed = BistroServer.waitlistJustArrived.cancel(orderNum); 
         
         if (removed) {
             return "You have been removed from the waiting list.";
@@ -200,7 +201,7 @@ public class BistroServer extends AbstractServer {
 		));
         String orderNum = waitlistOrder.getOrderNumber();
         // Add to the DLL queue
-        BistroServer.waitlist.enqueue(waitlistOrder); 
+        BistroServer.waitlistJustArrived.enqueue(waitlistOrder); 
         
         return "The restaurant is full. You've been added to the waitlist.\n" +
                "Order Number: " + orderNum + "\n" +
@@ -210,14 +211,14 @@ public class BistroServer extends AbstractServer {
     // will be called when a table is freed up
     public Order seatFromWaitlist() {
         // 1. Standard for-each loop made possible by implementing Iterable
-        for (Order currentOrder : waitlist) {
+        for (Order currentOrder : waitlistJustArrived) {
             int guests = Integer.parseInt(currentOrder.getNumberOfGuests());
             
             // 2. Check if this specific order fits current availability
             ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, currentOrder.getOrderDateTime());
             if (checkAvailability(slotReq)) {
                 // 3. Remove this specific order from the list and return it
-                waitlist.cancel(currentOrder.getOrderNumber());
+            	waitlistJustArrived.cancel(currentOrder.getOrderNumber());
                 return currentOrder;
             }
             // If not a fit, the iterator automatically moves to the next node
