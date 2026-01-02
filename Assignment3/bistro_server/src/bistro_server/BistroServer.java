@@ -413,7 +413,9 @@ public class BistroServer extends AbstractServer {
 		for (Entry<Table, Order> entry : currentBistro.entrySet()) {
 			Order order = entry.getValue();
 			if (order != null && order.getConfirmationCode().equals(req.getConfcode())) {
+				order.setSittingtime(BistroServer.dateTime);
 				return  entry.getKey().toString();
+				
 			}
 		}
 		//waitlistJustArrived, waitListOrderedInAdvance
