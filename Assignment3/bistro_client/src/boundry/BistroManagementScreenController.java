@@ -50,16 +50,16 @@ public class BistroManagementScreenController implements IController{
 		    @Override
 		    protected void updateItem(Table item, boolean empty) {
 		        super.updateItem(item, empty);
-
 		        if (empty || item == null) {
 		            setText(null);
 		            setTextFill(Color.BLACK);
 		        } else {
-		            // Logic to determine what to show
 		            if (item.getActiveTo() != null) {
-		                // This table is scheduled to die
 		                setText("Table " + item.getId() + " (Scheduled for removal: " + item.getActiveTo() + ")");
-		                setTextFill(Color.RED); // Make it stand out
+		                setTextFill(Color.RED);
+		            }else if(item.getActiveFrom().isAfter(LocalDate.now())) {
+		                setText("Table " + item.getId() + " (Scheduled to start operation: " + item.getActiveFrom() + ")");
+		                setTextFill(Color.BLUE);
 		            } else {
 		                // Normal table
 		                setText("Table " + item.getId() + " (Capacity: " + item.getCapacity() + ")");

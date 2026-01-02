@@ -121,6 +121,7 @@ public class BistroServer extends AbstractServer {
      */
     @Override
     protected void clientDisconnected(ConnectionToClient client) {
+    	System.out.println("ClientDisconnected Called");
         clients.remove(client);
         MainScreenServerController.refreshClientsLive();
     }
@@ -129,11 +130,11 @@ public class BistroServer extends AbstractServer {
     /**
      * Removing a client from the array
      */
-    @Override
-    protected void clientException(ConnectionToClient client, Throwable exception) {
-        clients.remove(client);
-        MainScreenServerController.refreshClientsLive();
-    }
+//    @Override
+//    protected void clientException(ConnectionToClient client, Throwable exception) {
+//        clients.remove(client);
+//        MainScreenServerController.refreshClientsLive();
+//    }
 
 
     public List<Table> getTables(Request r) {
