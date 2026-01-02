@@ -10,11 +10,13 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import entities.AddTableRequest;
 import entities.CancelRequest;
 import entities.ChangeHoursDayRequest;
 import entities.CheckConfCodeRequest;
@@ -23,6 +25,7 @@ import entities.LoginRequest;
 import entities.Order;
 import entities.ReadRequest;
 import entities.RegisterRequest;
+import entities.RemoveTableRequest;
 import entities.Request;
 import entities.ShowTakenSlotsRequest;
 import entities.Subscriber;
@@ -292,7 +295,9 @@ public class DBconnector {
 	public List<Table> getAllTables() {
 		ArrayList<Table> tables = new ArrayList<>();
 		try {
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table`;");
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table` WHERE ? >= active_from AND (? <= active_to OR active_to IS NULL);");
+			stmt.setDate(1,Date.valueOf(LocalDate.now()));
+			stmt.setDate(2,Date.valueOf(LocalDate.now()));
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				int id = rs.getInt("table_number");
@@ -491,6 +496,54 @@ public class DBconnector {
 	        e.printStackTrace();
 	        return "Error inserting hours for date: " + e.getMessage();
 	    }
+	}
+	private int getNextTableId() {
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL(MAX(table_number), 0) + 1 AS next_num FROM `table`");
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) return rs.getInt(1);
+            
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("ERROR:" + e.getMessage());
+        }
+		return -1;
+		
+	}
+	
+	public boolean addNewTable(AddTableRequest req) {
+		String query = req.getQuery();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setInt(1, getNextTableId());
+			stmt.setInt(2,req.getCap());
+			if(stmt.executeUpdate()==0) {
+				System.out.println("Execute Update was 0");
+				return false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean removeTable(RemoveTableRequest req) {
+		String query = req.getQuery();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setInt(1, req.getId());
+			if(stmt.executeUpdate()==0) {
+				System.out.println("Execute Update was 0");
+				return false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+		}
+		return true;
 	}
 
 }

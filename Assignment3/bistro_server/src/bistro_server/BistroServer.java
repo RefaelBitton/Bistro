@@ -14,11 +14,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import entities.AddTableRequest;
 import entities.GetTableRequest;
 import entities.JoinWaitlistRequest;
 import entities.LeaveTableRequest;
 import entities.LeaveWaitlistRequest;
 import entities.Order;
+import entities.RemoveTableRequest;
 import entities.Request;
 import entities.RequestHandler;
 import entities.RequestType;
@@ -26,6 +28,7 @@ import entities.ReserveRequest;
 import entities.ShowTakenSlotsRequest;
 import entities.Table;
 import entities.TrySeatRequest;
+import entities.UpdateTableCapacityRequest;
 import entities.WriteRequest;
 import ocsf.server.AbstractServer;
 import ocsf.server.ConnectionToClient;
@@ -85,6 +88,10 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.LEAVE_TABLE,this::leaveTable);
         handlers.put(RequestType.CHANGE_HOURS_DAY, dbcon::changeHoursDay);
         handlers.put(RequestType.WRITE_HOURS_DATE, dbcon::writeHoursDate);
+        handlers.put(RequestType.GET_ALL_TABLES, this::getTables);
+        handlers.put(RequestType.ADD_TABLE, this::addTable);
+        handlers.put(RequestType.REMOVE_TABLE, this::removeTable);
+        handlers.put(RequestType.UPDATE_TABLE_CAPACITY, this::updateTable);
 
     }
     /**
@@ -122,17 +129,16 @@ public class BistroServer extends AbstractServer {
     /**
      * Removing a client from the array
      */
-//    @Override
-//    protected void clientException(ConnectionToClient client, Throwable exception) {
-//        clients.remove(client);
-//        MainScreenServerController.refreshClientsLive();
-//    }
-
     @Override
     protected void clientException(ConnectionToClient client, Throwable exception) {
-        exception.printStackTrace();
+        clients.remove(client);
+        MainScreenServerController.refreshClientsLive();
     }
 
+
+    public List<Table> getTables(Request r) {
+    	return tables;
+    }
     /**Checking if there are available tables for the given order
 	 * @param o the order to check availability for
 	 * @return whether there are available tables for the order
@@ -509,5 +515,36 @@ public class BistroServer extends AbstractServer {
 		}
 		return "Error: No order with that confirmation code is currently seated.";
 		}	
+
+	public String addTable(Request r) {
+		AddTableRequest req = (AddTableRequest)r;
+		if(dbcon.addNewTable(req)) {
+			return "new Table with " +req.getCap() +" spots added sucessfully, action will take effect in the next month";
+		}
+		else {
+			return "ERROR: new Table could not be added";
+		}
 	}
+	
+	public String removeTable(Request r) {
+		RemoveTableRequest req = (RemoveTableRequest)r;
+		if(dbcon.removeTable(req)) {
+			return "Table number " +req.getId() + " was removed sucessfully, action will take effect in the next month"; 
+		}
+		return "ERROR: table could not be removed";
+	}
+	
+	public String updateTable(Request r) {
+		UpdateTableCapacityRequest req = (UpdateTableCapacityRequest)r;
+		if(!dbcon.removeTable(req.getRemoveReq())) {
+			return "ERROR: updating the table failed";
+		}
+		if(!dbcon.addNewTable(req.getAddReq())) {
+			return "ERROR: updating the table failed";
+		}
+		return "Updated table number " +req.getRemoveReq().getId() + " to " +req.getAddReq().getCap() + "sucessfully"; 
+	}
+}
+
+
 
