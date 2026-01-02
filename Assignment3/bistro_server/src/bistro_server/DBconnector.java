@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import entities.CancelRequest;
+import entities.ChangeHoursDayRequest;
 import entities.CheckConfCodeRequest;
 import entities.LoginRequest;
 import entities.Order;
@@ -24,6 +26,7 @@ import entities.Request;
 import entities.ShowTakenSlotsRequest;
 import entities.Subscriber;
 import entities.Table;
+import entities.WriteHoursDateRequest;
 
 /**
  * A class that handles all operations on the database, receiving requests and handling them 
@@ -412,5 +415,59 @@ public class DBconnector {
 		}
 		
 		return "Not found";
+	}	
+	
+	public String changeHoursDay(Request r) {
+	    ChangeHoursDayRequest req = (ChangeHoursDayRequest) r;
+	    String openTime = String.format("%02d:00:00", Integer.parseInt(req.getOpen()));
+	    String closeTime = String.format("%02d:00:00", Integer.parseInt(req.getClose()));
+	    String query = req.getQuery();
+	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setTime(1, Time.valueOf(openTime));
+	        stmt.setTime(2, Time.valueOf(closeTime));
+	        stmt.setString(3, req.getDay());
+
+	        int rowsUpdated = stmt.executeUpdate();
+	        if (rowsUpdated > 0)
+	            return "Details updated successfully.";
+	        else
+	            return "No details were updated.";
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return "Error updating details: " + e.getMessage();
+	    } catch (NumberFormatException e) {
+	        e.printStackTrace();
+	        return "Error: Invalid hour format.";
+	    }
 	}
+	
+	public String writeHoursDate(Request r) {
+	    WriteHoursDateRequest req = (WriteHoursDateRequest) r;
+	    String openTime;
+	    String closeTime;
+	    try {
+	        openTime = String.format("%02d:00:00", Integer.parseInt(req.getOpen()));
+	        closeTime = String.format("%02d:00:00", Integer.parseInt(req.getClose()));
+	    } catch (NumberFormatException e) {
+	        return "Error: Invalid hour format.";
+	    }
+
+	    String query = req.getQuery();
+
+	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setDate(1, java.sql.Date.valueOf(req.getDate())); 
+	        stmt.setTime(2, java.sql.Time.valueOf(openTime));
+	        stmt.setTime(3, java.sql.Time.valueOf(closeTime));
+
+	        int rowsInserted = stmt.executeUpdate();
+	        if (rowsInserted > 0)
+	            return "Hours for date inserted successfully.";
+	        else
+	            return "No rows were inserted.";
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return "Error inserting hours for date: " + e.getMessage();
+	    }
+	}
+
 }
