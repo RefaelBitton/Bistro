@@ -63,11 +63,11 @@ public class BistroServer extends AbstractServer {
         currentBistro = new HashMap<>();
         dbcon = new DBconnector();
         clients = Collections.synchronizedList(new ArrayList<>());
-        tables = dbcon.getAllTables();
+        tables = dbcon.getRelevantTables();
         for (Table t : tables) {
 			currentBistro.put(new Table(t.getId(), t.getCapacity(), t.isTaken()), null);
 		}
-        tables.sort(null);
+        tables = dbcon.getAllTables();
         handlers = new HashMap<>();
         handlers.put(RequestType.WRITE_ORDER, this::addNewOrder);
         handlers.put(RequestType.READ_ORDER, dbcon::getOrder);
@@ -137,6 +137,7 @@ public class BistroServer extends AbstractServer {
 
 
     public List<Table> getTables(Request r) {
+    	tables = dbcon.getAllTables();
     	return tables;
     }
     /**Checking if there are available tables for the given order
@@ -344,6 +345,8 @@ public class BistroServer extends AbstractServer {
 				);
     	Map<String,Integer> guests_in_time = prepareGuestsInTimeList(slotReq, true);
     	//prepare tables copy
+    	List<Table> tables = sortTables(currentBistro.keySet(), false);
+    	
     	int available = checkAvailability(tables, guests_in_time,"-1");
     	for (Table t : tables) {
     		t.setTaken(false);
@@ -542,7 +545,7 @@ public class BistroServer extends AbstractServer {
 		if(!dbcon.addNewTable(req.getAddReq())) {
 			return "ERROR: updating the table failed";
 		}
-		return "Updated table number " +req.getRemoveReq().getId() + " to " +req.getAddReq().getCap() + "sucessfully"; 
+		return "Updated table number " +req.getRemoveReq().getId() + " to " +req.getAddReq().getCap() + " sucessfully"; 
 	}
 }
 

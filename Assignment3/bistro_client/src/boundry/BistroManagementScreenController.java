@@ -19,7 +19,11 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.paint.Color;
+import javafx.util.Callback;
 import javafx.scene.control.Alert.AlertType;
 
 public class BistroManagementScreenController implements IController{
@@ -42,6 +46,30 @@ public class BistroManagementScreenController implements IController{
 		for (int i = 1; i <= 7; i++) dayOfWeek.getItems().add(i);
 		for (int i = 0; i <= 23; i++) openHour.getItems().add(i);
 		for (int i = 0; i <= 23; i++) closeHour.getItems().add(i);
+		Callback<ListView<Table>, ListCell<Table>> cellFactory = lv -> new ListCell<Table>() {
+		    @Override
+		    protected void updateItem(Table item, boolean empty) {
+		        super.updateItem(item, empty);
+
+		        if (empty || item == null) {
+		            setText(null);
+		            setTextFill(Color.BLACK);
+		        } else {
+		            // Logic to determine what to show
+		            if (item.getActiveTo() != null) {
+		                // This table is scheduled to die
+		                setText("Table " + item.getId() + " (Scheduled for removal: " + item.getActiveTo() + ")");
+		                setTextFill(Color.RED); // Make it stand out
+		            } else {
+		                // Normal table
+		                setText("Table " + item.getId() + " (Capacity: " + item.getCapacity() + ")");
+		                setTextFill(Color.BLACK);
+		            }
+		        }
+		    }
+		};
+		currentTables.setCellFactory(cellFactory);
+		currentTables.setButtonCell(cellFactory.call(null));
 		ClientUI.console.accept(new GetAllTablesRequest());
 		try {
 			Thread.sleep(100);
@@ -160,6 +188,7 @@ public class BistroManagementScreenController implements IController{
 	@Override
 	public void setResultText(Object result) {
 		if( result instanceof ArrayList<?>) {
+			
 			@SuppressWarnings("unchecked")
 			ArrayList<Table> tables = (ArrayList<Table>) result;
 			currentTables.getItems().clear();
