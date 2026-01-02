@@ -17,7 +17,7 @@
       <Button fx:id="waitingListBtn" layoutX="261.0" layoutY="107.0" mnemonicParsing="false" onAction="#onWaitingListClick" text="Waiting List" />
       <Button fx:id="orderDetailsBtn" layoutX="76.0" layoutY="165.0" mnemonicParsing="false" onAction="#onOrderDetailsClick" text="Orders Details" />
       <Button fx:id="reportBtn" layoutX="261.0" layoutY="165.0" mnemonicParsing="false" onAction="#onReportClick" text="Reports" />
-      <Button fx:id="orderBtn" layoutX="430.0" layoutY="165.0" mnemonicParsing="false" onAction="#onNewOrderBtn" text="New Or Existing Order" />
+      <Button fx:id="orderBtn" layoutX="430.0" layoutY="165.0" mnemonicParsing="false" onAction="#onNewOrderBtn" text="New Order" />
       <Button fx:id="subscriberDetailsBtn" layoutX="76.0" layoutY="227.0" mnemonicParsing="false" onAction="#onSubscriberDetailsClick" text="Subscribers Details" />
       <Button fx:id="logOutBtn" layoutX="261.0" layoutY="295.0" mnemonicParsing="false" onAction="#onLogOutClick" text="Log Out" />
       <Button fx:id="bistroManagementBtn" layoutX="430.0" layoutY="227.0" mnemonicParsing="false" onAction="#onBistroManagementClick" text="Bistro Management" />

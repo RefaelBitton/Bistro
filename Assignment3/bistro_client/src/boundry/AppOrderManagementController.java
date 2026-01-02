@@ -137,9 +137,7 @@ public class AppOrderManagementController implements IController {
 		    alert.showAndWait();
 		}
 		);
-
-		
-	   }
+   }
 
 	@Override
 	public void setUser(User user) {

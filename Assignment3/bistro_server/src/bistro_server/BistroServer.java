@@ -83,6 +83,9 @@ public class BistroServer extends AbstractServer {
         //handlers.put(RequestType.TRY_SEAT,this::trySeat);
         handlers.put(RequestType.GET_TABLE, this::getTableForOrder);
         handlers.put(RequestType.LEAVE_TABLE,this::leaveTable);
+        handlers.put(RequestType.CHANGE_HOURS_DAY, dbcon::changeHoursDay);
+        handlers.put(RequestType.WRITE_HOURS_DATE, dbcon::writeHoursDate);
+
     }
     /**
      * Sending messages from client over to the database connector
@@ -505,5 +508,6 @@ public class BistroServer extends AbstractServer {
 			}
 		}
 		return "Error: No order with that confirmation code is currently seated.";
+		}	
 	}
-}
+
