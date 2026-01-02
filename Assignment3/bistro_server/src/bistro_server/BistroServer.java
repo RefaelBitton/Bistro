@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import entities.AddTableRequest;
 import entities.GetTableRequest;
 import entities.JoinWaitlistRequest;
@@ -410,6 +409,9 @@ public class BistroServer extends AbstractServer {
         }
 
         BistroServer sv = new BistroServer(port);
+        Thread monitorThread = new Thread(new BistroMonitor(sv));
+        monitorThread.setDaemon(true); // dies when server stops
+        monitorThread.start();
         try {
             sv.listen();
         } catch (Exception ex) {
@@ -543,6 +545,16 @@ public class BistroServer extends AbstractServer {
 			return "ERROR: updating the table failed";
 		}
 		return "Updated table number " +req.getRemoveReq().getId() + " to " +req.getAddReq().getCap() + "sucessfully"; 
+	}
+	
+	public Map<Table,Order> getCurrentBistro(){
+		return currentBistro;
+	}
+	public WaitingList getRegularWaitlist() {
+		return waitlistJustArrived;
+	}
+	public WaitingList getAdvanceWaitlist() {
+		return waitlistOrderedInAdvance;
 	}
 }
 
