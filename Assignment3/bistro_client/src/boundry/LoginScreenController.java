@@ -4,8 +4,11 @@ import java.io.IOException;
 
 import entities.Guest;
 import entities.LoginRequest;
+import entities.Manager;
 import entities.Subscriber;
 import entities.User;
+import entities.UserType;
+import entities.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -30,7 +33,10 @@ public class LoginScreenController implements IController{
 		ClientUI.console.setController(this);
 	}
     @FXML
-    private Button guestBtn;
+    private Button guestTerminalBtn;
+    
+    @FXML
+    private Button guestAppBtn;
 
     @FXML
     private Button registerBtn;
@@ -51,90 +57,167 @@ public class LoginScreenController implements IController{
     private Button appBtn;
     
     /**
-     * when the user clicks 'enter as guest'
+     * when the user clicks 'enter terminal as guest'
      * @param event
      * @throws IOException
      */
     @FXML
-    void onGuestClick(ActionEvent event) throws IOException {
+    void onGuestTerminalClick(ActionEvent event) throws IOException {
     	this.user = new Guest(null, null);
-    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml", user);
-    }
-    /**
-     * when the user clicks 'login'
-     * @param event
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    @FXML
-    void onLoginClick(ActionEvent event) throws IOException, InterruptedException {
-    	int id = 0;
-    	boolean exceptionRaised = false;
-    	try {
-    		id = Integer.parseInt(subscriberId.getText().trim());
-    		exceptionRaised = id<=0;
-    	} catch (NumberFormatException e) {
-    		exceptionRaised = true;
-    	}
-    	if (!exceptionRaised) {
-        	LoginRequest r = new LoginRequest(id);
-        	ClientUI.console.accept(r);
-        	Thread.sleep(200); // wait for server response
-        	if(!serverResponse.equals("Not found")) {
-        		System.out.println(serverResponse);
-        		String[] args = serverResponse.split(",");
-        		//args = [0] - full name [1] - sub_id [2] - username [3] - phone number [4] - email
-        		String fname = args[0].split(" ")[0];
-        		String lname = args[0].split(" ")[1];
-        		user = new Subscriber(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
-        	}
-        	else{
-        		Alert alert = new Alert(AlertType.ERROR);
-        	    alert.setTitle("Error Occurred");
-        	    alert.setHeaderText("Input Validation Failed");
-        	    alert.setContentText("That user doesn't exist, please check your credentials");
-        	    alert.showAndWait();
-        	}    		
-    	}
-    	
-    	else {
-    		Alert alert = new Alert(AlertType.ERROR);
-    		alert.setTitle("Error Occurred");
-    		alert.setHeaderText("Input Validation Failed");
-    		alert.setContentText("an id must be a positive integer");
-    		alert.showAndWait();
-    	}
-    	
-    }
-    
-    @FXML
-    void onTerminalClick(ActionEvent event) throws IOException, InterruptedException {
-    	onLoginClick(event);
     	ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
     }
     
+    /**
+     * when the user clicks 'enter terminal as guest'
+     * @param event
+     * @throws IOException
+     */
     @FXML
-    void onAppClick(ActionEvent event) throws IOException, InterruptedException {
-    	onLoginClick(event);
+    void onGuestAppClick(ActionEvent event) throws IOException {
+    	this.user = new Guest(null, null);
     	ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
     }
     
     /**
-     * when the user clicks on 'Register'
+     * when the user clicks 'terminal'
      * @param event
-     */
+     * @throws IOException
+     * @throws InterruptedException
+     */   
     @FXML
-    void onRegisterClick(ActionEvent event) {
-    	this.user = new Guest(null, null);
-    	ClientUI.console.switchScreen(this, event, "/boundry/registerScreen.fxml",user);
+    void onTerminalClick(ActionEvent event) throws IOException, InterruptedException {		
+    	login("TERMINAL", event);
     }
+    
+    /**
+     * when the user clicks 'App'
+     * @param event
+     * @throws IOException
+     * @throws InterruptedException
+     */ 
+    @FXML
+    void onAppClick(ActionEvent event) throws IOException, InterruptedException {
+    	login("APP", event);
+    }
+    
+    public void login(String mode, ActionEvent event) throws IOException, InterruptedException {
+        int id = 0;
+        boolean exceptionRaised = false;
+
+        try {
+            id = Integer.parseInt(subscriberId.getText().trim());
+            exceptionRaised = id <= 0;
+        } catch (NumberFormatException e) {
+            exceptionRaised = true;
+        }
+
+        if (!exceptionRaised) {
+            LoginRequest r = new LoginRequest(id);
+            ClientUI.console.accept(r);
+            Thread.sleep(200); // wait for server response
+
+            if (!serverResponse.equals("Not found")) {
+                String[] args = serverResponse.split(",");
+                String[] fullName = args[0].split(" ");
+                String fname = fullName[0];
+                String lname = fullName[1];
+                String status = args[5];
+
+                if ("CLIENT".equals(status)) {
+                    user = new Subscriber(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4], null);
+                }
+                else if ("EMPLOYEE".equals(status)) {
+                    user = new Worker(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4], null);
+                }
+                else {
+                    user = new Manager(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4], null);
+                }
+
+                String screen;
+                if (mode.equals("TERMINAL")) {
+                    screen = "/boundry/TerminalScreen.fxml";
+                }
+                else {
+                    if (user.getType() == UserType.BISTRO_REP || user.getType() == UserType.MANAGER) {
+                        screen = "/boundry/WorkerScreen.fxml";
+                    } else {
+                        screen = "/boundry/ClientScreen.fxml";
+                    }
+                }
+
+                ClientUI.console.switchScreen(this, event, screen, user);
+            }
+            else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error Occurred");
+                alert.setHeaderText("Input Validation Failed");
+                alert.setContentText("That user doesn't exist, please check your credentials");
+                alert.showAndWait();
+            }
+        }
+        else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Occurred");
+            alert.setHeaderText("Input Validation Failed");
+            alert.setContentText("an id must be a positive integer");
+            alert.showAndWait();
+        }
+    }
+
+    
+//    public void login(String screen,ActionEvent event) throws IOException, InterruptedException {
+//    	int id = 0;
+//    	boolean exceptionRaised = false;
+//    	try {
+//    		id = Integer.parseInt(subscriberId.getText().trim());
+//    		exceptionRaised = id<=0;
+//    	} catch (NumberFormatException e) {
+//    		exceptionRaised = true;
+//    	}
+//    	if (!exceptionRaised) {
+//        	LoginRequest r = new LoginRequest(id);
+//        	ClientUI.console.accept(r);
+//        	Thread.sleep(200); // wait for server response
+//        	if(!serverResponse.equals("Not found")) {
+//        		System.out.println(serverResponse);
+//        		String[] args = serverResponse.split(",");
+//        		//args = [0] - full name [1] - sub_id [2] - username [3] - phone number [4] - email
+//        		String fname = args[0].split(" ")[0];
+//        		String lname = args[0].split(" ")[1];
+//        		if(args[5] == "CLIENT") {
+//        			user = new Subscriber(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
+//        		}
+//        		else if(args[5] == "EMPLOYEE")
+//        			user = new Worker(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
+//        		else
+//        			user = new Manager(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
+//    			ClientUI.console.switchScreen(this, event, screen, user);
+//        	}
+//        	else{
+//        		Alert alert = new Alert(AlertType.ERROR);
+//        	    alert.setTitle("Error Occurred");
+//        	    alert.setHeaderText("Input Validation Failed");
+//        	    alert.setContentText("That user doesn't exist, please check your credentials");
+//        	    alert.showAndWait();
+//        	}    		
+//    	}
+//    	
+//    	else {
+//    		Alert alert = new Alert(AlertType.ERROR);
+//    		alert.setTitle("Error Occurred");
+//    		alert.setHeaderText("Input Validation Failed");
+//    		alert.setContentText("an id must be a positive integer");
+//    		alert.showAndWait();
+//    	}
+//		
+//	}
+    
     /**
      * setting the server response
      */
 	@Override
 	public void setResultText(Object result) {
-		serverResponse = (String)result;
-		
+		serverResponse = (String)result;	
 	}
 	
     @FXML

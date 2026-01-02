@@ -22,6 +22,7 @@ public class waitListController implements IController {
     @FXML private Label idLabel;
     @FXML private TextArea resultTxt;
     @FXML private Button backBtn;
+    @FXML private Button submitBtn;
 
     @FXML
     public void initialize() {
@@ -77,7 +78,7 @@ public class waitListController implements IController {
         String message = (String) result;
         
         // Requirement: Show Popup if no table is found immediately
-        if (message.contains("No immediate seating")) {
+        if (message.contains("PROMPT: NO_SEATS_FOUND")) {
             Platform.runLater(this::showWaitlistConfirmPopup);
         } else {
             resultTxt.setText(message);
@@ -86,14 +87,13 @@ public class waitListController implements IController {
 
     private void showWaitlistConfirmPopup() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Waitlist Selection");
-        alert.setHeaderText("No open spots found.");
-        alert.setContentText("Would you like to enter the waitlist or cancel?");
-
         ButtonType btnJoin = new ButtonType("Join Waitlist");
         ButtonType btnCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(btnJoin, btnCancel);
-
+        alert.setTitle("Waitlist Selection");
+        alert.setHeaderText("No open spots found.");
+        alert.setContentText("Would you like to enter the waitlist or cancel?");
+        
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == btnJoin) {
             resultTxt.setText("⏳ Adding you to the waitlist...");
