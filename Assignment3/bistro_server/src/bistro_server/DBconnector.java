@@ -6,7 +6,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -561,7 +560,6 @@ public class DBconnector {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		// TODO Auto-generated method stub
 		return null;
 	}
 
