@@ -20,6 +20,12 @@ public class JoinWaitlistRequest extends Request {
         this.contact = contact;
     }
     
+ // New constructor for the second attempt (waitlist confirmation)
+    public JoinWaitlistRequest(String orderDateTime, String numberOfGuests, String subscriberId, String contact, boolean isWaitlistEntry) {
+        this(orderDateTime, numberOfGuests, subscriberId, contact); // Calls existing constructor
+        setWaitlistEntry(isWaitlistEntry);
+    }
+    
     public boolean isWaitlistEntry() { return isWaitlistEntry; }
     public void setWaitlistEntry(boolean isWaitlistEntry) { this.isWaitlistEntry = isWaitlistEntry; }
     public String getOrderDateTime() { return orderDateTime; }

@@ -216,13 +216,14 @@ public class BistroServer extends AbstractServer {
         	}
         	waitlistOrder.setSittingtime(BistroServer.dateTime);
         	currentBistro.put(desiredTable, waitlistOrder); // Seat at the first available table
-
+        	
             return "SUCCESS: Table is ready! Please proceed to your table. "
             		+ "Your confirmation code: " + (waitlistOrder.getConfirmationCode());
         } 
 
         // 2. If no seats and user hasn't confirmed via popup yet
         if (!req.isWaitlistEntry()) {
+        	printWaitlists(BistroServer.waitlistJustArrived, 1);
             return "PROMPT: NO_SEATS_FOUND";
         }
 
@@ -237,6 +238,7 @@ public class BistroServer extends AbstractServer {
         // Add to the DLL queue
         BistroServer.waitlistJustArrived.enqueue(waitlistOrder); 
         
+        printWaitlists(BistroServer.waitlistJustArrived, 1);
         return "The restaurant is full. You've been added to the waitlist.\n" +
                "Order Number: " + orderNum + "\n" +
                "Confirmation Code: " + waitlistOrder.getConfirmationCode();
@@ -263,6 +265,10 @@ public class BistroServer extends AbstractServer {
         return null; // No one currently in the waitlist fits the free spot
     }
     
+    /** * Sorts a set of tables into a list
+     * @param tableSet = the set of tables to sort
+
+     */
     public List<Table> sortTables(Set <Table> tableSet) {
 		List<Table> tableList = new ArrayList<>();
 		for (Table t : tableSet) {
@@ -272,6 +278,25 @@ public class BistroServer extends AbstractServer {
 		tableList.sort(null);
 		return tableList;
 	}
+    
+    
+    /** * Prints the desired waitlist to the console
+     * @param waitlist = the waitlist to print
+     * @param isJustArrived = 1 for just arrived waitlist, 0 for ordered in advance waitlist
+     */
+    public void printWaitlists(WaitingList waitlist, int isJustArrived) {
+    	if (isJustArrived == 1) {
+			System.out.println("Waitlist - Just Arrived:");
+			System.out.println(waitlist.toString());
+		} else {
+			System.out.println("Waitlist - Ordered In Advance:");
+			System.out.println(waitlist.toString());
+		}
+	}
+
+		
+    
+    
     
     public Order addNewOrder(Request r) {
     	WriteRequest req = (WriteRequest) r;

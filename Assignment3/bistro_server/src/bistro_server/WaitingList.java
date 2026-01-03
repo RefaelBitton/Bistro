@@ -94,4 +94,17 @@ public class WaitingList implements Iterable<Order>{
 
     public int getSize() { return size; }
     public WaitlistNode getHead() { return head; }
+    
+    @Override
+    public String toString() {
+		StringBuilder sb = new StringBuilder("WaitingList{");
+		WaitlistNode current = head;
+		while (current != null) {
+			sb.append(current.getOrder().toString());
+			if (current.next != null) sb.append(" <-> ");
+			current = current.next;
+		}
+		sb.append('}');
+		return sb.toString();
+	}
 }

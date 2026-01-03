@@ -64,4 +64,17 @@ public class Order implements Serializable {
     public boolean equals(Object ord) {
 		return this.orderNumber.equals(((Order)ord).getOrderNumber());
 	}
+    
+    @Override
+    public String toString() {
+    			return "Order{" + 
+						"orderNumber='" + orderNumber + '\'' +
+						", confirmationCode='" + confirmationCode + '\'' +
+						", orderDateTime='" + orderDateTime + '\'' +
+						", numberOfGuests='" + numberOfGuests + '\'' +
+						", subscriberId='" + subscriberId + '\'' +
+						", dateOfPlacingOrder='" + dateOfPlacingOrder + '\'' +
+						", contact='" + contact + '\'' +
+						'}';
+    }
 }
