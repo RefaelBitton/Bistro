@@ -222,6 +222,7 @@ public class LoginScreenController implements IController{
 	
     @FXML
     void onExitClick(ActionEvent event) {
+    	ClientUI.console.quit();
     	System.exit(0);
     }
 	

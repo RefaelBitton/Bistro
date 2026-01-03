@@ -5,14 +5,25 @@ import java.util.ArrayList;
 
 import entities.User;
 import entities.WriteHoursDateRequest;
+import entities.AddTableRequest;
 import entities.ChangeHoursDayRequest;
+import entities.GetAllTablesRequest;
+import entities.RemoveTableRequest;
+import entities.Table;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
+import javafx.scene.paint.Color;
+import javafx.util.Callback;
 import javafx.scene.control.Alert.AlertType;
 
 public class BistroManagementScreenController implements IController{
@@ -24,13 +35,48 @@ public class BistroManagementScreenController implements IController{
 	@FXML private Button confirm;
 	@FXML private Button tablesBtn;
 	@FXML private Button backBtn;
-	
+	@FXML private TextField AddTableCapText;
+	@FXML private ComboBox<Table> currentTables;
+	@FXML private CheckBox removeTableCheck;
+    @FXML private TextField setTableCapText;
+
 	@FXML
 	public void initialize() {
 		ClientUI.console.setController(this);
 		for (int i = 1; i <= 7; i++) dayOfWeek.getItems().add(i);
 		for (int i = 0; i <= 23; i++) openHour.getItems().add(i);
 		for (int i = 0; i <= 23; i++) closeHour.getItems().add(i);
+		Callback<ListView<Table>, ListCell<Table>> cellFactory = lv -> new ListCell<Table>() {
+		    @Override
+		    protected void updateItem(Table item, boolean empty) {
+		        super.updateItem(item, empty);
+		        if (empty || item == null) {
+		            setText(null);
+		            setTextFill(Color.BLACK);
+		        } else {
+		            if (item.getActiveTo() != null) {
+		                setText("Table " + item.getId() + " (Scheduled for removal: " + item.getActiveTo() + ")");
+		                setTextFill(Color.RED);
+		            }else if(item.getActiveFrom().isAfter(LocalDate.now())) {
+		                setText("Table " + item.getId() + " (Scheduled to start operation: " + item.getActiveFrom() + ")");
+		                setTextFill(Color.BLUE);
+		            } else {
+		                // Normal table
+		                setText("Table " + item.getId() + " (Capacity: " + item.getCapacity() + ")");
+		                setTextFill(Color.BLACK);
+		            }
+		        }
+		    }
+		};
+		currentTables.setCellFactory(cellFactory);
+		currentTables.setButtonCell(cellFactory.call(null));
+		ClientUI.console.accept(new GetAllTablesRequest());
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} // wait for response
 		LocalDate today = LocalDate.now();
         LocalDate maxDate = today.plusMonths(1);
 
@@ -86,8 +132,52 @@ public class BistroManagementScreenController implements IController{
 	}
 	
 	@FXML
-	void onTablesBtnClick(ActionEvent event) {
-		
+	void onTablesBtnClick(ActionEvent event) throws InterruptedException {
+		try {
+			
+			if(removeTableCheck.isSelected()) {
+				Table selectedTable = currentTables.getValue();
+				if(selectedTable != null) {
+					ClientUI.console.accept(new RemoveTableRequest(selectedTable.getId()));
+					removeTableCheck.setSelected(false);
+				} else {
+					Alert alert = new Alert(AlertType.ERROR);
+		    		alert.setTitle("Error Occurred");
+		    		alert.setHeaderText("No Table Selected");
+		    		alert.setContentText("Please select a table to remove");
+		    		alert.showAndWait();
+				}
+			} 
+			
+			else if(!AddTableCapText.getText().isEmpty()) {
+				int capacity = Integer.parseInt(AddTableCapText.getText());
+				ClientUI.console.accept(new AddTableRequest(capacity));
+				AddTableCapText.clear();
+			} 
+			
+			else if(!setTableCapText.getText().isEmpty()) {
+				Table selectedTable = currentTables.getValue();
+				if(selectedTable != null) {
+					int newCapacity = Integer.parseInt(setTableCapText.getText());
+					ClientUI.console.accept(new entities.UpdateTableCapacityRequest(selectedTable.getId(), newCapacity));
+					setTableCapText.clear();
+				} else {
+					Alert alert = new Alert(AlertType.ERROR);
+		    		alert.setTitle("Error Occurred");
+		    		alert.setHeaderText("No Table Selected");
+		    		alert.setContentText("Please select a table to update its capacity");
+		    		alert.showAndWait();
+				}
+			}
+			Thread.sleep(200);
+			ClientUI.console.accept(new GetAllTablesRequest());
+		} catch (NumberFormatException e) {
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setTitle("Error Occurred");
+			alert.setHeaderText("Invalid Input");
+			alert.setContentText("Please enter a valid number for table capacity");
+			alert.showAndWait();
+		}
 	}
 	
 	@FXML
@@ -97,7 +187,24 @@ public class BistroManagementScreenController implements IController{
 	
 	@Override
 	public void setResultText(Object result) {
-		
+		if( result instanceof ArrayList<?>) {
+			
+			@SuppressWarnings("unchecked")
+			ArrayList<Table> tables = (ArrayList<Table>) result;
+			currentTables.getItems().clear();
+			for(Table t: tables) {
+				currentTables.getItems().add(t);
+			}
+		}
+		else {
+			Platform.runLater(()-> {
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setTitle("Operation Result");
+			alert.setHeaderText(null);
+			alert.setContentText((String)result);
+			alert.showAndWait();
+			});
+		}
 	}
 	
 	@Override

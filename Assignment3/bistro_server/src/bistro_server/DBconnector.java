@@ -10,18 +10,22 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import entities.AddTableRequest;
 import entities.CancelRequest;
 import entities.ChangeHoursDayRequest;
 import entities.CheckConfCodeRequest;
+import entities.LeaveTableRequest;
 import entities.LoginRequest;
 import entities.Order;
 import entities.ReadRequest;
 import entities.RegisterRequest;
+import entities.RemoveTableRequest;
 import entities.Request;
 import entities.ShowTakenSlotsRequest;
 import entities.Subscriber;
@@ -44,8 +48,8 @@ public class DBconnector {
         try //connect DB
         {
 
-			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
 
 
             System.out.println("SQL connection succeeded");
@@ -133,7 +137,7 @@ public class DBconnector {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 StringBuilder sb = new StringBuilder();
-                while (rs.next()) sb.append(rs.getString(1)).append(",");
+                while (rs.next()) sb.append(rs.getString(1)).append(":").append(rs.getString(2)).append(",");
                 return sb.toString();
             }
             
@@ -288,10 +292,12 @@ public class DBconnector {
 		return "order was not deleted";
 	}
 
-	public List<Table> getAllTables() {
+	public List<Table> getRelevantTables() {
 		ArrayList<Table> tables = new ArrayList<>();
 		try {
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table`;");
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table` WHERE ? >= active_from AND (? <= active_to OR active_to IS NULL);");
+			stmt.setDate(1,Date.valueOf(LocalDate.now()));
+			stmt.setDate(2,Date.valueOf(LocalDate.now()));
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				int id = rs.getInt("table_number");
@@ -440,6 +446,28 @@ public class DBconnector {
 	        return "Error: Invalid hour format.";
 	    }
 	}
+	public String closeOrder(LeaveTableRequest r) {
+		String query = r.getQuery();
+		String confcode = r.getConfCode();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+			stmt.setInt(1, Integer.parseInt(confcode));
+			ResultSet rs = stmt.executeQuery();
+			if(rs.next()) {
+				rs.updateString("status", "CLOSED");
+				rs.updateRow();
+				return rs.getString("subscriber_id");
+			}
+			else {
+				return "Not found";
+			}
+		
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return "Error";
+	}
 	
 	public String writeHoursDate(Request r) {
 	    WriteHoursDateRequest req = (WriteHoursDateRequest) r;
@@ -468,6 +496,73 @@ public class DBconnector {
 	        e.printStackTrace();
 	        return "Error inserting hours for date: " + e.getMessage();
 	    }
+	}
+	private int getNextTableId() {
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL(MAX(table_number), 0) + 1 AS next_num FROM `table`");
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) return rs.getInt(1);
+            
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("ERROR:" + e.getMessage());
+        }
+		return -1;
+		
+	}
+	
+	public boolean addNewTable(AddTableRequest req) {
+		String query = req.getQuery();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setInt(1, getNextTableId());
+			stmt.setInt(2,req.getCap());
+			if(stmt.executeUpdate()==0) {
+				System.out.println("Execute Update was 0");
+				return false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean removeTable(RemoveTableRequest req) {
+		String query = req.getQuery();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setInt(1, req.getId());
+			if(stmt.executeUpdate()==0) {
+				System.out.println("Execute Update was 0");
+				return false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+		}
+		return true;
+	}
+	public List<Table> getAllTables() {
+		ArrayList<Table> tables = new ArrayList<>();
+		try {
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table`;");
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				int id = rs.getInt("table_number");
+				int capacity = rs.getInt("number_of_seats");
+				LocalDate activeFrom = rs.getDate("active_from").toLocalDate();
+				LocalDate activeTo = (rs.getDate("active_to")==null) ? null: rs.getDate("active_to").toLocalDate();
+				tables.add(new Table(id, capacity, false,activeFrom,activeTo));
+			}
+			return tables;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
