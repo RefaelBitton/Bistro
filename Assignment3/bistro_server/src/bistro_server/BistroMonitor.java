@@ -2,18 +2,25 @@ package bistro_server;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import entities.CancelRequest;
 import entities.GetTableRequest;
 import entities.Order;
+import entities.ShowTakenSlotsRequest;
 import entities.Table;
 
 public class BistroMonitor implements Runnable {
 	private BistroServer server;
+	private Map<Order, LocalDateTime> pending;
 
 	public BistroMonitor(BistroServer server) {
+		pending = new HashMap<>();
 		this.server = server;
 	}
 
@@ -22,7 +29,11 @@ public class BistroMonitor implements Runnable {
 		while (true) {
 			try {
 				checkOrdersAndAdvanceTime();
-				Thread.sleep(6000); // Check every 60 seconds
+				trySeatFromWaitlist();
+				checkPendingOrders();
+				checkExpiredOrders();
+				notifyAboutOrder();
+				Thread.sleep(60000); // Check every 60 seconds
 				 BistroServer.dateTime = BistroServer.dateTime.plusMinutes(15);
 				 System.out.println("Time advanced to: " + BistroServer.dateTime);
 
@@ -32,6 +43,79 @@ public class BistroMonitor implements Runnable {
 			}
 		}
 	}
+	
+	private void notifyAboutOrder() {
+		Map<String,String> contacts=server.dbcon.OrdersToNotify();
+		for(Map.Entry<String, String> entry : contacts.entrySet()) {
+	    	String orderNumber=entry.getKey();
+	    	String contact=entry.getValue();
+	    	System.out.println(" Order " + orderNumber
+					+ " has been notified thru contact.");
+			ServerUI.updateInScreen("for contact: "+ contact+
+				"\n your order " + orderNumber
+				+ " is in 2 hours" 
+			);
+	    }
+		
+	}
+	
+	
+	private void checkExpiredOrders() {
+		Map<Table, Order> currentBistro = server.getCurrentBistro();
+		Set<String> expiredOrders = new HashSet<>();
+		for(Order o:currentBistro.values()) {
+			if(o!=null) {
+				expiredOrders.add(o.getOrderNumber());
+			}
+		
+		}
+	    Map<String,String> contacts=server.dbcon.ExpirePendingOrders(expiredOrders);
+	    for(Map.Entry<String, String> entry : contacts.entrySet()) {
+	    	String orderNumber=entry.getKey();
+	    	String contact=entry.getValue();
+	    	System.out.println(" Order " + orderNumber
+					+ " has expired before seating.");
+			ServerUI.updateInScreen("for contact: "+ contact+
+				" Order " + orderNumber
+				+ " has expired before seating, please contact the bistro staff."
+			);
+	    }
+	      
+	}
+	
+	private void checkPendingOrders() {
+		List<Order> toRemove = new ArrayList<>();
+		Map<Table, Order> currentBistro = server.getCurrentBistro();
+	    for (Map.Entry<Order, LocalDateTime> entry : pending.entrySet()) {
+	        Order order = entry.getKey();
+	        LocalDateTime addedTime = entry.getValue();
+	        if (BistroServer.dateTime.isAfter(addedTime.plusMinutes(15))) {
+	            // Time exceeded 15 minutes
+	            System.out.println(" Seating time exceeded for order: " + order.getConfirmationCode());
+	            ServerUI.updateInScreen("for contact: "+ order.getContact()+
+	                " \n Seating time exceeded for order: " + order.getConfirmationCode()
+	                + " please contact the bistro staff."
+	            );
+	            server.dbcon.cancelOrder(new CancelRequest(order.getOrderNumber(),order.getConfirmationCode()));
+	            for(Map.Entry<Table, Order> tableEntry : currentBistro.entrySet()) {
+	            	if(tableEntry.getValue()!=null && tableEntry.getValue().getConfirmationCode().equals(order.getConfirmationCode())) {
+	            		Table table=tableEntry.getKey();
+	            		table.setTaken(false);
+	            		currentBistro.put(table, null);
+	            		break;
+	            	}
+	            }
+	            toRemove.add(order);
+	        }
+	    }
+	        
+	    for(Order o:toRemove) {
+	    	 pending.remove(o);
+	    	  
+	    }
+	}
+	
+	
 	private void checkOrdersAndAdvanceTime() {
 	    Map<Table, Order> currentBistro = server.getCurrentBistro();
 
@@ -42,7 +126,7 @@ public class BistroMonitor implements Runnable {
 	        Table table = entry.getKey();
 	        Order order = entry.getValue();
 
-	        if (order == null || order.getSittingtime() == null) {
+	        if (order == null ) {
 	            continue; // table is empty
 	        }
 
@@ -65,19 +149,77 @@ public class BistroMonitor implements Runnable {
 	}
 	private void trySeatFromWaitlist() {
 		WaitingList RegularList= server.getRegularWaitlist();
+		int res;
 		WaitingList InAdvanceList= server.getAdvanceWaitlist();
 		Map<Table, Order> currentBistro = server.getCurrentBistro();
-		while(currentBistro.containsValue(null)) {
-		    	for(Order wl: InAdvanceList) {
-		    		//server.reserveTableForOrder(new GetTableRequest(wl.getConfirmationCode(),false));
-		    		
-			
-			
-				
+	    for(Order wl: InAdvanceList) {
+	    	if(!currentBistro.containsValue(null)) {
+	    		break;
+	    	}
+		    res=trySeatHelper(wl,InAdvanceList);
+		    if(res!=-1) {
+		    	InAdvanceList.dequeue(new WaitlistNode(wl));
+		    	ServerUI.updateInScreen("for contact: "+wl.getContact()+"\n table number  "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
+		    			
+		   	}
+	    }
+		for(Order wl2: RegularList) {
+			if(!currentBistro.containsValue(null)) {
+	    		break;
 			}
+		    res=trySeatHelper(wl2,RegularList);
+		    if(res!=-1) {
+		    	RegularList.dequeue(new WaitlistNode(wl2));
+		    	ServerUI.updateInScreen("for contact: "+wl2.getContact()+"\n table number  "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
+		    }
 		}
 	}
+	    
+			
+		
+	
+	private int trySeatHelper(Order order,WaitingList waitlist) {
+		Map<Table, Order> currentBistro = server.getCurrentBistro();
+		int guests=Integer.parseInt(order.getNumberOfGuests());
+		String confcode=order.getConfirmationCode();
+		Map<String,Integer> guests_in_time = server.prepareGuestsInTimeList(new ShowTakenSlotsRequest(guests,confcode), false);
+		for (Order o : currentBistro.values()) {
+			if (o != null) {
+				guests_in_time.remove(o.getConfirmationCode());
+			}
+		}
+		guests_in_time.remove(confcode);
+		
+		System.out.println("Guests in time list: " + guests_in_time.toString());
+		List<Table> tablesCopy = server.sortTables(currentBistro.keySet(),true);
+		Map<String,Integer> tempGuestsInTime = new HashMap<>();
+		tempGuestsInTime.put(confcode,guests);
+		int tableId = server.checkAvailability(tablesCopy, tempGuestsInTime,confcode);
+		System.out.println("Tables copy: " + tablesCopy.toString());
+		int canSeatOthers = server.checkAvailability(tablesCopy, guests_in_time,confcode);
+		System.out.println("Current bistro status: " + currentBistro.toString());
+		Table desiredTable = null;
+		if (tableId != -1 && canSeatOthers == 0) {
+        	for (Table t : currentBistro.keySet()) {
+        		System.out.println("Checking table with ID: " + t.getId());
+        		if (t.getId() == tableId) {
+        			desiredTable = t;
+        			System.out.println("Found desired table with ID: " + t.getId());	
+					currentBistro.put(t, order); // Seat at the first available table
+					t.setTaken(true);
+					pending.put(order, BistroServer.dateTime);
+					break;
+				}
+        	}
+			return (desiredTable !=null)? desiredTable.getId() : -1;
+		}
+		return -1;
+	}
 }
+		
+	
+
+
 
 		
 	

@@ -13,8 +13,11 @@ public class GetTableRequest extends Request {
 		return confcode;
 	}
 	
-	public boolean isForNow() {
+	public boolean getisForNow() {
 		return isForNow;
+	}
+	public void setisForNow(boolean isForNow) {
+		this.isForNow = isForNow;
 	}
 
 }
