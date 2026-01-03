@@ -83,6 +83,9 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.GET_ALL_SUBSCRIBERS, dbcon::getAllSubscribers);
         //handlers.put(RequestType.TRY_SEAT,this::trySeat);
         handlers.put(RequestType.GET_TABLE, this::getTableForOrder);
+        handlers.put(RequestType.CHANGE_HOURS_DAY, dbcon::changeHoursDay);
+        handlers.put(RequestType.WRITE_HOURS_DATE, dbcon::writeHoursDate);
+
     }
     /**
      * Sending messages from client over to the database connector
@@ -467,10 +470,6 @@ public class BistroServer extends AbstractServer {
 		else {
 			waitlistOrderedInAdvance.enqueue(o);
 			return "No available tables at the moment. Please wait to be seated.";
-		}
-		
-		
-		
-		
+		}	
 	}
 }
