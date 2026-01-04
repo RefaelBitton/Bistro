@@ -8,5 +8,4 @@ public class ReserveRequest extends WriteRequest {
 		super(orderDateTime, numberOfGuests, subscriberId, contact);
 		this.setType(RequestType.RESERVE_TABLE);
 	}
-	
 }

@@ -13,7 +13,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import entities.AddTableRequest;
 import entities.CancelRequest;
@@ -47,7 +50,7 @@ public class DBconnector {
         try //connect DB
         {
 
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "shonv2014!");
         	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
 
 
@@ -544,6 +547,53 @@ public class DBconnector {
 		}
 		return true;
 	}
+	
+	protected Map<String,String> ExpirePendingOrders(Set<String> OrdersInBistro) {
+	    Map<String,String> expiredOrders = new HashMap<>();
+	    String query = "SELECT order_number, contact, status FROM `order` WHERE status = 'OPEN' AND order_datetime <= ?;";
+	    LocalDateTime expirationTime = BistroServer.dateTime.minusMinutes(15);
+	    try {
+	    	PreparedStatement stmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+	        stmt.setTimestamp(1, Timestamp.valueOf(expirationTime));
+	        ResultSet rs = stmt.executeQuery();
+	        
+	        while (rs.next()) {
+	        	if(!OrdersInBistro.contains(rs.getString("order_number"))) {
+	        		rs.updateString("status", "CANCELLED");
+		            rs.updateRow();
+		            String orderNumber = rs.getString("order_number");
+		            String contact = rs.getString("contact");
+		            expiredOrders.put(orderNumber, contact);
+	        	}
+	        }
+	        
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return expiredOrders;
+	}
+	
+	protected Map<String,String> OrdersToNotify() {
+	    Map<String,String> contacts = new HashMap<>();
+	    String query = "SELECT order_number, contact FROM `order` WHERE status = 'OPEN' AND order_datetime = ?;";
+	    LocalDateTime notificationTime = BistroServer.dateTime.plusHours(2);
+	    try {
+	    	PreparedStatement stmt = conn.prepareStatement(query);
+	        stmt.setTimestamp(1, Timestamp.valueOf(notificationTime));
+	        ResultSet rs = stmt.executeQuery();
+	        
+	        while (rs.next()) {
+	            String orderNumber = rs.getString("order_number");
+	            String contact = rs.getString("contact");
+	            contacts.put(orderNumber, contact);
+	        }
+	        
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return contacts;
+	}
+	
 	public List<Table> getAllTables() {
 		ArrayList<Table> tables = new ArrayList<>();
 		try {

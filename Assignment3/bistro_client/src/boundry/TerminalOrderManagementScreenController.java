@@ -145,7 +145,7 @@ public class TerminalOrderManagementScreenController implements IController {
 			alert.showAndWait();
 			return;
 		}
-    	ClientUI.console.accept(new GetTableRequest(confcode));
+    	ClientUI.console.accept(new GetTableRequest(confcode,true));
     	
     	
 

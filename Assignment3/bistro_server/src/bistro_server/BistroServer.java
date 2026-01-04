@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import entities.AddTableRequest;
 import entities.GetTableRequest;
 import entities.JoinWaitlistRequest;
@@ -291,7 +290,7 @@ public class BistroServer extends AbstractServer {
         return null; // No one currently in the waitlist fits the free spot
     }
     
-    public List<Table> sortTables(Set <Table> tableSet, boolean copyCurrentBistroState) {
+    protected List<Table> sortTables(Set <Table> tableSet, boolean copyCurrentBistroState) {
 		List<Table> tableList = new ArrayList<>();
 		for (Table t : tableSet) {
 			System.out.println("Adding table with ID: " + t.getId() + " and capacity: " + t.getCapacity());
@@ -384,7 +383,7 @@ public class BistroServer extends AbstractServer {
     }
     
     
-    private Map<String,Integer> prepareGuestsInTimeList(Request r,boolean isNotInDatabase) {
+    protected Map<String,Integer> prepareGuestsInTimeList(Request r,boolean isNotInDatabase) {
     	ShowTakenSlotsRequest slotReq = (ShowTakenSlotsRequest) r;
     	String open_orders_in_time_string = dbcon.getTakenSlots(slotReq);
     	System.out.println("Open orders in time string: " + open_orders_in_time_string);
@@ -416,13 +415,16 @@ public class BistroServer extends AbstractServer {
         }
 
         BistroServer sv = new BistroServer(port);
+        Thread monitorThread = new Thread(new BistroMonitor(sv));
+        monitorThread.setDaemon(true); // dies when server stops
+        monitorThread.start();
         try {
             sv.listen();
         } catch (Exception ex) {
             System.out.println("ERROR - Could not listen for clients!");
         }
     }
-    public String getTableForOrder(Request r) {
+    private String getTableForOrder(Request r) {
 		GetTableRequest req = (GetTableRequest) r;
 		System.out.println("Current Bistro: "+currentBistro.toString());
 		for (Entry<Table, Order> entry : currentBistro.entrySet()) {
@@ -484,7 +486,10 @@ public class BistroServer extends AbstractServer {
         		if (t.getId() == tableId) {
         			desiredTable = t;
         			System.out.println("Found desired table with ID: " + t.getId());
-        			o.setSittingtime(BistroServer.dateTime);
+        			if(req.getisForNow()) {
+        				o.setSittingtime(BistroServer.dateTime);
+        				System.out.println("Setting sitting time to current Bistro time: " + BistroServer.dateTime.toString());
+        			}
 					currentBistro.put(t, o); // Seat at the first available table
 					t.setTaken(true);
 					break;
@@ -498,6 +503,7 @@ public class BistroServer extends AbstractServer {
 		}
 	
 		}
+    
 	public String leaveTable(Request r) {
 		LeaveTableRequest req = (LeaveTableRequest) r;
 		String confcode = req.getConfCode();
@@ -567,6 +573,17 @@ public class BistroServer extends AbstractServer {
 		}
 		return -1;
 	}
+	
+	public Map<Table,Order> getCurrentBistro(){
+		return currentBistro;
+	}
+	public WaitingList getRegularWaitlist() {
+		return waitlistJustArrived;
+	}
+	public WaitingList getAdvanceWaitlist() {
+		return waitlistOrderedInAdvance;
+	}
+	
 }
 
 
