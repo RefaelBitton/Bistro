@@ -47,6 +47,7 @@ public class BistroClient extends AbstractClient{
      * closing connection between client to server
      */
     public void quit() {
+    	System.out.println("Closing connection to client: "+ this.toString());
         try {
             closeConnection();
         } catch (IOException e1) {

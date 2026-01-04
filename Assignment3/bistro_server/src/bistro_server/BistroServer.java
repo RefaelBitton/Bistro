@@ -62,11 +62,11 @@ public class BistroServer extends AbstractServer {
         currentBistro = new HashMap<>();
         dbcon = new DBconnector();
         clients = Collections.synchronizedList(new ArrayList<>());
-        tables = dbcon.getAllTables();
+        tables = dbcon.getRelevantTables();
         for (Table t : tables) {
 			currentBistro.put(new Table(t.getId(), t.getCapacity(), t.isTaken()), null);
 		}
-        tables.sort(null);
+        tables = dbcon.getAllTables();
         handlers = new HashMap<>();
         handlers.put(RequestType.WRITE_ORDER, this::addNewOrder);
         handlers.put(RequestType.READ_ORDER, dbcon::getOrder);
@@ -120,6 +120,7 @@ public class BistroServer extends AbstractServer {
      */
     @Override
     protected void clientDisconnected(ConnectionToClient client) {
+    	System.out.println("ClientDisconnected Called");
         clients.remove(client);
         MainScreenServerController.refreshClientsLive();
     }
@@ -128,14 +129,15 @@ public class BistroServer extends AbstractServer {
     /**
      * Removing a client from the array
      */
-    @Override
-    protected void clientException(ConnectionToClient client, Throwable exception) {
-        clients.remove(client);
-        MainScreenServerController.refreshClientsLive();
-    }
+//    @Override
+//    protected void clientException(ConnectionToClient client, Throwable exception) {
+//        clients.remove(client);
+//        MainScreenServerController.refreshClientsLive();
+//    }
 
 
     public List<Table> getTables(Request r) {
+    	tables = dbcon.getAllTables();
     	return tables;
     }
     /**Checking if there are available tables for the given order
@@ -210,20 +212,22 @@ public class BistroServer extends AbstractServer {
         	}
         }
         System.out.println("Prepared guest list for walk-in: " + guestList.toString());
-        List<Table> tablesCopy = sortTables(currentBistro.keySet(),true);
-        System.out.println("Prepared tables copy for walk-in: " + tablesCopy.toString());
-        // 1. Check for immediate seating using existing logic
-        Order waitlistOrder;
-        HashMap<String, Integer> tempGuestList = new HashMap<>();
-        tempGuestList.put("-1", guests);
-        int tableId = checkAvailability(tablesCopy, tempGuestList,"-1");
-        System.out.println("Table ID found for walk-in: " + tableId);
-        int canSeatOthers = checkAvailability(tablesCopy, guestList,"-1");
-        System.out.println("current Bistro in join waitlist after check: "+currentBistro.toString());
-        System.out.println("Checked availability for walk-in: tableId = " + tableId);
-        Table desiredTable = null;
-        
-        if (tableId != -1 && canSeatOthers == 0) { 
+//        List<Table> tablesCopy = sortTables(currentBistro.keySet(),true);
+//        System.out.println("Prepared tables copy for walk-in: " + tablesCopy.toString());
+//        // 1. Check for immediate seating using existing logic
+//        Order waitlistOrder;
+//        HashMap<String, Integer> tempGuestList = new HashMap<>();
+//        tempGuestList.put("-1", guests);
+//        int tableId = checkAvailability(tablesCopy, tempGuestList,"-1");
+//        System.out.println("Table ID found for walk-in: " + tableId);
+//        int canSeatOthers = checkAvailability(tablesCopy, guestList,"-1");
+//        System.out.println("current Bistro in join waitlist after check: "+currentBistro.toString());
+//        System.out.println("Checked availability for walk-in: tableId = " + tableId);
+          Table desiredTable = null;
+          int tableId = trySeatNow(guestList,"-1",guests); 
+          Order waitlistOrder;
+          //if (tableId != -1 && canSeatOthers == 0) {
+          if (tableId != -1) { 
         	waitlistOrder = addNewOrder(new WriteRequest(
         			req.getOrderDateTime(),
         			req.getNumberOfGuests(),
@@ -343,6 +347,8 @@ public class BistroServer extends AbstractServer {
 				);
     	Map<String,Integer> guests_in_time = prepareGuestsInTimeList(slotReq, true);
     	//prepare tables copy
+    	List<Table> tables = sortTables(currentBistro.keySet(), false);
+    	System.out.println("Tables: " + tables);
     	int available = checkAvailability(tables, guests_in_time,"-1");
     	for (Table t : tables) {
     		t.setTaken(false);
@@ -463,16 +469,18 @@ public class BistroServer extends AbstractServer {
 		guests_in_time.remove(req.getConfcode());
 		
 		System.out.println("Guests in time list: " + guests_in_time.toString());
-		List<Table> tablesCopy = sortTables(currentBistro.keySet(),true);
-		Map<String,Integer> tempGuestsInTime = new HashMap<>();
-		tempGuestsInTime.put(req.getConfcode(), number_of_guests);
-		int tableId = checkAvailability(tablesCopy, tempGuestsInTime,req.getConfcode());
-		System.out.println("Tables copy: " + tablesCopy.toString());
-		int canSeatOthers = checkAvailability(tablesCopy, guests_in_time,req.getConfcode());
-		System.out.println("Current bistro status: " + currentBistro.toString());
+//		List<Table> tablesCopy = sortTables(currentBistro.keySet(),true);
+//		Map<String,Integer> tempGuestsInTime = new HashMap<>();
+//		tempGuestsInTime.put(req.getConfcode(), number_of_guests);
+//		int tableId = checkAvailability(tablesCopy, tempGuestsInTime,req.getConfcode());
+//		System.out.println("Tables copy: " + tablesCopy.toString());
+//		int canSeatOthers = checkAvailability(tablesCopy, guests_in_time,req.getConfcode());
+//		System.out.println("Current bistro status: " + currentBistro.toString());
 		Order o = new Order(Arrays.asList(args),1);
 		Table desiredTable = null;
-		if (tableId != -1 && canSeatOthers == 0) {
+		int tableId = trySeatNow(guests_in_time,req.getConfcode(),number_of_guests);
+//		if (tableId != -1 && canSeatOthers == 0) {
+		if(tableId!=-1) {
         	for (Table t : currentBistro.keySet()) {
         		System.out.println("Checking table with ID: " + t.getId());
         		if (t.getId() == tableId) {
@@ -548,7 +556,22 @@ public class BistroServer extends AbstractServer {
 		if(!dbcon.addNewTable(req.getAddReq())) {
 			return "ERROR: updating the table failed";
 		}
-		return "Updated table number " +req.getRemoveReq().getId() + " to " +req.getAddReq().getCap() + "sucessfully"; 
+		return "Updated table number " +req.getRemoveReq().getId() + " to " +req.getAddReq().getCap() + " sucessfully"; 
+	}
+
+
+	public int trySeatNow(Map<String,Integer> guests_in_time, String confCode, int number_of_guests) {
+		List<Table> tablesCopy = sortTables(currentBistro.keySet(),true);
+		Map<String,Integer> tempGuestsInTime = new HashMap<>();
+		tempGuestsInTime.put(confCode, number_of_guests);
+		int tableId = checkAvailability(tablesCopy, tempGuestsInTime,confCode);
+		System.out.println("Tables copy: " + tablesCopy.toString());
+		int canSeatOthers = checkAvailability(tablesCopy, guests_in_time,confCode);
+		System.out.println("Current bistro status: " + currentBistro.toString());
+		if (tableId != -1 && canSeatOthers == 0) {
+			return tableId;
+		}
+		return -1;
 	}
 	
 	public Map<Table,Order> getCurrentBistro(){
@@ -562,6 +585,5 @@ public class BistroServer extends AbstractServer {
 	}
 	
 }
-
 
 

@@ -16,7 +16,7 @@ import javafx.stage.Stage;
  * A wrapper around the client, sending messages and holding the method to switch screens
  */
 public class Console {
-    BistroClient bc;
+    private static BistroClient bc;
     final public static int DEFAULT = 5556;
 
     public Console(String host, int port) {
@@ -68,6 +68,10 @@ public class Console {
     		e.printStackTrace();
     		System.out.println("Couldn't switch to screen " + newScreenPath);
     	}          
+	}
+	
+	public void quit() {
+		bc.quit();
 	}
 	
 

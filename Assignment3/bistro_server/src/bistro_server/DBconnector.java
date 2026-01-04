@@ -6,7 +6,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -295,7 +294,7 @@ public class DBconnector {
 		return "order was not deleted";
 	}
 
-	public List<Table> getAllTables() {
+	public List<Table> getRelevantTables() {
 		ArrayList<Table> tables = new ArrayList<>();
 		try {
 			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table` WHERE ? >= active_from AND (? <= active_to OR active_to IS NULL);");
@@ -595,5 +594,23 @@ public class DBconnector {
 	    return contacts;
 	}
 	
+	public List<Table> getAllTables() {
+		ArrayList<Table> tables = new ArrayList<>();
+		try {
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table`;");
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				int id = rs.getInt("table_number");
+				int capacity = rs.getInt("number_of_seats");
+				LocalDate activeFrom = rs.getDate("active_from").toLocalDate();
+				LocalDate activeTo = (rs.getDate("active_to")==null) ? null: rs.getDate("active_to").toLocalDate();
+				tables.add(new Table(id, capacity, false,activeFrom,activeTo));
+			}
+			return tables;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 }

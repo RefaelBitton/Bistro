@@ -1,6 +1,7 @@
 package entities;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 /**
  * A class representing a table in the bistro
  */
@@ -13,12 +14,25 @@ public class Table implements Serializable, Comparable<Table> {
 	private int capacity;
 	/** whether the table is taken or not*/
 	private boolean isTaken;
+	
+	private LocalDate active_from;
+	private LocalDate active_to;
 	public Table(int id, int capacity, boolean isTaken) {
 		super();
 		this.id = id;
 		this.capacity = capacity;
 		this.isTaken = isTaken;
 	}
+	
+	public Table (int id, int capacity, boolean isTaken, LocalDate activeFrom, LocalDate activeTo) {
+		this.id = id;
+		this.capacity = capacity;
+		this.isTaken = isTaken;
+		this.active_from = activeFrom;
+		this.active_to = activeTo;
+		
+	}
+	
 	public int getCapacity() {
 		return capacity;
 	}
@@ -34,6 +48,15 @@ public class Table implements Serializable, Comparable<Table> {
 	public int getId() {
 		return id;
 	}
+	
+	public LocalDate getActiveFrom() {
+		return active_from;
+	}
+	
+	public LocalDate getActiveTo() {
+		return active_to;
+	}
+	
 	@Override
 	public int compareTo(Table o) {
 		if (this.capacity>o.capacity)
