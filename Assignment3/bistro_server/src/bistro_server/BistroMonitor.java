@@ -59,7 +59,9 @@ public class BistroMonitor implements Runnable {
 		
 	}
 	
-	
+	/**
+	 * A method that checks orders that ordered in advance and didn't arrive yet
+	 */
 	private void checkExpiredOrders() {
 		Map<Table, Order> currentBistro = server.getCurrentBistro();
 		Set<String> expiredOrders = new HashSet<>();
@@ -82,7 +84,9 @@ public class BistroMonitor implements Runnable {
 	    }
 	      
 	}
-	
+	/**
+	 * A method that checks orders that entered through the waiting lists and didn't arrive yet 
+	 */
 	private void checkPendingOrders() {
 		List<Order> toRemove = new ArrayList<>();
 		Map<Table, Order> currentBistro = server.getCurrentBistro();
@@ -129,6 +133,7 @@ public class BistroMonitor implements Runnable {
 	        if (order == null ) {
 	            continue; // table is empty
 	        }
+	        System.out.println("Checking order number " + order.getOrderNumber());
 
 	        LocalDateTime sittingTime = order.getSittingtime();
 	        LocalDateTime twoHoursAfterSitting = sittingTime.plusHours(2);
@@ -148,6 +153,8 @@ public class BistroMonitor implements Runnable {
 
 	}
 	private void trySeatFromWaitlist() {
+		System.out.println("------------------------------------------");
+		List<WaitlistNode> toRemove = new ArrayList<>();
 		WaitingList RegularList= server.getRegularWaitlist();
 		int res;
 		WaitingList InAdvanceList= server.getAdvanceWaitlist();
@@ -157,22 +164,31 @@ public class BistroMonitor implements Runnable {
 	    		break;
 	    	}
 		    res=trySeatHelper(wl,InAdvanceList);
+		    System.out.println("Tried to seat order from inAdvance, confCode: "+wl.getConfirmationCode()+", result is: "+res);
 		    if(res!=-1) {
-		    	InAdvanceList.dequeue(new WaitlistNode(wl));
+		    	toRemove.add(new WaitlistNode(wl));
 		    	ServerUI.updateInScreen("for contact: "+wl.getContact()+"\n table number  "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
-		    			
 		   	}
 	    }
+	    for(WaitlistNode node : toRemove) {
+	    	InAdvanceList.dequeue(node);
+	    }
+	    toRemove.clear();
 		for(Order wl2: RegularList) {
 			if(!currentBistro.containsValue(null)) {
 	    		break;
 			}
 		    res=trySeatHelper(wl2,RegularList);
+		    System.out.println("Tried to seat order from regular, confCode: "+wl2.getConfirmationCode()+", result is: "+res);
 		    if(res!=-1) {
-		    	RegularList.dequeue(new WaitlistNode(wl2));
+		    	toRemove.add(new WaitlistNode(wl2));
 		    	ServerUI.updateInScreen("for contact: "+wl2.getContact()+"\n table number  "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
 		    }
 		}
+		for(WaitlistNode node : toRemove) {
+	    	RegularList.dequeue(node);
+	    }
+		
 	}
 	    
 			
@@ -216,13 +232,3 @@ public class BistroMonitor implements Runnable {
 		return -1;
 	}
 }
-		
-	
-
-
-
-		
-	
-
-
-	

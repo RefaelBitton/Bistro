@@ -6,9 +6,9 @@ import java.util.NoSuchElementException;
 import entities.Order;
 
 public class WaitingList implements Iterable<Order>{
-    private WaitlistNode head;
-    private WaitlistNode tail;
-    private int size;
+    protected WaitlistNode head;
+    protected WaitlistNode tail;
+    protected int size;
 
     public WaitingList() {
         this.head = null;
@@ -28,7 +28,6 @@ public class WaitingList implements Iterable<Order>{
         }
         size++;
     }
-    
 
     /** Removes the person at the front when a table is free  */
     public Order dequeue(WaitlistNode node) {
@@ -94,4 +93,13 @@ public class WaitingList implements Iterable<Order>{
 
     public int getSize() { return size; }
     public WaitlistNode getHead() { return head; }
+    
+    @Override
+    public String toString() {
+    	String res = "Waiting List is:";
+    	for(Order o : this) {
+    		res+= o.getConfirmationCode()+"->";
+    	}
+    	return res;
+    }
 }
