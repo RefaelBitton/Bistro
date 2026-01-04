@@ -91,6 +91,7 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.ADD_TABLE, this::addTable);
         handlers.put(RequestType.REMOVE_TABLE, this::removeTable);
         handlers.put(RequestType.UPDATE_TABLE_CAPACITY, this::updateTable);
+        handlers.put(RequestType.GET_LIVE_BISTRO_STATE, this::getLiveState);
 
     }
     /**
@@ -135,7 +136,39 @@ public class BistroServer extends AbstractServer {
         MainScreenServerController.refreshClientsLive();
     }
 
+    /** * Handles a request to get the live state of the bistro
+	 * @param r the GetLiveStateRequest
+	 * @return a List<String> containing the waitlist and seated orders strings
+	 */
+    public List<String> getLiveState(Request r) {
+        // Build Waitlist String
+        StringBuilder waitlistSb = new StringBuilder();
+        waitlistSb.append("--- Just Arrived ---\n");
+        waitlistSb.append(waitlistJustArrived.toString()).append("\n"); 
+        waitlistSb.append("\n--- Ordered In Advance ---\n");
+        waitlistSb.append(waitlistOrderedInAdvance.toString()).append("\n");
 
+        // Build Seated String from the HashMap
+        StringBuilder seatedSb = new StringBuilder();
+        for (Map.Entry<Table, Order> entry : currentBistro.entrySet()) {
+            Table t = entry.getKey();
+            Order o = entry.getValue();
+            
+            if (t.isTaken() && o != null) {
+                seatedSb.append("Table ").append(t.getId())
+                        .append(" (Max ").append(t.getCapacity()).append("): ")
+                        .append("Order #").append(o.getOrderNumber())
+                        .append("\n");
+            }
+        }
+        
+        // Return both strings in a list
+        List<String> result = new ArrayList<>();
+        result.add(waitlistSb.toString());
+        result.add(seatedSb.toString());
+        return result;
+    }
+    
     public List<Table> getTables(Request r) {
     	tables = dbcon.getAllTables();
     	return tables;
