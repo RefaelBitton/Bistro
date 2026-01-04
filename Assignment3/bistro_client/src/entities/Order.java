@@ -58,7 +58,9 @@ public class Order implements Serializable {
     	return sittingtime;
     }
     public void setSittingtime(LocalDateTime sittingtime) {
-		this.sittingtime = sittingtime;
+    	if (this.sittingtime == null) {
+    		this.sittingtime = sittingtime;
+    	}
 	}
     @Override
     public boolean equals(Object ord) {

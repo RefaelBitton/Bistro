@@ -10,5 +10,4 @@ public class GetTableRequest extends Request {
 	public String getConfcode() {
 		return confcode;
 	}
-
 }

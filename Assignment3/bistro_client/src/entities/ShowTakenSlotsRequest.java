@@ -14,7 +14,7 @@ public class ShowTakenSlotsRequest extends Request {
     private LocalDateTime from;
     private LocalDateTime to;
     public ShowTakenSlotsRequest(int numberOfGuests, String orderDateTime) {
-        super(RequestType.GET_TAKEN_SLOTS, "SELECT number_of_guests FROM `order` WHERE status = 'OPEN' AND order_datetime BETWEEN ? AND ?;");
+        super(RequestType.GET_TAKEN_SLOTS, "SELECT confirmation_code, number_of_guests FROM `order` WHERE status = 'OPEN' AND order_datetime BETWEEN ? AND ?;");
         this.numberOfGuests = numberOfGuests;
         this.orderDateTime = orderDateTime;
     	LocalDateTime parsed = LocalDateTime.parse(orderDateTime, f);
@@ -22,7 +22,7 @@ public class ShowTakenSlotsRequest extends Request {
         this.to = LocalDateTime.parse(parsed.toString()).plusHours(2);
     }
     public ShowTakenSlotsRequest(int numberOfGuests, String orderDateTime,LocalDateTime from,LocalDateTime to) {
-        super(RequestType.GET_TAKEN_SLOTS, "SELECT number_of_guests FROM `order` WHERE status = 'OPEN' AND order_datetime BETWEEN ? AND ?;");
+        super(RequestType.GET_TAKEN_SLOTS, "SELECT confirmation_code, number_of_guests FROM `order` WHERE status = 'OPEN' AND order_datetime BETWEEN ? AND ?;");
         this.numberOfGuests = numberOfGuests;
         this.orderDateTime = orderDateTime;
     	this.from=from;
