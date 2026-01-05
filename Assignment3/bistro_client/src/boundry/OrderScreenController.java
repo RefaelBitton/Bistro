@@ -85,6 +85,7 @@ public class OrderScreenController implements IController {
 
         if (allDays != null) {
             int dayOfWeek = date.getDayOfWeek().getValue();
+            dayOfWeek = (dayOfWeek % 7) + 1;
             for (Day d : allDays) {
                 if (d.getDay() == dayOfWeek) {
                     return new Pair<>(d.getOpen().toLocalTime(), d.getClose().toLocalTime());
