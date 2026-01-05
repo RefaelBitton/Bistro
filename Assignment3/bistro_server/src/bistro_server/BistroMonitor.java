@@ -98,7 +98,7 @@ public class BistroMonitor implements Runnable {
 	            System.out.println(" Seating time exceeded for order: " + order.getConfirmationCode());
 	            ServerUI.updateInScreen("for contact: "+ order.getContact()+
 	                " \n Seating time exceeded for order: " + order.getConfirmationCode()
-	                + " please contact the bistro staff."
+	                + " Please contact the bistro staff."
 	            );
 	            server.dbcon.cancelOrder(new CancelRequest(order.getOrderNumber(),order.getConfirmationCode()));
 	            for(Map.Entry<Table, Order> tableEntry : currentBistro.entrySet()) {
