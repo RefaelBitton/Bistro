@@ -66,7 +66,7 @@ public class BistroManagementScreenController implements IController{
 		                setTextFill(Color.BLACK);
 		            }
 		        }
-		    }
+		    }		    		    
 		};
 		currentTables.setCellFactory(cellFactory);
 		currentTables.setButtonCell(cellFactory.call(null));
@@ -92,6 +92,7 @@ public class BistroManagementScreenController implements IController{
 	@FXML
 	void onConfirmClick(ActionEvent event) {
 		ArrayList<String> args = new ArrayList<>();
+    	boolean exceptionRaised = false;
 		Integer day;
 		Integer open;
 		Integer close;
@@ -102,12 +103,9 @@ public class BistroManagementScreenController implements IController{
     		close = closeHour.getValue();
     		
     		if((date != null && day != null) || (date == null && day == null)) {
-    			Alert alert = new Alert(AlertType.ERROR);
-        		alert.setTitle("Error Occurred");
-        		alert.setHeaderText("Input Validation Failed");
-        		alert.setContentText("Please choose one from date and day of week");
-        		alert.showAndWait();
+    			exceptionRaised = true;
     		}
+    		
     		
     		else if (date != null && day == null){
     			args.add(date.toString());
@@ -124,11 +122,17 @@ public class BistroManagementScreenController implements IController{
     			ChangeHoursDayRequest r = new ChangeHoursDayRequest(args.get(0),args.get(1),args.get(2));
     			ClientUI.console.accept(r);
     		}
-    			   			
     	}catch (Exception e) {
-    		e.printStackTrace();
+    		exceptionRaised = true;
     	}
-    	
+    		
+    	if(exceptionRaised) {
+			Alert alert = new Alert(AlertType.ERROR);
+    		alert.setTitle("Error Occurred");
+    		alert.setHeaderText("Input Validation Failed");
+    		alert.setContentText("Please choose one from date and day of week");
+    		alert.showAndWait();
+    	}
 	}
 	
 	@FXML

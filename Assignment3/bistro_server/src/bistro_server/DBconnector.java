@@ -22,6 +22,7 @@ import entities.AddTableRequest;
 import entities.CancelRequest;
 import entities.ChangeHoursDayRequest;
 import entities.CheckConfCodeRequest;
+import entities.Day;
 import entities.LeaveTableRequest;
 import entities.LoginRequest;
 import entities.Order;
@@ -30,6 +31,7 @@ import entities.RegisterRequest;
 import entities.RemoveTableRequest;
 import entities.Request;
 import entities.ShowTakenSlotsRequest;
+import entities.SpecificDate;
 import entities.Subscriber;
 import entities.Table;
 import entities.WriteHoursDateRequest;
@@ -49,12 +51,8 @@ public class DBconnector {
     public DBconnector(){
         try //connect DB
         {
-
-			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "123456789");
-
-
-
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -617,6 +615,41 @@ public class DBconnector {
 		return null;
 	}
 	
+	public List<Day> getAllDaysHours(Request r) {
+		ArrayList<Day> days = new ArrayList<>();
+		try {
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `day`;");
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				int day = rs.getInt("day_of_week");
+				Time open = rs.getTime("open_hour");
+				Time close = rs.getTime("close_hour");
+				days.add(new Day(day,open,close));
+			}
+			return days;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public List<SpecificDate> getAllDatesHours(Request r) {
+		ArrayList<SpecificDate> dates = new ArrayList<>();
+		try {
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `date`;");
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				LocalDate date = rs.getDate("specific_date").toLocalDate();
+				Time open = rs.getTime("open_hour");
+				Time close = rs.getTime("close_hour");
+				dates.add(new SpecificDate(date,open,close));
+			}
+			return dates;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 	// call this when user arrives at terminal and want to seat
 	public void markArrivalAtTerminal(String orderNumber) {
 	    String query = "UPDATE `order` SET actual_arrival = ? WHERE order_number = ? AND actual_arrival IS NULL";

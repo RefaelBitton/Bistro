@@ -34,7 +34,7 @@ import ocsf.server.ConnectionToClient;
 /**The server, extending the abstract server*/
 public class BistroServer extends AbstractServer {
      final public static int DEFAULT_PORT = 5556;
-     final private static int BILL = 100;
+     final public static int BILL = 100;
      protected static WaitingList waitlistJustArrived = new WaitingList();
      protected static SortedWaitingList waitlistOrderedInAdvance = new SortedWaitingList();
 
@@ -44,10 +44,9 @@ public class BistroServer extends AbstractServer {
      private static List<Table> tables;
      /**A map that holds the request handlers for each request type*/
     private HashMap<RequestType,RequestHandler> handlers;
-    
 
     private HashMap<Table,Order> currentBistro;
-    public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 5), LocalTime.of(15, 00));
+    public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 8), LocalTime.of(15, 00));
     
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
      /**A connection to the database*/
@@ -92,7 +91,9 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.REMOVE_TABLE, this::removeTable);
         handlers.put(RequestType.UPDATE_TABLE_CAPACITY, this::updateTable);
         handlers.put(RequestType.GET_LIVE_BISTRO_STATE, this::getLiveState);
-
+        handlers.put(RequestType.GET_HOURS_DATE, dbcon::getAllDatesHours);
+        handlers.put(RequestType.GET_HOURS_DAY, dbcon::getAllDaysHours);
+        handlers.put(RequestType.GET_MAX_TABLE, this::getMaxTable);
     }
     /**
      * Sending messages from client over to the database connector
@@ -101,9 +102,11 @@ public class BistroServer extends AbstractServer {
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
         Request r = (Request) msg;
         RequestHandler handler = handlers.get(r.getType());
+        System.out.println("------------------------------------------------------------------------------");
         System.out.println("Handling request of type: " + r.getType());
         Object result = handler.handle(r);
         System.out.println("Request of type " + r.getType() + " handled with result: " + result.toString());
+        System.out.println("------------------------------------------------------------------------------");
         try {
             client.sendToClient(result); // ALWAYS send response
         } catch (IOException e) {
@@ -235,22 +238,10 @@ public class BistroServer extends AbstractServer {
         		guestList.remove(o.getConfirmationCode());
         	}
         }
-//        List<Table> tablesCopy = sortTables(currentBistro.keySet(),true);
-//        System.out.println("Prepared tables copy for walk-in: " + tablesCopy.toString());
-//        // 1. Check for immediate seating using existing logic
-//        Order waitlistOrder;
-//        HashMap<String, Integer> tempGuestList = new HashMap<>();
-//        tempGuestList.put("-1", guests);
-//        int tableId = checkAvailability(tablesCopy, tempGuestList,"-1");
-//        System.out.println("Table ID found for walk-in: " + tableId);
-//        int canSeatOthers = checkAvailability(tablesCopy, guestList,"-1");
-//        System.out.println("current Bistro in join waitlist after check: "+currentBistro.toString());
-//        System.out.println("Checked availability for walk-in: tableId = " + tableId);
           Table desiredTable = null;
           int tableId = trySeatNow(guestList,"-1",guests); 
           Order waitlistOrder;
           
-          //if (tableId != -1 && canSeatOthers == 0) {
           if (tableId != -1) { 
         	waitlistOrder = addNewOrder(new WriteRequest(
         			req.getOrderDateTime(),
@@ -270,13 +261,11 @@ public class BistroServer extends AbstractServer {
         	desiredTable.setTaken(true);
         	dbcon.markArrivalAtTerminal(waitlistOrder.getOrderNumber());
 			dbcon.markOrderAsSeated(waitlistOrder.getOrderNumber());
-            return "SUCCESS: Table is ready! Please proceed to your table. "
-            		+ "Your confirmation code: " + (waitlistOrder.getConfirmationCode());
+            return "SUCCESS: Table is ready! Please proceed to your table.\n"
+            		+ "Your confirmation code: " + (waitlistOrder.getConfirmationCode())+"\n";
         } 
 
         // 2. If no seats and user hasn't confirmed via popup yet
-//        if (!req.isWaitlistEntry()) {
-//        	printWaitlists(BistroServer.waitlistJustArrived, 1);
         if (!req.isWaitlistEntry()) { 
         	System.out.println(waitlistJustArrived);
             return "PROMPT: NO_SEATS_FOUND";
@@ -308,26 +297,6 @@ public class BistroServer extends AbstractServer {
      * @param tableSet = the set of tables to sort
 
      */
-//    public Order seatFromWaitlist(WaitingList waitlist) {
-//        // 1. Standard for-each loop made possible by implementing Iterable
-//        for (Order currentOrder : waitlist) {
-//            int guests = Integer.parseInt(currentOrder.getNumberOfGuests());
-//            
-//            // 2. Check if this specific order fits current availability
-//            ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, currentOrder.getOrderDateTime());
-//            Map<String,Integer> guestList = prepareGuestsInTimeList(slotReq, true);
-//            List<Table> tablesCopy = sortTables(currentBistro.keySet(),false);
-//            
-//            if (checkAvailability(tablesCopy, guestList,"-1") != -1) {
-//                // 3. Remove this specific order from the list and return it
-//                waitlist.cancel(currentOrder.getOrderNumber());
-//                return currentOrder;
-//            }
-//            // If not a fit, the iterator automatically moves to the next node
-//        }
-//        return null; // No one currently in the waitlist fits the free spot
-//    }
-//    
     protected List<Table> sortTables(Set <Table> tableSet, boolean copyCurrentBistroState) {
 		List<Table> tableList = new ArrayList<>();
 		for (Table t : tableSet) {
@@ -352,10 +321,6 @@ public class BistroServer extends AbstractServer {
 		}
 	}
 
-		
-    
-    
-    
     public Order addNewOrder(Request r) {
     	WriteRequest req = (WriteRequest) r;
     	System.out.println("Adding new order for subscriber ID: " + req.getSubscriberId());
@@ -410,8 +375,7 @@ public class BistroServer extends AbstractServer {
     		t.setTaken(false);
     	}
 		if (available != -1) {
-			addNewOrder(req);
-			return "Reservation confirmed.";
+			return addNewOrder(req).toString();
 		}
 		else{
              StringBuilder sb = new StringBuilder("No available tables at requested time. Available slots:\n");
@@ -487,9 +451,8 @@ public class BistroServer extends AbstractServer {
 			Order order = entry.getValue();
 			if (order != null && order.getConfirmationCode().equals(req.getConfcode())) {
 				order.setSittingtime(BistroServer.dateTime);
-//				dbcon.markArrivalAtTerminal(order.getOrderNumber());
 				dbcon.markOrderAsSeated(order.getOrderNumber());
-				return  entry.getKey().toString();
+				return  entry.getKey().prettyToString();
 				
 			}
 		}
@@ -530,7 +493,6 @@ public class BistroServer extends AbstractServer {
 		Order o = new Order(Arrays.asList(args),1);
 		Table desiredTable = null;
 		int tableId = trySeatNow(guests_in_time,req.getConfcode(),number_of_guests);
-//		if (tableId != -1 && canSeatOthers == 0) {
 		// update actual arrival time
 		dbcon.markArrivalAtTerminal(o.getOrderNumber());
 		if(tableId!=-1) {
@@ -540,7 +502,6 @@ public class BistroServer extends AbstractServer {
         			System.out.println("Found desired table with id: " + t.getId());
         			o.setSittingtime(BistroServer.dateTime);
         			System.out.println("Setting sitting time to current Bistro time: " + BistroServer.dateTime.toString() + "To order number "+ o.getOrderNumber());
-        			System.out.println("Sitting time is: "+ o.getSittingtime());
 					currentBistro.put(t, o); // Seat at the first available table
 					t.setTaken(true);
 				
@@ -548,7 +509,7 @@ public class BistroServer extends AbstractServer {
 					break;
 				}
         	}
-			return (desiredTable !=null)? desiredTable.toString() : "Error locating table.";
+			return (desiredTable !=null)? desiredTable.prettyToString() : "Error locating table.";
 		}
 		else {
 			waitlistOrderedInAdvance.enqueue(o);
@@ -562,7 +523,7 @@ public class BistroServer extends AbstractServer {
 		String confcode = req.getConfCode();
 		for (Entry<Table, Order> entry : currentBistro.entrySet()) {
 			Order order = entry.getValue();
-			if (order != null && order.getConfirmationCode().equals(confcode)) {
+			if (order != null && order.getConfirmationCode().equals(confcode)&& order.getSittingtime()!=null) {
 				currentBistro.put(entry.getKey(), null);
 				entry.getKey().setTaken(false);
 				String userType = dbcon.closeOrder(req);
@@ -636,7 +597,15 @@ public class BistroServer extends AbstractServer {
 	public WaitingList getAdvanceWaitlist() {
 		return waitlistOrderedInAdvance;
 	}
-	
+	public int getMaxTable(Request r) {
+		int res = 0;
+		for(Table t : currentBistro.keySet()) {
+			if(t.getCapacity()>res) {
+				res = t.getCapacity();
+			}
+		}
+		return res;
+	}
 }
 
 

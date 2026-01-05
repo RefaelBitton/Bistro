@@ -21,6 +21,7 @@ public class ShowTakenSlotsRequest extends Request {
         this.from = parsed; 
         this.to = LocalDateTime.parse(parsed.toString()).plusHours(2);
     }
+    
     public ShowTakenSlotsRequest(int numberOfGuests, String orderDateTime,LocalDateTime from,LocalDateTime to) {
         super(RequestType.GET_TAKEN_SLOTS, "SELECT confirmation_code, number_of_guests FROM `order` WHERE status = 'OPEN' AND order_datetime BETWEEN ? AND ?;");
         this.numberOfGuests = numberOfGuests;
