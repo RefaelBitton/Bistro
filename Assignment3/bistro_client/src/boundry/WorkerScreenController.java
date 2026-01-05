@@ -83,7 +83,7 @@ public class WorkerScreenController implements IController {
     @FXML
     void onReportClick(ActionEvent event) {
     	if(user.getType() == UserType.MANAGER)
-    		ClientUI.console.switchScreen(this, event, "/boundry/ReportScreen.fxml", user);
+    		ClientUI.console.switchScreen(this, event, "/boundry/ReportsScreen.fxml", user);
     }
 
     @FXML

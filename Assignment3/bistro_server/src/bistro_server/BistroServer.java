@@ -92,6 +92,7 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.REMOVE_TABLE, this::removeTable);
         handlers.put(RequestType.UPDATE_TABLE_CAPACITY, this::updateTable);
         handlers.put(RequestType.GET_LIVE_BISTRO_STATE, this::getLiveState);
+        handlers.put(RequestType.GET_REPORTS, dbcon::getReportsData);
 
     }
     /**
