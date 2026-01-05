@@ -249,6 +249,7 @@ public class BistroServer extends AbstractServer {
           Table desiredTable = null;
           int tableId = trySeatNow(guestList,"-1",guests); 
           Order waitlistOrder;
+          
           //if (tableId != -1 && canSeatOthers == 0) {
           if (tableId != -1) { 
         	waitlistOrder = addNewOrder(new WriteRequest(
@@ -267,7 +268,8 @@ public class BistroServer extends AbstractServer {
         	currentBistro.put(desiredTable, waitlistOrder); // Seat at the first available table
 
         	desiredTable.setTaken(true);
-
+        	dbcon.markArrivalAtTerminal(waitlistOrder.getOrderNumber());
+			dbcon.markOrderAsSeated(waitlistOrder.getOrderNumber());
             return "SUCCESS: Table is ready! Please proceed to your table. "
             		+ "Your confirmation code: " + (waitlistOrder.getConfirmationCode());
         } 
@@ -293,6 +295,8 @@ public class BistroServer extends AbstractServer {
         System.out.println(waitlistJustArrived);
         
         printWaitlists(BistroServer.waitlistJustArrived, 1);
+        dbcon.markArrivalAtTerminal(waitlistOrder.getOrderNumber());
+        dbcon.changeStatus("WAITING", orderNum);
         return "The restaurant is full. You've been added to the waitlist.\n" +
                "Order Number: " + orderNum + "\n" +
                "Confirmation Code: " + waitlistOrder.getConfirmationCode();
@@ -483,6 +487,8 @@ public class BistroServer extends AbstractServer {
 			Order order = entry.getValue();
 			if (order != null && order.getConfirmationCode().equals(req.getConfcode())) {
 				order.setSittingtime(BistroServer.dateTime);
+//				dbcon.markArrivalAtTerminal(order.getOrderNumber());
+				dbcon.markOrderAsSeated(order.getOrderNumber());
 				return  entry.getKey().toString();
 				
 			}
@@ -521,17 +527,12 @@ public class BistroServer extends AbstractServer {
 		guests_in_time.remove(req.getConfcode());
 		
 		System.out.println("Guests in time list: " + guests_in_time.toString());
-//		List<Table> tablesCopy = sortTables(currentBistro.keySet(),true);
-//		Map<String,Integer> tempGuestsInTime = new HashMap<>();
-//		tempGuestsInTime.put(req.getConfcode(), number_of_guests);
-//		int tableId = checkAvailability(tablesCopy, tempGuestsInTime,req.getConfcode());
-//		System.out.println("Tables copy: " + tablesCopy.toString());
-//		int canSeatOthers = checkAvailability(tablesCopy, guests_in_time,req.getConfcode());
-//		System.out.println("Current bistro status: " + currentBistro.toString());
 		Order o = new Order(Arrays.asList(args),1);
 		Table desiredTable = null;
 		int tableId = trySeatNow(guests_in_time,req.getConfcode(),number_of_guests);
 //		if (tableId != -1 && canSeatOthers == 0) {
+		// update actual arrival time
+		dbcon.markArrivalAtTerminal(o.getOrderNumber());
 		if(tableId!=-1) {
         	for (Table t : currentBistro.keySet()) {
         		if (t.getId() == tableId) {
@@ -542,6 +543,8 @@ public class BistroServer extends AbstractServer {
         			System.out.println("Sitting time is: "+ o.getSittingtime());
 					currentBistro.put(t, o); // Seat at the first available table
 					t.setTaken(true);
+				
+					dbcon.markOrderAsSeated(o.getOrderNumber());
 					break;
 				}
         	}
@@ -552,7 +555,7 @@ public class BistroServer extends AbstractServer {
 			return "No available tables at the moment. Please wait to be seated.";
 		}
 	
-		}
+	}
     
 	public String leaveTable(Request r) {
 		LeaveTableRequest req = (LeaveTableRequest) r;
@@ -563,6 +566,7 @@ public class BistroServer extends AbstractServer {
 				currentBistro.put(entry.getKey(), null);
 				entry.getKey().setTaken(false);
 				String userType = dbcon.closeOrder(req);
+				
 				if(userType == null) {
 					return "Order closed successfully. Your bill is " + BILL + " NIS. Thank you for dining with us!";
 				}
@@ -573,6 +577,7 @@ public class BistroServer extends AbstractServer {
 					return "No order found with that confirmation code.";
 				}
 				else {
+					
 					return "Order closed successfully. As a subscriber, you get a 10% discount! Your final bill is " + (BILL*0.9) + " NIS. Thank you for dining with us!";
 				}
 			}
