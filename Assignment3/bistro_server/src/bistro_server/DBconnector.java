@@ -653,6 +653,7 @@ public class DBconnector {
 			e.printStackTrace();
 		}
 		return null;
+	}
 	// call this when user arrives at terminal and want to seat
 	public void markArrivalAtTerminal(String orderNumber) {
 	    String query = "UPDATE `order` SET actual_arrival = ? WHERE order_number = ? AND actual_arrival IS NULL";
