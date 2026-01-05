@@ -562,7 +562,7 @@ public class BistroServer extends AbstractServer {
 		String confcode = req.getConfCode();
 		for (Entry<Table, Order> entry : currentBistro.entrySet()) {
 			Order order = entry.getValue();
-			if (order != null && order.getConfirmationCode().equals(confcode)) {
+			if (order != null && order.getConfirmationCode().equals(confcode)&& order.getSittingtime()!=null) {
 				currentBistro.put(entry.getKey(), null);
 				entry.getKey().setTaken(false);
 				String userType = dbcon.closeOrder(req);

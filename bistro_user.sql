@@ -28,6 +28,7 @@ CREATE TABLE `user` (
   `username` varchar(100) DEFAULT NULL,
   `phone_number` varchar(10) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
+  `status` enum('CLIENT','EMPLOYEE','MANAGER') DEFAULT NULL,
   PRIMARY KEY (`subscriber_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -38,7 +39,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES ('hod vakrat',123,'compi','0506421020','hav@gmail.com');
+INSERT INTO `user` VALUES ('dean zarhi',1,'deanza','0501234123','dz@gmail.com','CLIENT'),('hod vakrat',123,'compi','0506421020','hav@gmail.com','MANAGER');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -51,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-24 23:33:22
+-- Dump completed on 2026-01-02 12:55:11
