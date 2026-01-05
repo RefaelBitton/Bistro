@@ -44,7 +44,6 @@ public class BistroServer extends AbstractServer {
      private static List<Table> tables;
      /**A map that holds the request handlers for each request type*/
     private HashMap<RequestType,RequestHandler> handlers;
-    
 
     private HashMap<Table,Order> currentBistro;
     public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 5), LocalTime.of(15, 00));
@@ -92,7 +91,8 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.REMOVE_TABLE, this::removeTable);
         handlers.put(RequestType.UPDATE_TABLE_CAPACITY, this::updateTable);
         handlers.put(RequestType.GET_LIVE_BISTRO_STATE, this::getLiveState);
-
+        handlers.put(RequestType.GET_HOURS_DATE, dbcon::getAllDatesHours);
+        handlers.put(RequestType.GET_HOURS_DAY, dbcon::getAllDaysHours);
     }
     /**
      * Sending messages from client over to the database connector
@@ -631,7 +631,6 @@ public class BistroServer extends AbstractServer {
 	public WaitingList getAdvanceWaitlist() {
 		return waitlistOrderedInAdvance;
 	}
-	
 }
 
 
