@@ -8,6 +8,7 @@ import java.util.List;
 import entities.Day;
 import entities.GetHoursDateRequest;
 import entities.GetHoursDayRequest;
+import entities.GetMaxTableRequest;
 import entities.ReserveRequest;
 import entities.SpecificDate;
 import entities.User;
@@ -43,18 +44,21 @@ public class OrderScreenController implements IController {
     private String pendingSubscriberIdStr;
     private String pendingContact;
     private String pendingOrderDateTime;
-               
+    private Integer maxTableCapacity;
     @FXML private Button orderBtn;
     @FXML private Button backBtn;
     
     @FXML
-    public void initialize() {
+    public void initialize() throws InterruptedException {
         ClientUI.console.setController(this);
 
         contactBox.visibleProperty().bind(isLoggedIn.not());
         contactBox.managedProperty().bind(isLoggedIn.not());
-
-        for (int i = 1; i <= 20; i++) guestsComboBox.getItems().add(i);
+        ClientUI.console.accept(new GetMaxTableRequest());
+        Thread.sleep(200);
+        for (int i = 1; i <= maxTableCapacity; i++) {
+        	guestsComboBox.getItems().add(i);
+        }
 
         LocalDate today = LocalDate.now();
         LocalDate maxDate = today.plusMonths(1);
@@ -103,8 +107,6 @@ public class OrderScreenController implements IController {
         Pair<LocalTime, LocalTime> hours = getHoursForDate(selectedDate);
         if (hours == null) return;
 
-//      LocalTime opening = LocalTime.of(11, 0);
-//      LocalTime closing = LocalTime.of(22, 0);
         LocalTime opening = hours.getKey();
         LocalTime closing = hours.getValue();
         LocalDateTime nowPlusHour = LocalDateTime.now().plusHours(1);
@@ -128,10 +130,6 @@ public class OrderScreenController implements IController {
             if (date == null || time == null || guests == null) throw new IllegalArgumentException();
 
             LocalTime chosen = LocalTime.parse(time);
-//            if (chosen.isBefore(LocalTime.of(11,0)) || !chosen.isBefore(LocalTime.of(22,0))) {
-//                resultTxt.setText("❌ Selected time is outside working hours (11:00–22:00).");
-//                return;
-//            }
             
             if (date.equals(LocalDate.now())) {
                 if (LocalDateTime.of(date, chosen).isBefore(LocalDateTime.now().plusHours(1))) {
@@ -207,13 +205,9 @@ public class OrderScreenController implements IController {
         } else if (result instanceof String msg) {
             resultTxt.setText(msg);
         }
+        else if (result instanceof Integer) {
+        	this.maxTableCapacity = (int)result;
+        }
     }
 
-//    @Override
-//    public void setResultText(Object result) {
-//    	System.out.println("OrderScreenController received result: " + result);
-//    	String res = (String) result;
-//    	resultTxt.clear();
-//    	resultTxt.setText(res);
-//	}
 }

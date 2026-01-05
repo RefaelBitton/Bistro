@@ -93,6 +93,10 @@ public class BistroMonitor implements Runnable {
 		Map<Table, Order> currentBistro = server.getCurrentBistro();
 	    for (Map.Entry<Order, LocalDateTime> entry : pending.entrySet()) {
 	        Order order = entry.getKey();
+	        if(order.getSittingtime()!=null) {
+	        	toRemove.add(order);
+	        	continue;
+	        }
 	        LocalDateTime addedTime = entry.getValue();
 	        if (BistroServer.dateTime.isAfter(addedTime.plusMinutes(15))) {
 	            // Time exceeded 15 minutes
@@ -131,7 +135,7 @@ public class BistroMonitor implements Runnable {
 	        Table table = entry.getKey();
 	        Order order = entry.getValue();
 
-	        if (order == null ) {
+	        if (order == null || order.getSittingtime() == null) {
 	            continue; // table is empty
 	        }
 	        System.out.println("Checking order number " + order.getOrderNumber());
@@ -146,8 +150,9 @@ public class BistroMonitor implements Runnable {
 	            System.out.println(" Order " + order.getConfirmationCode()
 	                    + " exceeded 2 hours at table " + table.getId());
 	            ServerUI.updateInScreen("contact: "+ order.getContact()+
-	                "Order " + order.getConfirmationCode()
-	                + " exceeded 2 hours at table "  + table.getId() + " please progress to 'leave table' at our terminal or app"
+	                " Order " + order.getConfirmationCode()
+	                + " Your bill is " + (order.getSubscriberId().equals("0")?BistroServer.BILL : BistroServer.BILL*0.9) + " NIS. Thank you for dining with us!"
+	                
 	            );
 	        }
 	    }
