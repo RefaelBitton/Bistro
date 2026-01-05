@@ -460,6 +460,7 @@ public class DBconnector {
 			ResultSet rs = stmt.executeQuery();
 			if(rs.next()) {
 				rs.updateString("status", "CLOSED");
+				rs.updateTimestamp("leave_time", Timestamp.valueOf(BistroServer.dateTime));
 				rs.updateRow();
 				return rs.getString("subscriber_id");
 			}
@@ -473,6 +474,8 @@ public class DBconnector {
 		}
 		return "Error";
 	}
+	
+
 	
 	public String writeHoursDate(Request r) {
 	    WriteHoursDateRequest req = (WriteHoursDateRequest) r;
@@ -650,6 +653,33 @@ public class DBconnector {
 			e.printStackTrace();
 		}
 		return null;
+	// call this when user arrives at terminal and want to seat
+	public void markArrivalAtTerminal(String orderNumber) {
+	    String query = "UPDATE `order` SET actual_arrival = ? WHERE order_number = ? AND actual_arrival IS NULL";
+	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setTimestamp(1, Timestamp.valueOf(BistroServer.dateTime));
+	        stmt.setInt(2, Integer.parseInt(orderNumber));
+	        stmt.executeUpdate();
+	    } catch (SQLException e) { e.printStackTrace(); }
 	}
 
+	// call this when user is seated (phisically at the table)
+	public void markOrderAsSeated(String orderNumber) {
+	    String query = "UPDATE `order` SET seated_time = ? WHERE order_number = ?";
+	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setTimestamp(1, Timestamp.valueOf(BistroServer.dateTime));
+	        stmt.setInt(2, Integer.parseInt(orderNumber));
+	        stmt.executeUpdate();
+	    } catch (SQLException e) { e.printStackTrace(); }
+	}
+
+	public void changeStatus(String status, String orderNumber) {
+	    String query = "UPDATE `order` SET status = ? WHERE order_number = ?";
+	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setString(1, status);
+	        stmt.setInt(2, Integer.parseInt(orderNumber));
+	        stmt.executeUpdate();
+	    } catch (SQLException e) { e.printStackTrace(); }
+	}
+	
 }
