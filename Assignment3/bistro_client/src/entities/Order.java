@@ -2,7 +2,9 @@ package entities;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Order implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -15,6 +17,9 @@ public class Order implements Serializable {
     private String subscriberId;        // "0" means guest
     private String dateOfPlacingOrder;  // yyyy-MM-dd
     private String contact;             // phone/email or subscriber email
+    
+    
+    private LocalDateTime sittingtime;
     /**
 	 * Constructor for Order object
 	 * @param args ArrayList of Strings containing order details in the following order:
@@ -29,9 +34,16 @@ public class Order implements Serializable {
         this.subscriberId = args.get(4);
         this.dateOfPlacingOrder = LocalDate.now().toString();
         this.contact = args.get(5);
-        
-
     }
+    public Order(List<String> args, int flag) {
+		this.orderNumber = args.get(0);
+		this.orderDateTime =args.get(1); 
+		this.numberOfGuests = args.get(2);
+		this.confirmationCode = args.get(3);
+		this.subscriberId = args.get(4);
+		this.dateOfPlacingOrder = args.get(5);
+		this.contact = args.get(6);
+	}
 
     public String getOrderNumber() { return orderNumber; }
     public String getConfirmationCode() { return confirmationCode; }
@@ -42,8 +54,29 @@ public class Order implements Serializable {
     public String getDateOfPlacingOrder() { return dateOfPlacingOrder; }
     public String getContact() { return contact; }
     
+    public LocalDateTime getSittingtime() {
+    	return sittingtime;
+    }
+    public void setSittingtime(LocalDateTime sittingtime) {
+    	if (this.sittingtime == null) {
+    		this.sittingtime = sittingtime;
+    	}
+	}
     @Override
     public boolean equals(Object ord) {
 		return this.orderNumber.equals(((Order)ord).getOrderNumber());
 	}
+    
+    @Override
+    public String toString() {
+    			return "Order{" + 
+						"orderNumber='" + orderNumber + '\'' +
+						", confirmationCode='" + confirmationCode + '\'' +
+						", orderDateTime='" + orderDateTime + '\'' +
+						", numberOfGuests='" + numberOfGuests + '\'' +
+						", subscriberId='" + subscriberId + '\'' +
+						", dateOfPlacingOrder='" + dateOfPlacingOrder + '\'' +
+						", contact='" + contact + '\'' +
+						'}';
+    }
 }

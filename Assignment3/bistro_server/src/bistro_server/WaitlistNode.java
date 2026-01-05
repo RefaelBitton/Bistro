@@ -20,4 +20,11 @@ public class WaitlistNode {
     public boolean equals(WaitlistNode other) {
 		return this.order.getOrderNumber().equals(other.getOrder().getOrderNumber());
 	}
+    
+    @Override
+    public String toString() {
+		return "WaitlistNode{" +
+				"order=" + order +
+				'}';
+	}
 }

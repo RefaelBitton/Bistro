@@ -6,9 +6,9 @@ import java.util.NoSuchElementException;
 import entities.Order;
 
 public class WaitingList implements Iterable<Order>{
-    private WaitlistNode head;
-    private WaitlistNode tail;
-    private int size;
+    protected WaitlistNode head;
+    protected WaitlistNode tail;
+    protected int size;
 
     public WaitingList() {
         this.head = null;
@@ -25,19 +25,6 @@ public class WaitingList implements Iterable<Order>{
             tail.next = newNode;
             newNode.prev = tail;
             tail = newNode;
-        }
-        size++;
-    }
-    
-    /** Adds a existing order to the front of the waitlist (priority) */
-    public void enqueueToHead(Order order) {
-        WaitlistNode newNode = new WaitlistNode(order);
-        if (head == null) {
-            head = tail = newNode;
-        } else {
-            newNode.next = head;
-            head.prev = newNode;
-            head = newNode;
         }
         size++;
     }
@@ -106,4 +93,18 @@ public class WaitingList implements Iterable<Order>{
 
     public int getSize() { return size; }
     public WaitlistNode getHead() { return head; }
+    
+    @Override
+    public String toString() {
+		StringBuilder sb = new StringBuilder("WaitingList{");
+		WaitlistNode current = head;
+		while (current != null) {
+			sb.append(current.getOrder().toString());
+			if (current.next != null) sb.append(" <-> ");
+			current = current.next;
+		}
+		sb.append('}');
+		return sb.toString();
+	}
+
 }

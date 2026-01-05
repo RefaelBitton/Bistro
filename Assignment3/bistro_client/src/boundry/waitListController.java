@@ -3,6 +3,8 @@ package boundry;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Optional;
+
+import bistro_client.BistroClient;
 import entities.JoinWaitlistRequest;
 import entities.User;
 import entities.UserType;
@@ -22,6 +24,7 @@ public class waitListController implements IController {
     @FXML private Label idLabel;
     @FXML private TextArea resultTxt;
     @FXML private Button backBtn;
+    @FXML private Button submitBtn;
 
     @FXML
     public void initialize() {
@@ -60,10 +63,11 @@ public class waitListController implements IController {
                              String.valueOf(((entities.Subscriber)user).getSubscriberID()) : "0";
         String finalContact = (user.getType() == UserType.SUBSCRIBER && contactInput.isEmpty()) ? 
                              user.getPhone() : contactInput;
+        String altDateTime = BistroClient.dateTime.format(BistroClient.fmt);
 
         // 4. Send Request
         ClientUI.console.accept(new JoinWaitlistRequest(
-            orderDateTime, guests, subscriberId, finalContact
+            altDateTime, guests, subscriberId, finalContact
         ));
     }
 
@@ -76,35 +80,54 @@ public class waitListController implements IController {
     public void setResultText(Object result) {
         String message = (String) result;
         
-        // Requirement: Show Popup if no table is found immediately
-        if (message.contains("No immediate seating")) {
-            Platform.runLater(this::showWaitlistConfirmPopup);
-        } else {
-            resultTxt.setText(message);
-        }
+     // WRAP THE ENTIRE BLOCK: All UI updates (TextAreas, Alerts) must be on FX thread
+        Platform.runLater(() -> {
+            if (message.contains("PROMPT: NO_SEATS_FOUND")) {
+                showWaitlistConfirmPopup();
+            } else {
+                resultTxt.setText(message);
+            }
+        });
     }
 
     private void showWaitlistConfirmPopup() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Waitlist Selection");
-        alert.setHeaderText("No open spots found.");
-        alert.setContentText("Would you like to enter the waitlist or cancel?");
-
         ButtonType btnJoin = new ButtonType("Join Waitlist");
         ButtonType btnCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(btnJoin, btnCancel);
-
+        alert.setTitle("Waitlist Selection");
+        alert.setHeaderText("No open spots found.");
+        alert.setContentText("Would you like to enter the waitlist or cancel?");
+        
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == btnJoin) {
             resultTxt.setText("⏳ Adding you to the waitlist...");
-            // Logic to resend with waitlist flag if your server requires it
+            
+            // Prepare the data again for the second attempt
+            String guests = guestsNumberTxt.getText().trim();
+            String contactInput = identifyText.getText().trim();
+            String subscriberId = (user.getType() == UserType.SUBSCRIBER) ? 
+                                 String.valueOf(((entities.Subscriber)user).getSubscriberID()) : "0";
+            String finalContact = (user.getType() == UserType.SUBSCRIBER && contactInput.isEmpty()) ? 
+                                 user.getPhone() : contactInput;
+            String altDateTime = BistroClient.dateTime.format(BistroClient.fmt);
+
+            // SEND SECOND REQUEST with the flag set to TRUE
+            ClientUI.console.accept(new JoinWaitlistRequest(
+                altDateTime, guests, subscriberId, finalContact, true
+            ));
+        } else {
+            // Desired behavior: return 'canceled' prompt locally
+            resultTxt.setText("Registration canceled.");
         }
     }
 
     @Override
     public void setUser(User user) {
         this.user = user;
-        isLoggedIn.set(user != null && user.getType() != UserType.GUEST);
+        Platform.runLater(() -> {
+            isLoggedIn.set(user != null && user.getType() != UserType.GUEST);
+        });
     }
 
     @FXML

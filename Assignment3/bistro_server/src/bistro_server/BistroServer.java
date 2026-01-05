@@ -6,61 +6,74 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import entities.AddTableRequest;
+import entities.GetTableRequest;
 import entities.JoinWaitlistRequest;
+import entities.LeaveTableRequest;
 import entities.LeaveWaitlistRequest;
 import entities.Order;
+import entities.RemoveTableRequest;
 import entities.Request;
 import entities.RequestHandler;
 import entities.RequestType;
 import entities.ReserveRequest;
 import entities.ShowTakenSlotsRequest;
 import entities.Table;
+import entities.TrySeatRequest;
+import entities.UpdateTableCapacityRequest;
 import entities.WriteRequest;
 import ocsf.server.AbstractServer;
 import ocsf.server.ConnectionToClient;
 /**The server, extending the abstract server*/
 public class BistroServer extends AbstractServer {
      final public static int DEFAULT_PORT = 5556;
-     protected static WaitingList waitlist = new WaitingList();
+     final private static int BILL = 100;
+     protected static WaitingList waitlistJustArrived = new WaitingList();
+     protected static SortedWaitingList waitlistOrderedInAdvance = new SortedWaitingList();
+
      /**An array that holds the currently connected clients*/
      protected static List<ConnectionToClient> clients;
      /**An array that holds the tables in the restaurant*/
      private static List<Table> tables;
      /**A map that holds the request handlers for each request type*/
     private HashMap<RequestType,RequestHandler> handlers;
-    private HashMap<Table, Order> currentBistro;
-    public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 10), LocalTime.of(18, 30));
 
+    private HashMap<Table,Order> currentBistro;
+    public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 5), LocalTime.of(15, 00));
     
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
      /**A connection to the database*/
      DBconnector dbcon;
+     
     /**
      * 
      * @param port the port to connect to
      */
     public BistroServer(int port) {
         super(port);
+        currentBistro = new HashMap<>();
         dbcon = new DBconnector();
         clients = Collections.synchronizedList(new ArrayList<>());
-        tables = dbcon.getAllTables();
-        tables.sort(null);
-        handlers = new HashMap<>();
-        currentBistro=new HashMap<>();
-        for(Table t:tables) {
-			currentBistro.put(t, null);
+        tables = dbcon.getRelevantTables();
+        for (Table t : tables) {
+			currentBistro.put(new Table(t.getId(), t.getCapacity(), t.isTaken()), null);
 		}
+        tables = dbcon.getAllTables();
+        handlers = new HashMap<>();
         handlers.put(RequestType.WRITE_ORDER, this::addNewOrder);
         handlers.put(RequestType.READ_ORDER, dbcon::getOrder);
         handlers.put(RequestType.LOGIN_REQUEST, dbcon::checkLogin);
         handlers.put(RequestType.REGISTER_REQUEST, dbcon::addNewUser);
         handlers.put(RequestType.CANCEL_REQUEST, dbcon::cancelOrder);
-        handlers.put(RequestType.GET_TAKEN_SLOTS, this::checkAvailability);
-        handlers.put(RequestType.RESERVE_TABLE, this::reserveTable);
+        //handlers.put(RequestType.GET_TAKEN_SLOTS, this::checkAvailability);
+        handlers.put(RequestType.RESERVE_TABLE, this::reserveTableInAdvance);
         handlers.put(RequestType.JOIN_WAITLIST, this::handleJoinWaitlist);
         handlers.put(RequestType.LEAVE_WAITLIST, this::handleLeaveWaitlist);
         handlers.put(RequestType.UPDATE_DETAILS, dbcon::updateDetails);
@@ -68,6 +81,18 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.CHECK_CONFCODE, dbcon::checkConfCode);
         handlers.put(RequestType.GET_ALL_ACTIVE_ORDERS, dbcon::getAllActiveOrders);
         handlers.put(RequestType.GET_ALL_SUBSCRIBERS, dbcon::getAllSubscribers);
+        //handlers.put(RequestType.TRY_SEAT,this::trySeat);
+        handlers.put(RequestType.GET_TABLE, this::getTableForOrder);
+        handlers.put(RequestType.LEAVE_TABLE,this::leaveTable);
+        handlers.put(RequestType.CHANGE_HOURS_DAY, dbcon::changeHoursDay);
+        handlers.put(RequestType.WRITE_HOURS_DATE, dbcon::writeHoursDate);
+        handlers.put(RequestType.GET_ALL_TABLES, this::getTables);
+        handlers.put(RequestType.ADD_TABLE, this::addTable);
+        handlers.put(RequestType.REMOVE_TABLE, this::removeTable);
+        handlers.put(RequestType.UPDATE_TABLE_CAPACITY, this::updateTable);
+        handlers.put(RequestType.GET_LIVE_BISTRO_STATE, this::getLiveState);
+        handlers.put(RequestType.GET_HOURS_DATE, dbcon::getAllDatesHours);
+        handlers.put(RequestType.GET_HOURS_DAY, dbcon::getAllDaysHours);
     }
     /**
      * Sending messages from client over to the database connector
@@ -96,6 +121,7 @@ public class BistroServer extends AbstractServer {
      */
     @Override
     protected void clientDisconnected(ConnectionToClient client) {
+    	System.out.println("ClientDisconnected Called");
         clients.remove(client);
         MainScreenServerController.refreshClientsLive();
     }
@@ -110,53 +136,71 @@ public class BistroServer extends AbstractServer {
         MainScreenServerController.refreshClientsLive();
     }
 
-//    @Override
-//    protected void clientException(ConnectionToClient client, Throwable exception) {
-//        exception.printStackTrace();
-//    }
+    /** * Handles a request to get the live state of the bistro
+	 * @param r the GetLiveStateRequest
+	 * @return a List<String> containing the waitlist and seated orders strings
+	 */
+    public List<String> getLiveState(Request r) {
+        // Build Waitlist String
+        StringBuilder waitlistSb = new StringBuilder();
+        waitlistSb.append("--- Just Arrived ---\n");
+        waitlistSb.append(waitlistJustArrived.toString()).append("\n"); 
+        waitlistSb.append("\n--- Ordered In Advance ---\n");
+        waitlistSb.append(waitlistOrderedInAdvance.toString()).append("\n");
 
+        // Build Seated String from the HashMap
+        StringBuilder seatedSb = new StringBuilder();
+        for (Map.Entry<Table, Order> entry : currentBistro.entrySet()) {
+            Table t = entry.getKey();
+            Order o = entry.getValue();
+            
+            if (t.isTaken() && o != null) {
+                seatedSb.append("Table ").append(t.getId())
+                        .append(" (Max ").append(t.getCapacity()).append("): ")
+                        .append("Order #").append(o.getOrderNumber())
+                        .append("\n");
+            }
+        }
+        
+        // Return both strings in a list
+        List<String> result = new ArrayList<>();
+        result.add(waitlistSb.toString());
+        result.add(seatedSb.toString());
+        return result;
+    }
+    
+    public List<Table> getTables(Request r) {
+    	tables = dbcon.getAllTables();
+    	return tables;
+    }
     /**Checking if there are available tables for the given order
 	 * @param o the order to check availability for
 	 * @return whether there are available tables for the order
 	 * */
-    public synchronized Boolean checkAvailability(Request r) {
  	
-    	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
-    	ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(req.getNumberOfGuests(), req.getOrderDateTime());
-    	String open_orders_in_time_string = dbcon.getTakenSlots(slotReq);
-		String[] open_orders_in_time_array = open_orders_in_time_string.split(",");
-		ArrayList<Integer> guests_in_time = new ArrayList<>();
-		for (String s : open_orders_in_time_array) {
-			if (!s.isEmpty())
-				guests_in_time.add(Integer.parseInt(s));
-		}
-		guests_in_time.add(req.getNumberOfGuests());
+    public synchronized int checkAvailability(List<Table> tables, Map<String,Integer> guests_in_time,String orderIdentifier) {
+		Table resultTable = null;
 		if (guests_in_time.size()>tables.size()) {
-			return false;
+			return -1;
 		}
-		for(int guests : guests_in_time) {
+		for(Entry<String, Integer> entry : guests_in_time.entrySet()) {
 			boolean seated = false;
 			for (Table t : tables) {
-				if (!t.isTaken() && t.getCapacity()>=guests) {
+				System.out.println("Checking table ID: " + t.getId() + " with capacity: " + t.getCapacity() + " (Taken: " + t.isTaken() + ") for party size: " + entry.getValue());
+				if (!t.isTaken() && t.getCapacity()>=entry.getValue()) {
 					t.setTaken(true);
+					if (orderIdentifier.equals(entry.getKey())) {
+						resultTable = t;
+					}
 					seated = true;
 					break;
 				}
 			}
 			if (!seated) {
-				//reset tables
-				for (Table t : tables) {
-					t.setTaken(false);
-				}
-				return false;
+				return -1;
 			}
 		}
-		//reset tables
-		for (Table t : tables) {
-			t.setTaken(false);
-			}
-    	return true;
-	   
+    	return (resultTable !=null) ? resultTable.getId() : 0;
     }
     
     /** * Handles a customer leaving the waitlist
@@ -166,7 +210,7 @@ public class BistroServer extends AbstractServer {
     public String handleLeaveWaitlist(Request r) {
         String orderNum = ((LeaveWaitlistRequest)r).getOrderNum();
         // Accessing the static waitlist instance in BistroServer to remove the node
-        boolean removed = BistroServer.waitlist.cancel(orderNum); 
+        boolean removed = BistroServer.waitlistJustArrived.cancel(orderNum); 
         
         if (removed) {
             return "You have been removed from the waiting list.";
@@ -174,6 +218,7 @@ public class BistroServer extends AbstractServer {
             return "Could not find a waitlist entry with that number.";
         }
     }
+    
     
     /** * Handles a walk-in joining the waitlist at the terminal.
      * @param r the JoinWaitlistRequest containing the order details
@@ -183,25 +228,62 @@ public class BistroServer extends AbstractServer {
         JoinWaitlistRequest req = (JoinWaitlistRequest) r;
         int guests = Integer.parseInt(req.getNumberOfGuests());
         ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, req.getOrderDateTime());
-
-        // 1. Check for immediate seating using existing logic
-        if (checkAvailability(slotReq)) { 
-        	addNewOrder(new WriteRequest(
+        System.out.println("current Bistro in join waitlist before check: "+currentBistro.toString());
+        Map<String,Integer> guestList = prepareGuestsInTimeList(slotReq, false);
+        for (Order o : currentBistro.values()) {
+        	if (o != null) {
+        		guestList.remove(o.getConfirmationCode());
+        	}
+        }
+//        List<Table> tablesCopy = sortTables(currentBistro.keySet(),true);
+//        System.out.println("Prepared tables copy for walk-in: " + tablesCopy.toString());
+//        // 1. Check for immediate seating using existing logic
+//        Order waitlistOrder;
+//        HashMap<String, Integer> tempGuestList = new HashMap<>();
+//        tempGuestList.put("-1", guests);
+//        int tableId = checkAvailability(tablesCopy, tempGuestList,"-1");
+//        System.out.println("Table ID found for walk-in: " + tableId);
+//        int canSeatOthers = checkAvailability(tablesCopy, guestList,"-1");
+//        System.out.println("current Bistro in join waitlist after check: "+currentBistro.toString());
+//        System.out.println("Checked availability for walk-in: tableId = " + tableId);
+          Table desiredTable = null;
+          int tableId = trySeatNow(guestList,"-1",guests); 
+          Order waitlistOrder;
+          
+          //if (tableId != -1 && canSeatOthers == 0) {
+          if (tableId != -1) { 
+        	waitlistOrder = addNewOrder(new WriteRequest(
         			req.getOrderDateTime(),
         			req.getNumberOfGuests(),
         			req.getSubscriberId(),
         			req.getContact()
         		));
-            return "SUCCESS: Table is ready! Please proceed to your table.";
+        	for (Table t : currentBistro.keySet()) {
+        		if (t.getId() == tableId) {
+					desiredTable = t;
+					break;
+				}
+        	}
+        	waitlistOrder.setSittingtime(BistroServer.dateTime);
+        	currentBistro.put(desiredTable, waitlistOrder); // Seat at the first available table
+
+        	desiredTable.setTaken(true);
+        	dbcon.markArrivalAtTerminal(waitlistOrder.getOrderNumber());
+			dbcon.markOrderAsSeated(waitlistOrder.getOrderNumber());
+            return "SUCCESS: Table is ready! Please proceed to your table. "
+            		+ "Your confirmation code: " + (waitlistOrder.getConfirmationCode());
         } 
 
         // 2. If no seats and user hasn't confirmed via popup yet
-        if (!req.isWaitlistEntry()) {
+//        if (!req.isWaitlistEntry()) {
+//        	printWaitlists(BistroServer.waitlistJustArrived, 1);
+        if (!req.isWaitlistEntry()) { 
+        	System.out.println(waitlistJustArrived);
             return "PROMPT: NO_SEATS_FOUND";
         }
 
         
-        Order waitlistOrder = addNewOrder(new WriteRequest(
+        waitlistOrder = addNewOrder(new WriteRequest(
 			req.getOrderDateTime(),
 			req.getNumberOfGuests(),
 			req.getSubscriberId(),
@@ -209,36 +291,77 @@ public class BistroServer extends AbstractServer {
 		));
         String orderNum = waitlistOrder.getOrderNumber();
         // Add to the DLL queue
-        BistroServer.waitlist.enqueue(waitlistOrder); 
+        BistroServer.waitlistJustArrived.enqueue(waitlistOrder); 
+        System.out.println(waitlistJustArrived);
         
+        printWaitlists(BistroServer.waitlistJustArrived, 1);
+        dbcon.markArrivalAtTerminal(waitlistOrder.getOrderNumber());
+        dbcon.changeStatus("WAITING", orderNum);
         return "The restaurant is full. You've been added to the waitlist.\n" +
                "Order Number: " + orderNum + "\n" +
                "Confirmation Code: " + waitlistOrder.getConfirmationCode();
     }
     
-    // will be called when a table is freed up
-    public Order seatFromWaitlist() {
-        // 1. Standard for-each loop made possible by implementing Iterable
-        for (Order currentOrder : waitlist) {
-            int guests = Integer.parseInt(currentOrder.getNumberOfGuests());
-            
-            // 2. Check if this specific order fits current availability
-            ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, currentOrder.getOrderDateTime());
-            if (checkAvailability(slotReq)) {
-                // 3. Remove this specific order from the list and return it
-                waitlist.cancel(currentOrder.getOrderNumber());
-                return currentOrder;
-            }
-            // If not a fit, the iterator automatically moves to the next node
-        }
-        return null; // No one currently in the waitlist fits the free spot
-    }
+
+    
+    /** * Sorts a set of tables into a list
+     * @param tableSet = the set of tables to sort
+
+     */
+//    public Order seatFromWaitlist(WaitingList waitlist) {
+//        // 1. Standard for-each loop made possible by implementing Iterable
+//        for (Order currentOrder : waitlist) {
+//            int guests = Integer.parseInt(currentOrder.getNumberOfGuests());
+//            
+//            // 2. Check if this specific order fits current availability
+//            ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(guests, currentOrder.getOrderDateTime());
+//            Map<String,Integer> guestList = prepareGuestsInTimeList(slotReq, true);
+//            List<Table> tablesCopy = sortTables(currentBistro.keySet(),false);
+//            
+//            if (checkAvailability(tablesCopy, guestList,"-1") != -1) {
+//                // 3. Remove this specific order from the list and return it
+//                waitlist.cancel(currentOrder.getOrderNumber());
+//                return currentOrder;
+//            }
+//            // If not a fit, the iterator automatically moves to the next node
+//        }
+//        return null; // No one currently in the waitlist fits the free spot
+//    }
+//    
+    protected List<Table> sortTables(Set <Table> tableSet, boolean copyCurrentBistroState) {
+		List<Table> tableList = new ArrayList<>();
+		for (Table t : tableSet) {
+			tableList.add(new Table(t.getId(), t.getCapacity(), (copyCurrentBistroState) ? t.isTaken(): false ));
+		}
+		tableList.sort(null);
+		return tableList;
+	}
+    
+    
+    /** * Prints the desired waitlist to the console
+     * @param waitlist = the waitlist to print
+     * @param isJustArrived = 1 for just arrived waitlist, 0 for ordered in advance waitlist
+     */
+    public void printWaitlists(WaitingList waitlist, int isJustArrived) {
+    	if (isJustArrived == 1) {
+			System.out.println("Waitlist - Just Arrived:");
+			System.out.println(waitlist.toString());
+		} else {
+			System.out.println("Waitlist - Ordered In Advance:");
+			System.out.println(waitlist.toString());
+		}
+	}
+
+		
+    
+    
     
     public Order addNewOrder(Request r) {
     	WriteRequest req = (WriteRequest) r;
     	System.out.println("Adding new order for subscriber ID: " + req.getSubscriberId());
     	String email;
-    	if (!req.getSubscriberId().equals("0")) {
+    	if (!req.getSubscriberId().equals("0")) {	
+
     		email = dbcon.readEmail(req.getSubscriberId());
     	}
     	else {
@@ -257,43 +380,56 @@ public class BistroServer extends AbstractServer {
     	args.add(req.getSubscriberId());
     	args.add(email);
     	Order o = new Order(args);
-    	dbcon.addOrder(o,req.getQuery());
-    	System.out.println("Order added to database.");
+    
+    	System.out.println(	dbcon.addOrder(o,req.getQuery()));
     	return o;
     }
     
     // this function will be called when a table is freed up
     
     
-    public String reserveTable(Request r) {
+    public synchronized String reserveTableInAdvance(Request r) {
     	ReserveRequest req = (ReserveRequest) r;
+    	LocalDateTime requested =LocalDateTime.parse(req.getOrderDateTime(), DT_FMT);
+		LocalDate requestedDate = requested.toLocalDate();
+        LocalDateTime open = LocalDateTime.of(requestedDate, LocalTime.of(11,0));
+        LocalDateTime last = LocalDateTime.of(requestedDate, LocalTime.of(21,30));
+        LocalDateTime before = requested.minusHours(1).minusMinutes(30);
+        LocalDateTime after   = requested.plusHours(1).plusMinutes(30);
+        if (before.isBefore(open)) before = open;
+        if (after.isAfter(last)) after = last;
     	ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(
-				Integer.parseInt(req.getNumberOfGuests()), req.getOrderDateTime());
-    	Boolean available = checkAvailability(slotReq);
-		if (available) {
+				Integer.parseInt(req.getNumberOfGuests()), req.getOrderDateTime(),before,after
+				);
+    	Map<String,Integer> guests_in_time = prepareGuestsInTimeList(slotReq, true);
+    	//prepare tables copy
+    	List<Table> tables = sortTables(currentBistro.keySet(), false);
+    	System.out.println("Tables: " + tables);
+    	int available = checkAvailability(tables, guests_in_time,"-1");
+    	for (Table t : tables) {
+    		t.setTaken(false);
+    	}
+		if (available != -1) {
 			addNewOrder(req);
 			return "Reservation confirmed.";
 		}
 		else{
-			 LocalDateTime requested =LocalDateTime.parse(req.getOrderDateTime(), DT_FMT);
-			 LocalDate requestedDate = requested.toLocalDate();
-             LocalDateTime open = LocalDateTime.of(requestedDate, LocalTime.of(11,0));
-             LocalDateTime last = LocalDateTime.of(requestedDate, LocalTime.of(21,30));
-
-             LocalDateTime before = requested.minusHours(1).minusMinutes(30);
-             LocalDateTime after   = requested.plusHours(1).plusMinutes(30);
-
-             if (before.isBefore(open)) before = open;
-             if (after.isAfter(last)) after = last;
              StringBuilder sb = new StringBuilder("No available tables at requested time. Available slots:\n");
              boolean thereAreOptions = false;
              while (!before.isAfter(after)) {
-            	 
-            	 ShowTakenSlotsRequest newSlotReq = new ShowTakenSlotsRequest(
-            			 Integer.parseInt(req.getNumberOfGuests()), before.format(DT_FMT).toString());
-            	 if (checkAvailability(newSlotReq)) {
+            	 slotReq = new ShowTakenSlotsRequest(
+						 Integer.parseInt(req.getNumberOfGuests()),
+						 req.getOrderDateTime(),
+						 before,
+						 after
+						 );
+            	 guests_in_time = prepareGuestsInTimeList(slotReq,true);
+            	 if (checkAvailability(tables, guests_in_time,"-1") != -1) {
             		 thereAreOptions = true;
             		 sb.append(before.format(DT_FMT).toString()).append("\n");
+            	 }
+            	 for (Table t : tables) {
+            		 t.setTaken(false);
             	 }
             	 before = before.plusMinutes(30);
              }
@@ -301,6 +437,28 @@ public class BistroServer extends AbstractServer {
              
 		}
     }
+    
+    
+    protected Map<String,Integer> prepareGuestsInTimeList(Request r,boolean isNotInDatabase) {
+    	ShowTakenSlotsRequest slotReq = (ShowTakenSlotsRequest) r;
+    	String open_orders_in_time_string = dbcon.getTakenSlots(slotReq);
+    	System.out.println("Open orders in time string: " + open_orders_in_time_string);
+		String[] open_orders_in_time_array = open_orders_in_time_string.split(",");
+		HashMap<String,Integer> guests_in_time = new HashMap<>();
+		//prepare guests in time list
+		for (String s : open_orders_in_time_array) {
+			if (!s.isEmpty())
+				guests_in_time.put(s.split(":")[0], Integer.parseInt(s.split(":")[1]));
+		}
+		if (isNotInDatabase) {
+			guests_in_time.put("-1",slotReq.getNumberOfGuests());
+		}
+    	return guests_in_time;
+		
+    }
+    
+    
+
     /**Starting the server
      * @param p the port to listen on
      * */
@@ -313,10 +471,171 @@ public class BistroServer extends AbstractServer {
         }
 
         BistroServer sv = new BistroServer(port);
+        Thread monitorThread = new Thread(new BistroMonitor(sv));
+        monitorThread.setDaemon(true); // dies when server stops
+        monitorThread.start();
         try {
             sv.listen();
         } catch (Exception ex) {
             System.out.println("ERROR - Could not listen for clients!");
         }
     }
+    private String getTableForOrder(Request r) {
+		GetTableRequest req = (GetTableRequest) r;
+		System.out.println("Current Bistro: "+currentBistro.toString());
+		for (Entry<Table, Order> entry : currentBistro.entrySet()) {
+			Order order = entry.getValue();
+			if (order != null && order.getConfirmationCode().equals(req.getConfcode())) {
+				order.setSittingtime(BistroServer.dateTime);
+//				dbcon.markArrivalAtTerminal(order.getOrderNumber());
+				dbcon.markOrderAsSeated(order.getOrderNumber());
+				return  entry.getKey().toString();
+				
+			}
+		}
+		//waitlistJustArrived, waitListOrderedInAdvance
+		for( Order o : waitlistOrderedInAdvance) {
+			if (o.getConfirmationCode().equals(req.getConfcode())) {
+				return "Your table will be available soon.";
+			}
+		}
+		for( Order o : waitlistJustArrived) {
+			if (o.getConfirmationCode().equals(req.getConfcode())) {
+				return "You are currently on the waitlist.";
+			}
+		}
+		String[] args = dbcon.getOrderFromConfCode(req.getQuery(), req.getConfcode()).split(",");
+		if (args[0].equals("Not found")) {
+			return "No order found with that number";
+		}
+		String date = args[1];
+		int number_of_guests = Integer.parseInt(args[2]);
+		
+		LocalDateTime orderDate = LocalDateTime.parse(date, DT_FMT);
+//		if(orderDate.isBefore(LocalDateTime.now().minusMinutes(15)) || orderDate.isAfter(LocalDateTime.now().plusMinutes(15))) {
+//			return "Your reservation is for " + orderDate.format(DT_FMT).toString()+" Please arrive within 15 minutes of your reservation time.";
+//		}
+		if(orderDate.isBefore(BistroServer.dateTime.minusMinutes(15)) || orderDate.isAfter(BistroServer.dateTime.plusMinutes(15))) {
+			return "Your reservation is for " + orderDate.format(DT_FMT).toString()+" Please arrive within 15 minutes of your reservation time.";
+		}
+		Map<String,Integer> guests_in_time = prepareGuestsInTimeList(new ShowTakenSlotsRequest(number_of_guests,date), false);
+		for (Order o : currentBistro.values()) {
+			if (o != null) {
+				guests_in_time.remove(o.getConfirmationCode());
+			}
+		}
+		guests_in_time.remove(req.getConfcode());
+		
+		System.out.println("Guests in time list: " + guests_in_time.toString());
+		Order o = new Order(Arrays.asList(args),1);
+		Table desiredTable = null;
+		int tableId = trySeatNow(guests_in_time,req.getConfcode(),number_of_guests);
+//		if (tableId != -1 && canSeatOthers == 0) {
+		// update actual arrival time
+		dbcon.markArrivalAtTerminal(o.getOrderNumber());
+		if(tableId!=-1) {
+        	for (Table t : currentBistro.keySet()) {
+        		if (t.getId() == tableId) {
+        			desiredTable = t;
+        			System.out.println("Found desired table with id: " + t.getId());
+        			o.setSittingtime(BistroServer.dateTime);
+        			System.out.println("Setting sitting time to current Bistro time: " + BistroServer.dateTime.toString() + "To order number "+ o.getOrderNumber());
+        			System.out.println("Sitting time is: "+ o.getSittingtime());
+					currentBistro.put(t, o); // Seat at the first available table
+					t.setTaken(true);
+				
+					dbcon.markOrderAsSeated(o.getOrderNumber());
+					break;
+				}
+        	}
+			return (desiredTable !=null)? desiredTable.toString() : "Error locating table.";
+		}
+		else {
+			waitlistOrderedInAdvance.enqueue(o);
+			return "No available tables at the moment. Please wait to be seated.";
+		}
+	
+	}
+    
+	public String leaveTable(Request r) {
+		LeaveTableRequest req = (LeaveTableRequest) r;
+		String confcode = req.getConfCode();
+		for (Entry<Table, Order> entry : currentBistro.entrySet()) {
+			Order order = entry.getValue();
+			if (order != null && order.getConfirmationCode().equals(confcode)&& order.getSittingtime()!=null) {
+				currentBistro.put(entry.getKey(), null);
+				entry.getKey().setTaken(false);
+				String userType = dbcon.closeOrder(req);
+				
+				if(userType == null) {
+					return "Order closed successfully. Your bill is " + BILL + " NIS. Thank you for dining with us!";
+				}
+				if (userType.equals("Error")) {
+					return "Error closing order in database.";
+				}
+				if(userType.equals("Not found")) {
+					return "No order found with that confirmation code.";
+				}
+				else {
+					
+					return "Order closed successfully. As a subscriber, you get a 10% discount! Your final bill is " + (BILL*0.9) + " NIS. Thank you for dining with us!";
+				}
+			}
+		}
+		return "Error: No order with that confirmation code is currently seated.";
+		}	
+
+	public String addTable(Request r) {
+		AddTableRequest req = (AddTableRequest)r;
+		if(dbcon.addNewTable(req)) {
+			return "new Table with " +req.getCap() +" spots added sucessfully, action will take effect in the next month";
+		}
+		else {
+			return "ERROR: new Table could not be added";
+		}
+	}
+	
+	public String removeTable(Request r) {
+		RemoveTableRequest req = (RemoveTableRequest)r;
+		if(dbcon.removeTable(req)) {
+			return "Table number " +req.getId() + " was removed sucessfully, action will take effect in the next month"; 
+		}
+		return "ERROR: table could not be removed";
+	}
+	
+	public String updateTable(Request r) {
+		UpdateTableCapacityRequest req = (UpdateTableCapacityRequest)r;
+		if(!dbcon.removeTable(req.getRemoveReq())) {
+			return "ERROR: updating the table failed";
+		}
+		if(!dbcon.addNewTable(req.getAddReq())) {
+			return "ERROR: updating the table failed";
+		}
+		return "Updated table number " +req.getRemoveReq().getId() + " to " +req.getAddReq().getCap() + " sucessfully"; 
+	}
+
+
+	public int trySeatNow(Map<String,Integer> guests_in_time, String confCode, int number_of_guests) {
+		List<Table> tablesCopy = sortTables(currentBistro.keySet(),true);
+		Map<String,Integer> tempGuestsInTime = new HashMap<>();
+		tempGuestsInTime.put(confCode, number_of_guests);
+		int tableId = checkAvailability(tablesCopy, tempGuestsInTime,confCode);
+		int canSeatOthers = checkAvailability(tablesCopy, guests_in_time,confCode);
+		if (tableId != -1 && canSeatOthers == 0) {
+			return tableId;
+		}
+		return -1;
+	}
+	
+	public Map<Table,Order> getCurrentBistro(){
+		return currentBistro;
+	}
+	public WaitingList getRegularWaitlist() {
+		return waitlistJustArrived;
+	}
+	public WaitingList getAdvanceWaitlist() {
+		return waitlistOrderedInAdvance;
+	}
 }
+
+
