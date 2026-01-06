@@ -4,21 +4,31 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
+import entities.Day;
+import entities.GetHoursDateRequest;
+import entities.GetHoursDayRequest;
+import entities.GetMaxTableRequest;
 import entities.ReserveRequest;
+import entities.SpecificDate;
 import entities.User;
 import entities.UserType;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.util.Pair;
 import entities.Subscriber;
 
 public class OrderScreenController implements IController {
 
     private User user;
-
+    private List<SpecificDate> allSpecificDates;
+    private List<Day> allDays;
+	
     @FXML private DatePicker orderDatePicker;
     @FXML private ComboBox<String> timeComboBox;
     @FXML private ComboBox<Integer> guestsComboBox;
@@ -34,19 +44,21 @@ public class OrderScreenController implements IController {
     private String pendingSubscriberIdStr;
     private String pendingContact;
     private String pendingOrderDateTime;
-               
+    private Integer maxTableCapacity;
     @FXML private Button orderBtn;
     @FXML private Button backBtn;
-
     
     @FXML
-    public void initialize() {
+    public void initialize() throws InterruptedException {
         ClientUI.console.setController(this);
 
         contactBox.visibleProperty().bind(isLoggedIn.not());
         contactBox.managedProperty().bind(isLoggedIn.not());
-
-        for (int i = 1; i <= 20; i++) guestsComboBox.getItems().add(i);
+        ClientUI.console.accept(new GetMaxTableRequest());
+        Thread.sleep(200);
+        for (int i = 1; i <= maxTableCapacity; i++) {
+        	guestsComboBox.getItems().add(i);
+        }
 
         LocalDate today = LocalDate.now();
         LocalDate maxDate = today.plusMonths(1);
@@ -60,20 +72,49 @@ public class OrderScreenController implements IController {
         });
 
         orderDatePicker.valueProperty().addListener((obs, oldDate, newDate) -> updateAvailableTimes(newDate));
+        
+        ClientUI.console.accept(new GetHoursDateRequest());
+        ClientUI.console.accept(new GetHoursDayRequest());
+        
     }
+    
+    private Pair<LocalTime, LocalTime> getHoursForDate(LocalDate date) {
+        if (allSpecificDates != null) {
+            for (SpecificDate d : allSpecificDates) {
+                if (d.getDate().equals(date)) {
+                    return new Pair<>(d.getOpen().toLocalTime(), d.getClose().toLocalTime());
+                }
+            }
+        }
+
+        if (allDays != null) {
+            int dayOfWeek = date.getDayOfWeek().getValue();
+            dayOfWeek = (dayOfWeek % 7) + 1;
+            for (Day d : allDays) {
+                if (d.getDay() == dayOfWeek) {
+                    return new Pair<>(d.getOpen().toLocalTime(), d.getClose().toLocalTime());
+                }
+            }
+        }
+        return null;
+    }
+
 
     private void updateAvailableTimes(LocalDate selectedDate) {
         timeComboBox.getItems().clear();
         if (selectedDate == null) return;
 
-        LocalTime opening = LocalTime.of(11, 0);
-        LocalTime closing = LocalTime.of(22, 0);
+        Pair<LocalTime, LocalTime> hours = getHoursForDate(selectedDate);
+        if (hours == null) return;
+
+        LocalTime opening = hours.getKey();
+        LocalTime closing = hours.getValue();
         LocalDateTime nowPlusHour = LocalDateTime.now().plusHours(1);
 
         for (LocalTime t = opening; t.isBefore(closing); t = t.plusMinutes(30)) {
             LocalDateTime candidate = LocalDateTime.of(selectedDate, t);
             if (selectedDate.equals(LocalDate.now()) && candidate.isBefore(nowPlusHour)) continue;
-            timeComboBox.getItems().add(t.toString()); // HH:mm
+            timeComboBox.getItems().add(t.toString());
         }
     }
 
@@ -89,10 +130,6 @@ public class OrderScreenController implements IController {
             if (date == null || time == null || guests == null) throw new IllegalArgumentException();
 
             LocalTime chosen = LocalTime.parse(time);
-            if (chosen.isBefore(LocalTime.of(11,0)) || !chosen.isBefore(LocalTime.of(22,0))) {
-                resultTxt.setText("❌ Selected time is outside working hours (11:00–22:00).");
-                return;
-            }
             
             if (date.equals(LocalDate.now())) {
                 if (LocalDateTime.of(date, chosen).isBefore(LocalDateTime.now().plusHours(1))) {
@@ -154,12 +191,23 @@ public class OrderScreenController implements IController {
         isLoggedIn.set(user != null && user.getType() != UserType.GUEST);
     }
 
-
-    @Override
     public void setResultText(Object result) {
-    	System.out.println("OrderScreenController received result: " + result);
-    	String res = (String) result;
-    	resultTxt.clear();
-    	resultTxt.setText(res);
-		}
+        if (result instanceof List<?> list) {
+            if (!list.isEmpty()) {
+                Object first = list.get(0);
+                if (first instanceof Day) {
+                    allDays = (List<Day>) list;
+                } else if (first instanceof SpecificDate) {
+                    allSpecificDates = (List<SpecificDate>) list;
+                }
+            }
+            Platform.runLater(() -> updateAvailableTimes(orderDatePicker.getValue()));
+        } else if (result instanceof String msg) {
+            resultTxt.setText(msg);
+        }
+        else if (result instanceof Integer) {
+        	this.maxTableCapacity = (int)result;
+        }
     }
+
+}

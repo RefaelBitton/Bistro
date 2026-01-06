@@ -69,14 +69,11 @@ public class Order implements Serializable {
     
     @Override
     public String toString() {
-    			return "Order{" + 
-						"orderNumber='" + orderNumber + '\'' +
-						", confirmationCode='" + confirmationCode + '\'' +
-						", orderDateTime='" + orderDateTime + '\'' +
-						", numberOfGuests='" + numberOfGuests + '\'' +
-						", subscriberId='" + subscriberId + '\'' +
-						", dateOfPlacingOrder='" + dateOfPlacingOrder + '\'' +
-						", contact='" + contact + '\'' +
-						'}';
+    			return
+						"Order Number= " + orderNumber + '\n' +
+						"Confirmation Code= " + confirmationCode + '\n' +
+						"Number Of Guests= " + numberOfGuests + '\n' +
+						"Subscriber Id= " + subscriberId + '\n' +
+						"Contact= " + contact + '\n';
     }
 }
