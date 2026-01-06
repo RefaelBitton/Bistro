@@ -1,29 +1,42 @@
 package bistro_server;
 
+import java.util.TreeMap;
+import java.util.HashMap;
+import java.util.Map;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import entities.AddTableRequest;
 import entities.CancelRequest;
+import entities.ChangeHoursDayRequest;
 import entities.CheckConfCodeRequest;
+import entities.LeaveTableRequest;
 import entities.LoginRequest;
 import entities.Order;
 import entities.ReadRequest;
 import entities.RegisterRequest;
+import entities.RemoveTableRequest;
 import entities.Request;
 import entities.ShowTakenSlotsRequest;
 import entities.Subscriber;
 import entities.Table;
+import entities.WriteHoursDateRequest;
 
 /**
  * A class that handles all operations on the database, receiving requests and handling them 
@@ -41,8 +54,9 @@ public class DBconnector {
         try //connect DB
         {
 
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "123456789");
-        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "123456789");
+
 
 
             System.out.println("SQL connection succeeded");
@@ -101,13 +115,12 @@ public class DBconnector {
 
             int rows = stmt.executeUpdate();
             if (rows == 1) {
+            	System.out.println("Order added to DB: " + o.getOrderNumber());
                 return "✅ Order saved successfully!\nOrder Number: " + o.getOrderNumber() +
                        "\nConfirmation Code: " + o.getConfirmationCode();
             }
             return "❌ Order was not saved.";
 
-        } catch (SQLIntegrityConstraintViolationException e) {
-            return "❌ This date and time is already taken. Please choose another time.";
         } catch (SQLException e) {
             e.printStackTrace();
             return "❌ Database error: " + e.getMessage();
@@ -131,7 +144,7 @@ public class DBconnector {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 StringBuilder sb = new StringBuilder();
-                while (rs.next()) sb.append(rs.getString(1)).append(",");
+                while (rs.next()) sb.append(rs.getString(1)).append(":").append(rs.getString(2)).append(",");
                 return sb.toString();
             }
             
@@ -286,10 +299,12 @@ public class DBconnector {
 		return "order was not deleted";
 	}
 
-	public List<Table> getAllTables() {
+	public List<Table> getRelevantTables() {
 		ArrayList<Table> tables = new ArrayList<>();
 		try {
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table`;");
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table` WHERE ? >= active_from AND (? <= active_to OR active_to IS NULL);");
+			stmt.setDate(1,Date.valueOf(LocalDate.now()));
+			stmt.setDate(2,Date.valueOf(LocalDate.now()));
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				int id = rs.getInt("table_number");
@@ -394,4 +409,307 @@ public class DBconnector {
 
 		return result;
 	}
+	public String getOrderFromConfCode(String query, String confCode) {
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setString(1, confCode);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString("order_number")+","+
+					   rs.getString("order_datetime")+","
+					   +rs.getString("number_of_guests")+","
+					   +rs.getString("confirmation_code")+","
+					   +rs.getString("subscriber_id")+","
+					   +rs.getString("date_of_placing_order")+","
+					   +rs.getString("contact");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return "Not found";
+	}	
+	
+	public String changeHoursDay(Request r) {
+	    ChangeHoursDayRequest req = (ChangeHoursDayRequest) r;
+	    String openTime = String.format("%02d:00:00", Integer.parseInt(req.getOpen()));
+	    String closeTime = String.format("%02d:00:00", Integer.parseInt(req.getClose()));
+	    String query = req.getQuery();
+	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setTime(1, Time.valueOf(openTime));
+	        stmt.setTime(2, Time.valueOf(closeTime));
+	        stmt.setString(3, req.getDay());
+
+	        int rowsUpdated = stmt.executeUpdate();
+	        if (rowsUpdated > 0)
+	            return "Details updated successfully.";
+	        else
+	            return "No details were updated.";
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return "Error updating details: " + e.getMessage();
+	    } catch (NumberFormatException e) {
+	        e.printStackTrace();
+	        return "Error: Invalid hour format.";
+	    }
+	}
+	public String closeOrder(LeaveTableRequest r) {
+		String query = r.getQuery();
+		String confcode = r.getConfCode();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+			stmt.setInt(1, Integer.parseInt(confcode));
+			ResultSet rs = stmt.executeQuery();
+			if(rs.next()) {
+				rs.updateString("status", "CLOSED");
+				rs.updateTimestamp("leave_time", Timestamp.valueOf(BistroServer.dateTime));
+				rs.updateRow();
+				return rs.getString("subscriber_id");
+			}
+			else {
+				return "Not found";
+			}
+		
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return "Error";
+	}
+	
+
+	
+	public String writeHoursDate(Request r) {
+	    WriteHoursDateRequest req = (WriteHoursDateRequest) r;
+	    String openTime;
+	    String closeTime;
+	    try {
+	        openTime = String.format("%02d:00:00", Integer.parseInt(req.getOpen()));
+	        closeTime = String.format("%02d:00:00", Integer.parseInt(req.getClose()));
+	    } catch (NumberFormatException e) {
+	        return "Error: Invalid hour format.";
+	    }
+
+	    String query = req.getQuery();
+
+	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setDate(1, java.sql.Date.valueOf(req.getDate())); 
+	        stmt.setTime(2, java.sql.Time.valueOf(openTime));
+	        stmt.setTime(3, java.sql.Time.valueOf(closeTime));
+
+	        int rowsInserted = stmt.executeUpdate();
+	        if (rowsInserted > 0)
+	            return "Hours for date inserted successfully.";
+	        else
+	            return "No rows were inserted.";
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return "Error inserting hours for date: " + e.getMessage();
+	    }
+	}
+	private int getNextTableId() {
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL(MAX(table_number), 0) + 1 AS next_num FROM `table`");
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) return rs.getInt(1);
+            
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("ERROR:" + e.getMessage());
+        }
+		return -1;
+		
+	}
+	
+	public boolean addNewTable(AddTableRequest req) {
+		String query = req.getQuery();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setInt(1, getNextTableId());
+			stmt.setInt(2,req.getCap());
+			if(stmt.executeUpdate()==0) {
+				System.out.println("Execute Update was 0");
+				return false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean removeTable(RemoveTableRequest req) {
+		String query = req.getQuery();
+		try {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setInt(1, req.getId());
+			if(stmt.executeUpdate()==0) {
+				System.out.println("Execute Update was 0");
+				return false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+		}
+		return true;
+	}
+	
+	protected Map<String,String> ExpirePendingOrders(Set<String> OrdersInBistro) {
+	    Map<String,String> expiredOrders = new HashMap<>();
+	    String query = "SELECT order_number, contact, status FROM `order` WHERE status = 'OPEN' AND order_datetime <= ?;";
+	    LocalDateTime expirationTime = BistroServer.dateTime.minusMinutes(15);
+	    try {
+	    	PreparedStatement stmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+	        stmt.setTimestamp(1, Timestamp.valueOf(expirationTime));
+	        ResultSet rs = stmt.executeQuery();
+	        
+	        while (rs.next()) {
+	        	if(!OrdersInBistro.contains(rs.getString("order_number"))) {
+	        		rs.updateString("status", "CANCELLED");
+		            rs.updateRow();
+		            String orderNumber = rs.getString("order_number");
+		            String contact = rs.getString("contact");
+		            expiredOrders.put(orderNumber, contact);
+	        	}
+	        }
+	        
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return expiredOrders;
+	}
+	
+	protected Map<String,String> OrdersToNotify() {
+	    Map<String,String> contacts = new HashMap<>();
+	    String query = "SELECT order_number, contact FROM `order` WHERE status = 'OPEN' AND order_datetime = ?;";
+	    LocalDateTime notificationTime = BistroServer.dateTime.plusHours(2);
+	    try {
+	    	PreparedStatement stmt = conn.prepareStatement(query);
+	        stmt.setTimestamp(1, Timestamp.valueOf(notificationTime));
+	        ResultSet rs = stmt.executeQuery();
+	        
+	        while (rs.next()) {
+	            String orderNumber = rs.getString("order_number");
+	            String contact = rs.getString("contact");
+	            contacts.put(orderNumber, contact);
+	        }
+	        
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return contacts;
+	}
+	
+	public List<Table> getAllTables() {
+		ArrayList<Table> tables = new ArrayList<>();
+		try {
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM `table`;");
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				int id = rs.getInt("table_number");
+				int capacity = rs.getInt("number_of_seats");
+				LocalDate activeFrom = rs.getDate("active_from").toLocalDate();
+				LocalDate activeTo = (rs.getDate("active_to")==null) ? null: rs.getDate("active_to").toLocalDate();
+				tables.add(new Table(id, capacity, false,activeFrom,activeTo));
+			}
+			return tables;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	// call this when user arrives at terminal and want to seat
+	public void markArrivalAtTerminal(String orderNumber) {
+	    String query = "UPDATE `order` SET actual_arrival = ? WHERE order_number = ? AND actual_arrival IS NULL";
+	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setTimestamp(1, Timestamp.valueOf(BistroServer.dateTime));
+	        stmt.setInt(2, Integer.parseInt(orderNumber));
+	        stmt.executeUpdate();
+	    } catch (SQLException e) { e.printStackTrace(); }
+	}
+
+	// call this when user is seated (phisically at the table)
+	public void markOrderAsSeated(String orderNumber) {
+	    String query = "UPDATE `order` SET seated_time = ? WHERE order_number = ?";
+	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setTimestamp(1, Timestamp.valueOf(BistroServer.dateTime));
+	        stmt.setInt(2, Integer.parseInt(orderNumber));
+	        stmt.executeUpdate();
+	    } catch (SQLException e) { e.printStackTrace(); }
+	}
+
+	public void changeStatus(String status, String orderNumber) {
+	    String query = "UPDATE `order` SET status = ? WHERE order_number = ?";
+	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setString(1, status);
+	        stmt.setInt(2, Integer.parseInt(orderNumber));
+	        stmt.executeUpdate();
+	    } catch (SQLException e) { e.printStackTrace(); }
+	}
+	
+	// Main method to get all reports data
+	public Map<String, Map<Integer, Double>> getReportsData(Request r) {
+	    // 1. Initialize the structure (0-23 hours) to ensure graphs have all X-axis points
+	    Map<String, Map<Integer, Double>> allData = new HashMap<>();
+	    String[] keys = {"Arrivals", "Departures", "SubLateness", "GuestLateness"};
+	    for (String k : keys) {
+	        allData.put(k, new TreeMap<>());
+	        for (int i = 0; i < 24; i++) allData.get(k).put(i, 0.0);
+	    }
+
+	    try {
+	        // --- QUERY 1: ACTIVITY (Arrivals & Departures) ---
+	        // We use UNION to get both counts in a single database trip
+	        String queryActivity = 
+	            "SELECT HOUR(actual_arrival) as h, 'ARR' as type, COUNT(*) as val FROM `order` " +
+	            "WHERE actual_arrival IS NOT NULL AND MONTH(actual_arrival) = MONTH(CURRENT_DATE) GROUP BY h " +
+	            "UNION " +
+	            "SELECT HOUR(leave_time) as h, 'DEP' as type, COUNT(*) as val FROM `order` " +
+	            "WHERE leave_time IS NOT NULL AND MONTH(leave_time) = MONTH(CURRENT_DATE) GROUP BY h";
+
+	        try (PreparedStatement stmt = conn.prepareStatement(queryActivity);
+	             ResultSet rs = stmt.executeQuery()) {
+	            while (rs.next()) {
+	                int h = rs.getInt("h");
+	                String type = rs.getString("type");
+	                double val = rs.getDouble("val");
+	                
+	                if (type.equals("ARR")) allData.get("Arrivals").put(h, val);
+	                else allData.get("Departures").put(h, val);
+	            }
+	        }
+
+	        // --- QUERY 2: LATENESS (Average Delay) ---
+	        // We let SQL calculate the AVG difference in minutes, grouped by user type
+	        String queryLateness = 
+	            "SELECT HOUR(actual_arrival) as h, " +
+	            "CASE WHEN (subscriber_id IS NOT NULL AND subscriber_id != '0') THEN 'SUB' ELSE 'GUEST' END as type, " +
+	            "AVG(TIMESTAMPDIFF(MINUTE, order_datetime, actual_arrival)) as avg_delay " +
+	            "FROM `order` " +
+	            "WHERE actual_arrival > order_datetime AND MONTH(actual_arrival) = MONTH(CURRENT_DATE) " +
+	            "GROUP BY h, type";
+
+	        try (PreparedStatement stmt = conn.prepareStatement(queryLateness);
+	             ResultSet rs = stmt.executeQuery()) {
+	            while (rs.next()) {
+	                int h = rs.getInt("h");
+	                String type = rs.getString("type");
+	                double val = rs.getDouble("avg_delay");
+	                
+	                if (type.equals("SUB")) allData.get("SubLateness").put(h, val);
+	                else allData.get("GuestLateness").put(h, val);
+	            }
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return allData;
+	}
+
+	
 }

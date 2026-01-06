@@ -21,6 +21,6 @@ public class ServerUI extends Application {
 		aFrame.start(primaryStage);
 	}
 	public static void updateInScreen(String msg) {
-		aFrame.updateTxt(msg);
+		aFrame.updateTxt(msg+"\n");
 	}
 }
