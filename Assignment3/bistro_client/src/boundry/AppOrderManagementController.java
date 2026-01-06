@@ -92,7 +92,6 @@ public class AppOrderManagementController implements IController {
         	}
     	}
     }
-
     @FXML
     void onFinishOrderClick(ActionEvent event) {
     	int res = -1;
