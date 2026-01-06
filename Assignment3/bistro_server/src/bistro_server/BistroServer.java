@@ -472,7 +472,7 @@ public class BistroServer extends AbstractServer {
 		}
 		String[] args = dbcon.getOrderFromConfCode(req.getQuery(), req.getConfcode()).split(",");
 		if (args[0].equals("Not found")) {
-			return "No order found with that number";
+			return "No open order found with that number";
 		}
 		String date = args[1];
 		int number_of_guests = Integer.parseInt(args[2]);

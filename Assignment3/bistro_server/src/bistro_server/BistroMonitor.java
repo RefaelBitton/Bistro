@@ -51,7 +51,7 @@ public class BistroMonitor implements Runnable {
 	    	String orderNumber=entry.getKey();
 	    	String contact=entry.getValue();
 	    	System.out.println(" Order " + orderNumber
-					+ " has been notified thru contact.");
+					+ " has been notified through contact.");
 			ServerUI.updateInScreen("for contact: "+ contact+
 				"\n your order " + orderNumber
 				+ " is in 2 hours" 
@@ -102,7 +102,7 @@ public class BistroMonitor implements Runnable {
 	            // Time exceeded 15 minutes
 	            System.out.println(" Seating time exceeded for order: " + order.getConfirmationCode());
 	            ServerUI.updateInScreen("for contact: "+ order.getContact()+
-	                " \n Seating time exceeded for order: " + order.getConfirmationCode()
+	                " \n Seating time exceeded for order: " + order.getOrderNumber()
 	                + " Please contact the bistro staff."
 	            );
 	            server.dbcon.cancelOrder(new CancelRequest(order.getOrderNumber(),order.getConfirmationCode()));
@@ -150,8 +150,8 @@ public class BistroMonitor implements Runnable {
 	            System.out.println(" Order " + order.getConfirmationCode()
 	                    + " exceeded 2 hours at table " + table.getId());
 	            ServerUI.updateInScreen("contact: "+ order.getContact()+
-	                " Order " + order.getConfirmationCode()
-	                + " Your bill is " + (order.getSubscriberId().equals("0")?BistroServer.BILL : BistroServer.BILL*0.9) + " NIS. Thank you for dining with us!"
+	                " Order " + order.getOrderNumber()
+	                + "\nYour bill is " + (order.getSubscriberId().equals("0")?BistroServer.BILL : BistroServer.BILL*0.9) + " NIS. Thank you for dining with us!"
 	                
 	            );
 	        }
@@ -173,7 +173,8 @@ public class BistroMonitor implements Runnable {
 		    System.out.println("Tried to seat order from inAdvance, confCode: "+wl.getConfirmationCode()+", result is: "+res);
 		    if(res!=-1) {
 		    	toRemove.add(new WaitlistNode(wl));
-		    	ServerUI.updateInScreen("for contact: "+wl.getContact()+"\n table number  "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
+		    	ServerUI.updateInScreen("for contact: "+wl.getContact()+"\n order number: "+wl.getOrderNumber()+ "\ntable number "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
+		    	server.dbcon.changeStatus("OPEN", wl.getOrderNumber());
 		   	}
 	    }
 	    for(WaitlistNode node : toRemove) {
@@ -188,7 +189,8 @@ public class BistroMonitor implements Runnable {
 		    System.out.println("Tried to seat order from regular, confCode: "+wl2.getConfirmationCode()+", result is: "+res);
 		    if(res!=-1) {
 		    	toRemove.add(new WaitlistNode(wl2));
-		    	ServerUI.updateInScreen("for contact: "+wl2.getContact()+"\n table number  "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
+		    	ServerUI.updateInScreen("for contact: "+wl2.getContact()+"\norder Number: "+wl2.getOrderNumber()+"\ntable number  "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
+		    	server.dbcon.changeStatus("OPEN", wl2.getOrderNumber());
 		    }
 		}
 		for(WaitlistNode node : toRemove) {
