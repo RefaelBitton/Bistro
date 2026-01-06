@@ -16,34 +16,28 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `order`
+-- Table structure for table `day`
 --
 
-DROP TABLE IF EXISTS `order`;
+DROP TABLE IF EXISTS `day`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `order` (
-  `order_number` int NOT NULL,
-  `order_datetime` datetime DEFAULT NULL,
-  `number_of_guests` int DEFAULT NULL,
-  `confirmation_code` int DEFAULT NULL,
-  `subscriber_id` int DEFAULT NULL,
-  `date_of_placing_order` date DEFAULT NULL,
-  `contact` varchar(45) DEFAULT NULL,
-  `status` enum('OPEN','CLOSED','CANCELLED') DEFAULT NULL,
-  PRIMARY KEY (`order_number`),
-  UNIQUE KEY `order_datetime_UNIQUE` (`order_datetime`)
+CREATE TABLE `day` (
+  `day_of_week` int NOT NULL,
+  `open_hour` time DEFAULT NULL,
+  `close_hour` time DEFAULT NULL,
+  PRIMARY KEY (`day_of_week`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `order`
+-- Dumping data for table `day`
 --
 
-LOCK TABLES `order` WRITE;
-/*!40000 ALTER TABLE `order` DISABLE KEYS */;
-INSERT INTO `order` VALUES (1,'2025-12-25 13:00:00',4,1,NULL,'2025-12-24','0506421020','CANCELLED'),(2,'2025-12-25 13:30:00',4,2,123,'2025-12-24','hav@gmail.com','CANCELLED'),(3,'2026-01-01 21:30:00',2,1003,123,'2025-12-31','hav@gmail.com','OPEN');
-/*!40000 ALTER TABLE `order` ENABLE KEYS */;
+LOCK TABLES `day` WRITE;
+/*!40000 ALTER TABLE `day` DISABLE KEYS */;
+INSERT INTO `day` VALUES (5,'07:00:00','19:00:00');
+/*!40000 ALTER TABLE `day` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

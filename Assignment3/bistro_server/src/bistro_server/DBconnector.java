@@ -55,8 +55,6 @@ public class DBconnector {
 			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
         	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "shonv2014!");
 
-
-
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 

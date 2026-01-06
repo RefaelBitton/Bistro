@@ -1,6 +1,7 @@
 package bistro_server;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -198,7 +199,8 @@ public class BistroMonitor implements Runnable {
 		Map<Table, Order> currentBistro = server.getCurrentBistro();
 		int guests=Integer.parseInt(order.getNumberOfGuests());
 		String confcode=order.getConfirmationCode();
-		Map<String,Integer> guests_in_time = server.prepareGuestsInTimeList(new ShowTakenSlotsRequest(guests,confcode), false);
+		String OrderDateTime = BistroServer.dateTime.format( DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		Map<String,Integer> guests_in_time = server.prepareGuestsInTimeList(new ShowTakenSlotsRequest(guests,OrderDateTime), false);
 		for (Order o : currentBistro.values()) {
 			if (o != null) {
 				guests_in_time.remove(o.getConfirmationCode());
