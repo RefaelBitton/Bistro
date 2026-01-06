@@ -12,8 +12,8 @@ public class Subscriber extends User implements Serializable {
 	private List<Order> orderHistory;
 	
 	public Subscriber(int subscriberID, String userName, String firstName, String lastName, String phoneNumber,
-			String email, List<Order> orderHistory) {
-		super(UserType.SUBSCRIBER,email,phoneNumber);
+			String email,String status, List<Order> orderHistory) {
+		super(UserType.SUBSCRIBER,email,phoneNumber,status);
 		this.subscriberID = subscriberID;
 		this.userName = userName;
 		this.firstName = firstName;
