@@ -15,22 +15,25 @@
             <Font size="30.0" />
          </font>
       </Text>
-      <Button layoutX="654.0" layoutY="717.0" mnemonicParsing="false" text="Back" />
+      <Button fx:id="backBtn" onAction="#onBackBtnClick" layoutX="654.0" layoutY="717.0" mnemonicParsing="false" text="Back" />
+      
       <BarChart fx:id="activityChart" layoutX="65.0" layoutY="204.0" title="Activity Chart">
         <xAxis>
-          <CategoryAxis label="date and hour" />
+          <CategoryAxis fx:id="activityXAxis" label="date and hour" side="BOTTOM"/>
         </xAxis>
         <yAxis>
-          <NumberAxis side="LEFT" />
+          <NumberAxis label="Count" side="LEFT" />
         </yAxis>
       </BarChart>
+      
       <BarChart fx:id="latenessChart" layoutX="748.0" layoutY="204.0" title="Lateness Chart">
         <xAxis>
-          <CategoryAxis label="hour" />
+          <CategoryAxis fx:id="latenessXAxis" label="Hour of Day" side="BOTTOM" />
         </xAxis>
         <yAxis>
-          <NumberAxis side="LEFT" />
+          <NumberAxis label="Minutes Delay" side="LEFT" />
         </yAxis>
       </BarChart>
+      
    </children>
 </AnchorPane>

@@ -685,63 +685,69 @@ public class DBconnector {
 	
 	// Main method to get all reports data
 	public Map<String, Map<Integer, Double>> getReportsData(Request r) {
-	    // 1. Initialize the structure (0-23 hours) to ensure graphs have all X-axis points
-	    Map<String, Map<Integer, Double>> allData = new HashMap<>();
-	    String[] keys = {"Arrivals", "Departures", "SubLateness", "GuestLateness"};
-	    for (String k : keys) {
-	        allData.put(k, new TreeMap<>());
-	        for (int i = 0; i < 24; i++) allData.get(k).put(i, 0.0);
-	    }
+		// 1. Initialize the structure (0-23 hours)
+		Map<String, Map<Integer, Double>> allData = new HashMap<>();
+		// NEW KEYS: "AvgCustomerLate" and "AvgRestaurantDelay"
+		String[] keys = { "Arrivals", "Departures", "AvgCustomerLate", "AvgRestaurantDelay" };
+		
+		for (String k : keys) {
+			allData.put(k, new TreeMap<>());
+			for (int i = 0; i < 24; i++)
+				allData.get(k).put(i, 0.0);
+		}
 
-	    try {
-	        // --- QUERY 1: ACTIVITY (Arrivals & Departures) ---
-	        // We use UNION to get both counts in a single database trip
-	        String queryActivity = 
-	            "SELECT HOUR(actual_arrival) as h, 'ARR' as type, COUNT(*) as val FROM `order` " +
-	            "WHERE actual_arrival IS NOT NULL AND MONTH(actual_arrival) = MONTH(CURRENT_DATE) GROUP BY h " +
-	            "UNION " +
-	            "SELECT HOUR(leave_time) as h, 'DEP' as type, COUNT(*) as val FROM `order` " +
-	            "WHERE leave_time IS NOT NULL AND MONTH(leave_time) = MONTH(CURRENT_DATE) GROUP BY h";
+		try {
+			// --- QUERY 1: ACTIVITY (Arrivals & Departures) - SAME AS BEFORE ---
+			String queryActivity = "SELECT HOUR(actual_arrival) as h, 'ARR' as type, COUNT(*) as val FROM `order` "
+					+ "WHERE actual_arrival IS NOT NULL "
+					+ "AND MONTH(actual_arrival) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) "
+					+ "AND YEAR(actual_arrival) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH) " + "GROUP BY h " + "UNION "
+					+ "SELECT HOUR(leave_time) as h, 'DEP' as type, COUNT(*) as val FROM `order` "
+					+ "WHERE leave_time IS NOT NULL "
+					+ "AND MONTH(leave_time) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) "
+					+ "AND YEAR(leave_time) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH) " + "GROUP BY h";
 
-	        try (PreparedStatement stmt = conn.prepareStatement(queryActivity);
-	             ResultSet rs = stmt.executeQuery()) {
-	            while (rs.next()) {
-	                int h = rs.getInt("h");
-	                String type = rs.getString("type");
-	                double val = rs.getDouble("val");
-	                
-	                if (type.equals("ARR")) allData.get("Arrivals").put(h, val);
-	                else allData.get("Departures").put(h, val);
-	            }
-	        }
+			try (PreparedStatement stmt = conn.prepareStatement(queryActivity); ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					int h = rs.getInt("h");
+					String type = rs.getString("type");
+					double val = rs.getDouble("val");
 
-	        // --- QUERY 2: LATENESS (Average Delay) ---
-	        // We let SQL calculate the AVG difference in minutes, grouped by user type
-	        String queryLateness = 
-	            "SELECT HOUR(actual_arrival) as h, " +
-	            "CASE WHEN (subscriber_id IS NOT NULL AND subscriber_id != '0') THEN 'SUB' ELSE 'GUEST' END as type, " +
-	            "AVG(TIMESTAMPDIFF(MINUTE, order_datetime, actual_arrival)) as avg_delay " +
-	            "FROM `order` " +
-	            "WHERE actual_arrival > order_datetime AND MONTH(actual_arrival) = MONTH(CURRENT_DATE) " +
-	            "GROUP BY h, type";
+					if (type.equals("ARR"))
+						allData.get("Arrivals").put(h, val);
+					else
+						allData.get("Departures").put(h, val);
+				}
+			}
 
-	        try (PreparedStatement stmt = conn.prepareStatement(queryLateness);
-	             ResultSet rs = stmt.executeQuery()) {
-	            while (rs.next()) {
-	                int h = rs.getInt("h");
-	                String type = rs.getString("type");
-	                double val = rs.getDouble("avg_delay");
-	                
-	                if (type.equals("SUB")) allData.get("SubLateness").put(h, val);
-	                else allData.get("GuestLateness").put(h, val);
-	            }
-	        }
+			// --- QUERY 2: LATENESS vs DELAY (NEW LOGIC) ---
+			// AvgCustomerLate = actual_arrival - order_datetime
+			// AvgRestaurantDelay = seated_time - actual_arrival
+			String queryLateness = "SELECT HOUR(actual_arrival) as h, "
+					+ "AVG(GREATEST(0, TIMESTAMPDIFF(MINUTE, order_datetime, actual_arrival))) as customer_late, "
+					+ "AVG(GREATEST(0, TIMESTAMPDIFF(MINUTE, actual_arrival, seated_time))) as restaurant_delay "
+					+ "FROM `order` " 
+					+ "WHERE actual_arrival IS NOT NULL AND seated_time IS NOT NULL "
+					+ "AND MONTH(actual_arrival) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) "
+					+ "AND YEAR(actual_arrival) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH) " 
+					+ "GROUP BY h";
 
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	    }
+			try (PreparedStatement stmt = conn.prepareStatement(queryLateness); ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					int h = rs.getInt("h");
+					double custLate = rs.getDouble("customer_late");
+					double restDelay = rs.getDouble("restaurant_delay");
 
-	    return allData;
+					allData.get("AvgCustomerLate").put(h, custLate);
+					allData.get("AvgRestaurantDelay").put(h, restDelay);
+				}
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return allData;
 	}
 
 	
