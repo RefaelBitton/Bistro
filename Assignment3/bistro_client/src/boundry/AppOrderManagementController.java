@@ -3,6 +3,7 @@ package boundry;
 import java.util.Optional;
 
 import entities.CancelRequest;
+import entities.LeaveTableRequest;
 import entities.LeaveWaitlistRequest;
 import entities.User;
 import entities.UserType;
@@ -116,8 +117,25 @@ public class AppOrderManagementController implements IController {
 
     @FXML
     void onFinishOrderClick(ActionEvent event) {
-    	//navigate to finish order screen (not implemented yet)
-    	ClientUI.console.switchScreen(this, event, "/boundry/FinishOrderScreen.fxml", user);
+    	int res = -1;
+    	try {
+    		res = Integer.parseInt(confCodeTxt.getText().trim());
+    	} catch (NumberFormatException e) {
+    		Alert alert = new Alert(AlertType.ERROR);
+    	    alert.setTitle("Error Occurred");
+    	    alert.setHeaderText("Input Validation Failed");
+    	    alert.setContentText("Please enter an integer as a confirmation code");
+    	    alert.showAndWait();
+    	}
+    	if (res<=0) {
+    		Alert alert = new Alert(AlertType.ERROR);
+    	    alert.setTitle("Error Occurred");
+    	    alert.setHeaderText("Input Validation Failed");
+    	    alert.setContentText("Please enter a positive integer as a confirmation code");
+    	    alert.showAndWait();
+    	}
+    	LeaveTableRequest r = new LeaveTableRequest(confCodeTxt.getText().trim());
+    	ClientUI.console.accept(r);
 
     }
 
@@ -131,7 +149,7 @@ public class AppOrderManagementController implements IController {
 	public void setResultText(Object result) {
 		Platform.runLater(()->{
 			Alert alert = new Alert(AlertType.INFORMATION);
-			alert.setTitle("Order Cancellation Result");
+			alert.setTitle("Operation Result");
 		    alert.setHeaderText(null);
 		    alert.setContentText((String) result);
 		    alert.showAndWait();

@@ -59,9 +59,9 @@ public class waitListController implements IController {
 
         // 3. Prepare data for JoinWaitlistRequest
         String orderDateTime = LocalDate.now().toString() + " " + LocalTime.now().toString().substring(0, 8);
-        String subscriberId = (user.getType() == UserType.SUBSCRIBER) ? 
+        String subscriberId = (user.getType() != UserType.GUEST) ? 
                              String.valueOf(((entities.Subscriber)user).getSubscriberID()) : "0";
-        String finalContact = (user.getType() == UserType.SUBSCRIBER && contactInput.isEmpty()) ? 
+        String finalContact = (user.getType() != UserType.GUEST && contactInput.isEmpty()) ? 
                              user.getPhone() : contactInput;
         String altDateTime = BistroClient.dateTime.format(BistroClient.fmt);
 
