@@ -3,7 +3,6 @@ package bistro_server;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 
 import entities.CancelRequest;
-import entities.GetTableRequest;
 import entities.Order;
 import entities.ShowTakenSlotsRequest;
 import entities.Table;
@@ -30,12 +28,12 @@ public class BistroMonitor implements Runnable {
 		while (true) {
 			try {
 				checkOrdersAndAdvanceTime();
-				trySeatFromWaitlist();
 				checkPendingOrders();
 				checkExpiredOrders();
 				notifyAboutOrder();
-				Thread.sleep(60000); // Check every 60 seconds
-				 BistroServer.dateTime = BistroServer.dateTime.plusMinutes(15);
+				trySeatFromWaitlist();
+				Thread.sleep(30000); // Check every 60 seconds
+				 BistroServer.dateTime = BistroServer.dateTime.plusMinutes(10);
 				 System.out.println("Time advanced to: " + BistroServer.dateTime);
 
 			} catch (InterruptedException e) {
