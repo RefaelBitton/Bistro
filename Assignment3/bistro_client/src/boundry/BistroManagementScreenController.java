@@ -93,6 +93,7 @@ public class BistroManagementScreenController implements IController{
 	void onConfirmClick(ActionEvent event) {
 		ArrayList<String> args = new ArrayList<>();
     	boolean exceptionRaised = false;
+    	boolean hoursException = false;
 		Integer day;
 		Integer open;
 		Integer close;
@@ -104,6 +105,10 @@ public class BistroManagementScreenController implements IController{
     		
     		if((date != null && day != null) || (date == null && day == null)) {
     			exceptionRaised = true;
+    		}
+    		
+    		else if(open == null || close == null) {
+    			hoursException = true;
     		}
     		
     		
@@ -131,6 +136,14 @@ public class BistroManagementScreenController implements IController{
     		alert.setTitle("Error Occurred");
     		alert.setHeaderText("Input Validation Failed");
     		alert.setContentText("Please choose one from date and day of week");
+    		alert.showAndWait();
+    	}
+    	
+    	else if(hoursException) {
+			Alert alert = new Alert(AlertType.ERROR);
+    		alert.setTitle("Error Occurred");
+    		alert.setHeaderText("Input Validation Failed");
+    		alert.setContentText("Please choose both opening hour and closing hour");
     		alert.showAndWait();
     	}
 	}
