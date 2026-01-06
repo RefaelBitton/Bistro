@@ -36,6 +36,11 @@ public class ChangeDetailsController implements IController {
     void initialize() {
     	System.out.println("initialize ChangeDetailsController");
     	ClientUI.console.setController(this);
+    	phoneNumberTxt.textProperty().addListener((obs, oldValue, newValue) -> {
+    	    if (!newValue.matches("\\d*")) {
+    	    	phoneNumberTxt.setText(oldValue);
+    	    }
+    	});
     }
     @FXML
     void onBackBtnClick(ActionEvent event) {

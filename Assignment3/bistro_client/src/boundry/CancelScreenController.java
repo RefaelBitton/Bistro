@@ -59,7 +59,7 @@ public class CancelScreenController implements IController{
         	alert.setContentText("Are you sure you want to continue?");
         	Optional<ButtonType> result = alert.showAndWait();
         	if (result.isPresent() && result.get() == ButtonType.OK) {
-        		CancelRequest c = new CancelRequest(orderNumTxt.getText().trim(),confCodeTxt.getText().trim());
+        		CancelRequest c = new CancelRequest(confCodeTxt.getText().trim());
             	ClientUI.console.accept(c);
         	}
     	}
