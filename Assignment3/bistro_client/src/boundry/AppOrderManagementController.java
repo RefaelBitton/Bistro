@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import entities.CancelRequest;
 import entities.LeaveTableRequest;
-import entities.LeaveWaitlistRequest;
 import entities.User;
 import entities.UserType;
 import javafx.application.Platform;
@@ -28,9 +27,6 @@ public class AppOrderManagementController implements IController {
 
     @FXML
     private TextField confCodeTxt;
-
-    @FXML
-    private TextField orderNumTxt;
     
     @FXML
     private Button finishOrderBtn;
@@ -38,8 +34,6 @@ public class AppOrderManagementController implements IController {
     @FXML
     private Button newOrderBtn;
 
-    @FXML
-    private Button leaveWaitingListBtn;
     @FXML
     void initialize() {
     	ClientUI.console.setController(this);
@@ -53,7 +47,7 @@ public class AppOrderManagementController implements IController {
 	 */
     @FXML
     void onBackClick(ActionEvent event) {
-    	if(user.getType() ==UserType.SUBSCRIBER || user.getType() ==UserType.GUEST) {
+    	if((user.getType() == UserType.SUBSCRIBER) || (user.getType() == UserType.GUEST)) {
 			ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
 		}
 		else {
@@ -68,18 +62,15 @@ public class AppOrderManagementController implements IController {
     @FXML
     void onCancelOrderClick(ActionEvent event) {
 		boolean exceptionRaised = false;
-    	int orderNum = 0;
     	int code = 0;
     	try {
     		//parsing integers fields
-    		orderNum = Integer.parseInt(orderNumTxt.getText().trim());
     		code = Integer.parseInt(confCodeTxt.getText().trim());
-    		if(orderNum <= 0 || code <=0) {
+    		if(code <=0) {
     			exceptionRaised = true;
     		}
     	}catch (NumberFormatException e) { 
 			exceptionRaised = true;
-			orderNumTxt.clear();
 			confCodeTxt.clear();
     	}
     	if(exceptionRaised) {
@@ -96,23 +87,10 @@ public class AppOrderManagementController implements IController {
         	alert.setContentText("Are you sure you want to continue?");
         	Optional<ButtonType> result = alert.showAndWait();
         	if (result.isPresent() && result.get() == ButtonType.OK) {
-        		CancelRequest c = new CancelRequest(orderNumTxt.getText().trim(),confCodeTxt.getText().trim());
+        		CancelRequest c = new CancelRequest(confCodeTxt.getText().trim());
             	ClientUI.console.accept(c);
         	}
     	}
-    }
-    
-    @FXML
-    void onleaveWaitingListClick(ActionEvent event) {
-    	LeaveWaitlistRequest leaveRequest = new LeaveWaitlistRequest(orderNumTxt.getText().trim());
-    		Alert alert = new Alert(AlertType.CONFIRMATION);
-        	alert.setTitle("Confirmation");
-        	alert.setHeaderText("Your order will be removed from the waiting list");
-        	alert.setContentText("Are you sure you want to continue?");
-        	Optional<ButtonType> result = alert.showAndWait();
-        	if (result.isPresent() && result.get() == ButtonType.OK) {
-        		ClientUI.console.accept(leaveRequest);
-        	}
     }
 
     @FXML

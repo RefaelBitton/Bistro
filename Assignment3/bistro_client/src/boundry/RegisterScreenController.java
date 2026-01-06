@@ -20,11 +20,7 @@ public class RegisterScreenController implements IController{
 	private User user;
 	/** for setting the subscriber id*/
 	Random random;
-	@FXML
-	void initialize() {
-		random = new Random();
-		ClientUI.console.setController(this);
-	}
+	
     @FXML
     private Button cancelBtn;
 
@@ -51,6 +47,18 @@ public class RegisterScreenController implements IController{
     
     @FXML
     private TextArea resultTxt;
+    
+	@FXML
+	void initialize() {
+		random = new Random();
+		ClientUI.console.setController(this);
+    	phoneNumber.textProperty().addListener((obs, oldValue, newValue) -> {
+    	    if (!newValue.matches("\\d*")) {
+    	    	phoneNumber.setText(oldValue);
+    	    }
+    	});
+	}
+
     /**
      * when the user clicks 'cancel'
      * */

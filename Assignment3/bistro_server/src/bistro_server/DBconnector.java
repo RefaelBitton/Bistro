@@ -53,8 +53,8 @@ public class DBconnector {
         try //connect DB
         {
 
-//			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "123456789");
+//			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
 
 
 
@@ -284,13 +284,11 @@ public class DBconnector {
 	
 	public String cancelOrder(Request r) {
 		String query = r.getQuery();
-		String orderNum = ((CancelRequest)r).getOrderNum();
 		String code = ((CancelRequest)r).getCode();
 		int rowsDeleted = 0;
 		try {
     		PreparedStatement stmt = conn.prepareStatement(query);
-    		stmt.setString(1, orderNum);
-    		stmt.setString(2, code);
+    		stmt.setString(1, code);
     		rowsDeleted = stmt.executeUpdate();
     		if(rowsDeleted > 0)
     			return "order deleted";
