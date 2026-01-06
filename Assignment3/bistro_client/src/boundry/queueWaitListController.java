@@ -8,6 +8,7 @@ import entities.LeaveWaitlistRequest;
 import entities.Request;
 import entities.User;
 import entities.UserType;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -71,7 +72,7 @@ public class queueWaitListController implements IController{
 	
     @FXML
     void onBackBtnClick(ActionEvent event) {
-		ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", null);
+		ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
 
     }
 	
@@ -85,4 +86,6 @@ public class queueWaitListController implements IController{
 		String message = (String) result;
 		resultTxt.setText(message);
 	}
+
+	
 }

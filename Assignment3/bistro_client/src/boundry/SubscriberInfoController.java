@@ -2,6 +2,7 @@ package boundry;
 
 import entities.GetAllSubscribersRequest;
 import entities.User;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -18,6 +19,11 @@ public class SubscriberInfoController implements IController {
 
     @FXML
     private TextArea resultTxt;
+    
+    @FXML
+    void initialize() {
+		ClientUI.console.setController(this);
+	}
 
     @FXML
     void onBackBtnClick(ActionEvent event) {
@@ -31,7 +37,8 @@ public class SubscriberInfoController implements IController {
 
 	@Override
 	public void setResultText(Object result) {
-		resultTxt.setText((String) result);
+		resultTxt.setText((String)result);
+		
 	}
 
 	@Override

@@ -17,6 +17,11 @@ public class AllOrdersScreenController implements IController {
 
     @FXML
     private TextArea resultTxt;
+    
+    @FXML
+    void initialize() {
+		ClientUI.console.setController(this);
+    }
 
     @FXML
     void onBackClick(ActionEvent event) {

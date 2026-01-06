@@ -56,7 +56,7 @@ public class RegisterScreenController implements IController{
      * */
     @FXML
     void onCancelClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/loginScreen.fxml",user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml",user);
     }
     /**
      * when the user clicks 'Submit' (registering the user)
@@ -83,7 +83,7 @@ public class RegisterScreenController implements IController{
     	if(phone.length() != 10) {
     		phoneException = true;
     	}
-    	if(!(status.equals("CLIENT")) || status.equals("EMPLOYEE")) {
+    	if(!(status.equals("CLIENT")) && !(status.equals("EMPLOYEE"))) {
     		statusException = true;
     	}
     	if((!emailException) && (!phoneException) && (!emptyException) && (!statusException)) {
