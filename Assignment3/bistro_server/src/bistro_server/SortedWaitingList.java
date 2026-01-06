@@ -1,6 +1,5 @@
 package bistro_server;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import entities.Order;
@@ -11,7 +10,7 @@ public class SortedWaitingList extends WaitingList {
 	public void enqueue(Order o) {
 	    WaitlistNode newNode = new WaitlistNode(o);
 
-	    LocalDateTime newDt = LocalDateTime.parse(o.getOrderDateTime());
+	    LocalDateTime newDt = LocalDateTime.parse(o.getOrderDateTime(),BistroServer.DT_FMT);
 
 	    if (head == null) {
 	        head = newNode;

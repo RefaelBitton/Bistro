@@ -3,11 +3,8 @@ package boundry;
 import java.io.IOException;
 import java.util.Optional;
 
-import entities.CancelRequest;
 import entities.LeaveWaitlistRequest;
-import entities.Request;
 import entities.User;
-import entities.UserType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;

@@ -6,7 +6,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 import boundry.IController;
-import javafx.application.Platform;
 import ocsf.client.*;
 /**
  * The client itself, extending abstract client and responsible for sending and recieving messages from the server

@@ -26,7 +26,6 @@ import entities.RequestType;
 import entities.ReserveRequest;
 import entities.ShowTakenSlotsRequest;
 import entities.Table;
-import entities.TrySeatRequest;
 import entities.UpdateTableCapacityRequest;
 import entities.WriteRequest;
 import ocsf.server.AbstractServer;
@@ -49,7 +48,7 @@ public class BistroServer extends AbstractServer {
     private HashMap<Table,Order> currentBistro;
     public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 8), LocalTime.of(15, 00));
     
-    private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    public static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
      /**A connection to the database*/
      DBconnector dbcon;
      
@@ -472,7 +471,7 @@ public class BistroServer extends AbstractServer {
 		}
 		String[] args = dbcon.getOrderFromConfCode(req.getQuery(), req.getConfcode()).split(",");
 		if (args[0].equals("Not found")) {
-			return "No order found with that number";
+			return "No open order found with that number";
 		}
 		String date = args[1];
 		int number_of_guests = Integer.parseInt(args[2]);
@@ -515,7 +514,10 @@ public class BistroServer extends AbstractServer {
 			return (desiredTable !=null)? desiredTable.prettyToString() : "Error locating table.";
 		}
 		else {
+			System.out.println("BeforeEnqueue, order dateTime is: "+o.getOrderDateTime());
+			dbcon.changeStatus("WAITING",o.getOrderNumber());
 			waitlistOrderedInAdvance.enqueue(o);
+			System.out.println("After enqueue");
 			return "No available tables at the moment. Please wait to be seated.";
 		}
 	
@@ -580,11 +582,14 @@ public class BistroServer extends AbstractServer {
 
 
 	public int trySeatNow(Map<String,Integer> guests_in_time, String confCode, int number_of_guests) {
+		System.out.println("trySeatNow started with Args:\n1.guests_in_time=" +guests_in_time+"\n2.confCode= "+confCode+"\n3.numberOfGuests: "+number_of_guests);
 		List<Table> tablesCopy = sortTables(currentBistro.keySet(),true);
 		Map<String,Integer> tempGuestsInTime = new HashMap<>();
 		tempGuestsInTime.put(confCode, number_of_guests);
 		int tableId = checkAvailability(tablesCopy, tempGuestsInTime,confCode);
+		System.out.println("TableId is: "+tableId);
 		int canSeatOthers = checkAvailability(tablesCopy, guests_in_time,confCode);
+		System.out.println("CanSeatOthers is: "+canSeatOthers);
 		if (tableId != -1 && canSeatOthers == 0) {
 			return tableId;
 		}
