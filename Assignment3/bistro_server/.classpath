@@ -12,5 +12,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/refae/Downloads/mysql-connector-j-9.5.0/mysql-connector-j-9.5.0/mysql-connector-j-9.5.0.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/bistro_client"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
