@@ -77,7 +77,8 @@ public class WorkerScreenController implements IController {
 
     @FXML
     void onOrderDetailsClick(ActionEvent event) {
-		ClientUI.console.switchScreen(this, event, "/boundry/AllOrdersScreen.fxml", user);
+    	if(user.getType() == UserType.BISTRO_REP || user.getType() == UserType.MANAGER)
+    		ClientUI.console.switchScreen(this, event, "/boundry/AllOrdersScreen.fxml", user);
     }
 
     @FXML
