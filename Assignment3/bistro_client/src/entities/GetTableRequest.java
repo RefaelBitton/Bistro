@@ -4,7 +4,7 @@ public class GetTableRequest extends Request {
 	private static final long serialVersionUID = 1L;
 	private String confcode;
 	public GetTableRequest(String confcode) {
-		super(RequestType.GET_TABLE,"SELECT * FROM `order` WHERE confirmation_code = ?;");
+		super(RequestType.GET_TABLE,"SELECT * FROM `order` WHERE confirmation_code = ? AND status = 'OPEN';");
 		this.confcode=confcode;
 	}
 	public String getConfcode() {

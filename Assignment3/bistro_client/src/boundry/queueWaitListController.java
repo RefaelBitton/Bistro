@@ -3,12 +3,9 @@ package boundry;
 import java.io.IOException;
 import java.util.Optional;
 
-import entities.CancelRequest;
 import entities.LeaveWaitlistRequest;
-import entities.Request;
 import entities.User;
-import entities.UserType;
-import javafx.application.Platform;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -27,7 +24,12 @@ public class queueWaitListController implements IController{
 	@FXML private Button leaveWaitListBtn;
 	@FXML private Button backBtn;
 	
-	//need to be done when we will have the logic of searching in waiting list
+	
+	@FXML
+	void initialize() {
+		ClientUI.console.setController(this);
+	}
+	
 	@FXML
 	void onSpotBtnClick(ActionEvent event) {
 		setResultText("1");

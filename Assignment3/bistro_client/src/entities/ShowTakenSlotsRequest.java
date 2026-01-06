@@ -18,8 +18,8 @@ public class ShowTakenSlotsRequest extends Request {
         this.numberOfGuests = numberOfGuests;
         this.orderDateTime = orderDateTime;
     	LocalDateTime parsed = LocalDateTime.parse(orderDateTime, f);
-        this.from = parsed; 
-        this.to = LocalDateTime.parse(parsed.toString()).plusHours(2);
+        this.from = LocalDateTime.parse(parsed.toString()).minusMinutes(30); 
+        this.to = LocalDateTime.parse(parsed.toString()).plusHours(1).plusMinutes(30);
     }
     
     public ShowTakenSlotsRequest(int numberOfGuests, String orderDateTime,LocalDateTime from,LocalDateTime to) {

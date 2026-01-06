@@ -17,9 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import entities.SpecificDate;
 import entities.AddTableRequest;
@@ -57,6 +55,7 @@ public class DBconnector {
 
 //			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
         	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "123456789");
+
 
 
 
@@ -672,7 +671,7 @@ public class DBconnector {
 
 	// call this when user is seated (phisically at the table)
 	public void markOrderAsSeated(String orderNumber) {
-	    String query = "UPDATE `order` SET seated_time = ? WHERE order_number = ?";
+	    String query = "UPDATE `order` SET seated_time = ? WHERE order_number = ? AND seated_time IS NULL";
 	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
 	        stmt.setTimestamp(1, Timestamp.valueOf(BistroServer.dateTime));
 	        stmt.setInt(2, Integer.parseInt(orderNumber));
