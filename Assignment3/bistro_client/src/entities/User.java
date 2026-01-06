@@ -12,15 +12,17 @@ public abstract class User implements Serializable{
 	private UserType type;
 	private String email;
 	private String phone;
+	private String status;
 	/**
 	 * @param type the type of the user (hard-coded in derived classes)
 	 * @param email the user's email
 	 * @param phone the user's phone number
 	 * */
-	public User(UserType type, String email, String phone) {
+	public User(UserType type, String email, String phone, String status) {
 		this.type = type;
 		this.email = email;
 		this.phone = phone;
+		this.status = status;
 	}
 	/**
 	 * @return the user's type
@@ -57,6 +59,19 @@ public abstract class User implements Serializable{
 	 * */
 	public void setPhone(String phone) {
 		this.phone = phone;
+	}
+	
+	/**
+	 * @return the user's status as a string
+	 * */
+	public String getStatus() {
+		return status;
+	}
+	/**
+	 * @param the phone number to switch to
+	 * */
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 }

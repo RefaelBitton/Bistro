@@ -7,8 +7,8 @@ public class Guest extends User {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public Guest(String email, String phone) {
-		super(UserType.GUEST, email, phone);
+	public Guest(String email, String phone,String status) {
+		super(UserType.GUEST, email, phone,status);
 	}
 
 }

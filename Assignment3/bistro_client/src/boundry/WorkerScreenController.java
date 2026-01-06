@@ -77,8 +77,7 @@ public class WorkerScreenController implements IController {
 
     @FXML
     void onOrderDetailsClick(ActionEvent event) {
-    	if(user.getType() == UserType.BISTRO_REP || user.getType() == UserType.MANAGER)
-    		ClientUI.console.switchScreen(this, event, "/boundry/AllOrdersScreen.fxml", user);
+		ClientUI.console.switchScreen(this, event, "/boundry/AllOrdersScreen.fxml", user);
     }
 
     @FXML
@@ -103,7 +102,7 @@ public class WorkerScreenController implements IController {
      */
     @FXML
     void onRegisterClick(ActionEvent event) {
-    	this.user = new Guest(null, null);
+    	this.user = new Guest(null, null,null);
     	ClientUI.console.switchScreen(this, event, "/boundry/registerScreen.fxml",user);
     }
 

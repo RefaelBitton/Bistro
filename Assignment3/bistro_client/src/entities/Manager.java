@@ -12,8 +12,8 @@ public class Manager extends Worker implements Serializable {
 	private List<Order> orderHistory;
 	
 	public Manager(int subscriberID, String userName, String firstName, String lastName, String phoneNumber,
-			String email, List<Order> orderHistory) {
-		super(subscriberID,userName,firstName,lastName,phoneNumber,email,orderHistory);
+			String email,String status, List<Order> orderHistory) {
+		super(subscriberID,userName,firstName,lastName,phoneNumber,email,status,orderHistory);
 		setType(UserType.MANAGER);
 	}
 }
