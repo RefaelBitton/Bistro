@@ -3,7 +3,8 @@ package boundry;
 import java.util.Optional;
 
 import entities.CancelRequest;
-import entities.LeaveWaitlistRequest;
+import entities.RequestType;
+import entities.AlterWaitlistRequest;
 import entities.User;
 import entities.UserType;
 import javafx.application.Platform;
@@ -103,7 +104,7 @@ public class AppOrderManagementController implements IController {
     
     @FXML
     void onleaveWaitingListClick(ActionEvent event) {
-    	LeaveWaitlistRequest leaveRequest = new LeaveWaitlistRequest(orderNumTxt.getText().trim());
+    	AlterWaitlistRequest leaveRequest = new AlterWaitlistRequest(orderNumTxt.getText().trim(),RequestType.LEAVE_WAITLIST);
     		Alert alert = new Alert(AlertType.CONFIRMATION);
         	alert.setTitle("Confirmation");
         	alert.setHeaderText("Your order will be removed from the waiting list");

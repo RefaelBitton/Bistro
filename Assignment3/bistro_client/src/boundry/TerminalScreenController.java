@@ -1,7 +1,7 @@
 package boundry;
 
 import entities.JoinWaitlistRequest;
-import entities.LeaveWaitlistRequest;
+import entities.AlterWaitlistRequest;
 import entities.Order;
 import entities.User;
 import entities.UserType;

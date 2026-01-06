@@ -17,7 +17,7 @@ import entities.AddTableRequest;
 import entities.GetTableRequest;
 import entities.JoinWaitlistRequest;
 import entities.LeaveTableRequest;
-import entities.LeaveWaitlistRequest;
+import entities.AlterWaitlistRequest;
 import entities.Order;
 import entities.RemoveTableRequest;
 import entities.Request;
@@ -76,6 +76,7 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.RESERVE_TABLE, this::reserveTableInAdvance);
         handlers.put(RequestType.JOIN_WAITLIST, this::handleJoinWaitlist);
         handlers.put(RequestType.LEAVE_WAITLIST, this::handleLeaveWaitlist);
+        handlers.put(RequestType.SPOT_WAITLIST, this::handleSpotWaitlist);
         handlers.put(RequestType.UPDATE_DETAILS, dbcon::updateDetails);
         handlers.put(RequestType.ORDER_HISTORY,dbcon::getOrderHistory);
         handlers.put(RequestType.CHECK_CONFCODE, dbcon::checkConfCode);
@@ -208,14 +209,16 @@ public class BistroServer extends AbstractServer {
 	 * @param r the LeaveWaitlistRequest containing the order number
 	 */
     public String handleLeaveWaitlist(Request r) {
-        String orderNum = ((LeaveWaitlistRequest)r).getOrderNum();
+        String confCode = ((AlterWaitlistRequest)r).getConfCode();
         // Accessing the static waitlist instance in BistroServer to remove the node
-        boolean removed = BistroServer.waitlistJustArrived.cancel(orderNum); 
+        boolean removed = BistroServer.waitlistJustArrived.cancel(confCode); 
+        System.out.println("Leave waitlist attempted for conf code: " + confCode + ", success: " + removed);
         
         if (removed) {
-            return "You have been removed from the waiting list.";
+        	dbcon.changeStatus("CANCELLED", confCode);
+            return confCode+ " have been removed from the waiting list.";
         } else {
-            return "Could not find a waitlist entry with that number.";
+            return "Could not find an order with this confiramtion code in the waiting list.";
         }
     }
     
@@ -627,6 +630,18 @@ public class BistroServer extends AbstractServer {
 		return -1;
 	}
 	
+	public String handleSpotWaitlist(Request r) {
+		String confCode = ((AlterWaitlistRequest)r).getConfCode();
+        // Accessing the static waitlist instance in BistroServer to remove the node
+        int spot= BistroServer.waitlistJustArrived.getSpotInQueue(confCode);
+        
+        if (spot != -1) {
+            return confCode+ " is in place "+spot+ " in the waiting list.";
+        } else {
+            return "Could not find an order with this confiramtion code in the waiting list.";
+        }
+	}
+		
 	public Map<Table,Order> getCurrentBistro(){
 		return currentBistro;
 	}
