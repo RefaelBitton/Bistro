@@ -46,16 +46,16 @@ public class WaitingList implements Iterable<Order>{
     /** * Handles customer cancellation from anywhere in the queue 
      * Searches by order number
      */
-    public boolean cancel(String ConfirmationCode) {
+    public String cancel(String ConfirmationCode) {
         WaitlistNode current = head;
         while (current != null) {
             if (current.getOrder().getConfirmationCode().equals(ConfirmationCode)) {
                 removeNode(current);
-                return true;
+                return current.getOrder().getOrderNumber();
             }
             current = current.next;
         }
-        return false;
+        return "not found";
     }
 
     private void removeNode(WaitlistNode node) {
@@ -104,6 +104,7 @@ public class WaitingList implements Iterable<Order>{
 		}
 		return -1; // Not found
 	}
+    
 
     public int getSize() { return size; }
     public WaitlistNode getHead() { return head; }

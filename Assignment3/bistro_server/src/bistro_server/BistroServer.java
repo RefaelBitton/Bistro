@@ -216,11 +216,10 @@ public class BistroServer extends AbstractServer {
     public String handleLeaveWaitlist(Request r) {
         String confCode = ((AlterWaitlistRequest)r).getConfCode();
         // Accessing the static waitlist instance in BistroServer to remove the node
-        boolean removed = BistroServer.waitlistJustArrived.cancel(confCode); 
-        System.out.println("Leave waitlist attempted for conf code: " + confCode + ", success: " + removed);
+        String ordernum = BistroServer.waitlistJustArrived.cancel(confCode); 
         
-        if (removed) {
-        	dbcon.changeStatus("CANCELLED", confCode);
+        if (ordernum != "not found") {
+        	dbcon.changeStatus("CANCELLED",ordernum);
             return confCode+ " have been removed from the waiting list.";
         } else {
             return "Could not find an order with this confiramtion code in the waiting list.";
