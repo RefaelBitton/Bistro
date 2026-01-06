@@ -3,7 +3,6 @@ package bistro_server;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 
 import entities.CancelRequest;
-import entities.GetTableRequest;
 import entities.Order;
 import entities.ShowTakenSlotsRequest;
 import entities.Table;
@@ -30,12 +28,12 @@ public class BistroMonitor implements Runnable {
 		while (true) {
 			try {
 				checkOrdersAndAdvanceTime();
-				trySeatFromWaitlist();
 				checkPendingOrders();
 				checkExpiredOrders();
 				notifyAboutOrder();
-				Thread.sleep(60000); // Check every 60 seconds
-				 BistroServer.dateTime = BistroServer.dateTime.plusMinutes(15);
+				trySeatFromWaitlist();
+				Thread.sleep(30000); // Check every 60 seconds
+				 BistroServer.dateTime = BistroServer.dateTime.plusMinutes(10);
 				 System.out.println("Time advanced to: " + BistroServer.dateTime);
 
 			} catch (InterruptedException e) {
@@ -51,7 +49,7 @@ public class BistroMonitor implements Runnable {
 	    	String orderNumber=entry.getKey();
 	    	String contact=entry.getValue();
 	    	System.out.println(" Order " + orderNumber
-					+ " has been notified thru contact.");
+					+ " has been notified through contact.");
 			ServerUI.updateInScreen("for contact: "+ contact+
 				"\n your order " + orderNumber
 				+ " is in 2 hours" 
@@ -93,15 +91,19 @@ public class BistroMonitor implements Runnable {
 		Map<Table, Order> currentBistro = server.getCurrentBistro();
 	    for (Map.Entry<Order, LocalDateTime> entry : pending.entrySet()) {
 	        Order order = entry.getKey();
+	        if(order.getSittingtime()!=null) {
+	        	toRemove.add(order);
+	        	continue;
+	        }
 	        LocalDateTime addedTime = entry.getValue();
 	        if (BistroServer.dateTime.isAfter(addedTime.plusMinutes(15))) {
 	            // Time exceeded 15 minutes
 	            System.out.println(" Seating time exceeded for order: " + order.getConfirmationCode());
 	            ServerUI.updateInScreen("for contact: "+ order.getContact()+
-	                " \n Seating time exceeded for order: " + order.getConfirmationCode()
+	                " \n Seating time exceeded for order: " + order.getOrderNumber()
 	                + " Please contact the bistro staff."
 	            );
-	            server.dbcon.cancelOrder(new CancelRequest(order.getOrderNumber(),order.getConfirmationCode()));
+	            server.dbcon.cancelOrder(new CancelRequest(order.getConfirmationCode()));
 	            for(Map.Entry<Table, Order> tableEntry : currentBistro.entrySet()) {
 	            	if(tableEntry.getValue()!=null && tableEntry.getValue().getConfirmationCode().equals(order.getConfirmationCode())) {
 	            		Table table=tableEntry.getKey();
@@ -131,7 +133,7 @@ public class BistroMonitor implements Runnable {
 	        Table table = entry.getKey();
 	        Order order = entry.getValue();
 
-	        if (order == null ) {
+	        if (order == null || order.getSittingtime() == null) {
 	            continue; // table is empty
 	        }
 	        System.out.println("Checking order number " + order.getOrderNumber());
@@ -146,8 +148,9 @@ public class BistroMonitor implements Runnable {
 	            System.out.println(" Order " + order.getConfirmationCode()
 	                    + " exceeded 2 hours at table " + table.getId());
 	            ServerUI.updateInScreen("contact: "+ order.getContact()+
-	                "Order " + order.getConfirmationCode()
-	                + " exceeded 2 hours at table "  + table.getId() + " please progress to 'leave table' at our terminal or app"
+	                " Order " + order.getOrderNumber()
+	                + "\nYour bill is " + (order.getSubscriberId().equals("0")?BistroServer.BILL : BistroServer.BILL*0.9) + " NIS. Thank you for dining with us!"
+	                
 	            );
 	        }
 	    }
@@ -168,7 +171,8 @@ public class BistroMonitor implements Runnable {
 		    System.out.println("Tried to seat order from inAdvance, confCode: "+wl.getConfirmationCode()+", result is: "+res);
 		    if(res!=-1) {
 		    	toRemove.add(new WaitlistNode(wl));
-		    	ServerUI.updateInScreen("for contact: "+wl.getContact()+"\n table number  "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
+		    	ServerUI.updateInScreen("for contact: "+wl.getContact()+"\n order number: "+wl.getOrderNumber()+ "\ntable number "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
+		    	server.dbcon.changeStatus("OPEN", wl.getOrderNumber());
 		   	}
 	    }
 	    for(WaitlistNode node : toRemove) {
@@ -183,7 +187,8 @@ public class BistroMonitor implements Runnable {
 		    System.out.println("Tried to seat order from regular, confCode: "+wl2.getConfirmationCode()+", result is: "+res);
 		    if(res!=-1) {
 		    	toRemove.add(new WaitlistNode(wl2));
-		    	ServerUI.updateInScreen("for contact: "+wl2.getContact()+"\n table number  "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
+		    	ServerUI.updateInScreen("for contact: "+wl2.getContact()+"\norder Number: "+wl2.getOrderNumber()+"\ntable number  "+res+" got available for you,please come to the Bistro within 15 minute from this massage");
+		    	server.dbcon.changeStatus("OPEN", wl2.getOrderNumber());
 		    }
 		}
 		for(WaitlistNode node : toRemove) {

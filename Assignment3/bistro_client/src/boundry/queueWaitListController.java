@@ -2,13 +2,11 @@ package boundry;
 
 import java.io.IOException;
 import java.util.Optional;
-
 import entities.CancelRequest;
 import entities.AlterWaitlistRequest;
 import entities.Request;
 import entities.RequestType;
 import entities.User;
-import entities.UserType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -26,6 +24,7 @@ public class queueWaitListController implements IController{
 	@FXML private Button leaveWaitListBtn;
 	@FXML private Button backBtn;
 	
+
 	//need to be done when we will have the logic of searching in waiting list
 	
 	 @FXML
@@ -91,7 +90,7 @@ public class queueWaitListController implements IController{
 	
     @FXML
     void onBackBtnClick(ActionEvent event) {
-		ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", null);
+		ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
 
     }
 	
@@ -106,4 +105,6 @@ public class queueWaitListController implements IController{
 		System.out.println("Leave waitlist response received: " + message);
 		resultTxt.setText(message);
 	}
+
+	
 }

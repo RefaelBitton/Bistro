@@ -29,6 +29,7 @@ public class WaitingList implements Iterable<Order>{
         size++;
     }
 
+
     /** Removes the person at the front when a table is free  */
     public Order dequeue(WaitlistNode node) {
     	WaitlistNode current = head;

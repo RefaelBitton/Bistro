@@ -84,4 +84,8 @@ public class Table implements Serializable, Comparable<Table> {
 		return "Table Number: " + id + ", Capacity: " + capacity+", "+ (isTaken ? "Taken" : "Available");
 	}
 	
+	public String prettyToString() {
+		return "Your Table Is Numbered "+ id +" With " +capacity +" Spots";
+	}
+	
 }

@@ -9,6 +9,7 @@ import javafx.scene.control.TextArea;
 
 public class SubscriberInfoController implements IController {
 	private User user;
+	
     @FXML
     private Button backBtn;
 
@@ -17,10 +18,15 @@ public class SubscriberInfoController implements IController {
 
     @FXML
     private TextArea resultTxt;
+    
+    @FXML
+    void initialize() {
+		ClientUI.console.setController(this);
+	}
 
     @FXML
     void onBackBtnClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
     }
 
     @FXML
@@ -30,13 +36,13 @@ public class SubscriberInfoController implements IController {
 
 	@Override
 	public void setResultText(Object result) {
-		resultTxt.setText((String) result);
+		resultTxt.setText((String)result);
+		
 	}
 
 	@Override
 	public void setUser(User user) {
-		this.user = user;
-		
+		this.user = user;		
 	}
 
 }

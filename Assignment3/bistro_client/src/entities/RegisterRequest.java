@@ -7,8 +7,8 @@ public class RegisterRequest extends Request {
 	private static final long serialVersionUID = 1L;
 	private Subscriber user;
 	public RegisterRequest(Subscriber user) {
-		super(RequestType.REGISTER_REQUEST, "INSERT INTO `user` (full_name, subscriber_id, username, phone_number, email)\n"
-				+ "VALUES (?, ?, ?, ?, ?);");
+		super(RequestType.REGISTER_REQUEST, "INSERT INTO `user` (full_name, subscriber_id, username, phone_number, email, status)\n"
+				+ "VALUES (?, ?, ?, ?, ?, ?);");
 		this.user = user;
 	}
 	public Subscriber getUser() {

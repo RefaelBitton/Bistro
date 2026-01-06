@@ -6,7 +6,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 import boundry.IController;
-import javafx.application.Platform;
 import ocsf.client.*;
 /**
  * The client itself, extending abstract client and responsible for sending and recieving messages from the server
@@ -14,7 +13,7 @@ import ocsf.client.*;
 public class BistroClient extends AbstractClient{
 	/**The controller of the screen currently being displayed*/
     private IController controller;
-    public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 5), LocalTime.of(15, 00));
+    public static LocalDateTime dateTime = LocalDateTime.of(LocalDate.of(2026, 1, 8), LocalTime.of(15, 00));
     public static DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**

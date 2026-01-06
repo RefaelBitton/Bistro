@@ -15,7 +15,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -63,7 +62,7 @@ public class LoginScreenController implements IController{
      */
     @FXML
     void onGuestTerminalClick(ActionEvent event) throws IOException {
-    	this.user = new Guest(null, null);
+    	this.user = new Guest(null, null,null);
     	ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
     }
     
@@ -74,7 +73,7 @@ public class LoginScreenController implements IController{
      */
     @FXML
     void onGuestAppClick(ActionEvent event) throws IOException {
-    	this.user = new Guest(null, null);
+    	this.user = new Guest(null, null,null);
     	ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
     }
     
@@ -124,13 +123,13 @@ public class LoginScreenController implements IController{
                 String status = args[5];
 
                 if ("CLIENT".equals(status)) {
-                    user = new Subscriber(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4], null);
+                    user = new Subscriber(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4],args[5], null);
                 }
                 else if ("EMPLOYEE".equals(status)) {
-                    user = new Worker(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4], null);
+                    user = new Worker(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4],args[5], null);
                 }
                 else {
-                    user = new Manager(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4], null);
+                    user = new Manager(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4],args[5], null);
                 }
 
                 String screen;

@@ -1,5 +1,9 @@
 package bistro_server;
 
+import java.util.TreeMap;
+import java.util.HashMap;
+import java.util.Map;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -13,16 +17,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
+import entities.SpecificDate;
 import entities.AddTableRequest;
 import entities.CancelRequest;
 import entities.ChangeHoursDayRequest;
 import entities.CheckConfCodeRequest;
-import entities.Day;
 import entities.LeaveTableRequest;
 import entities.LoginRequest;
 import entities.Order;
@@ -31,10 +32,10 @@ import entities.RegisterRequest;
 import entities.RemoveTableRequest;
 import entities.Request;
 import entities.ShowTakenSlotsRequest;
-import entities.SpecificDate;
 import entities.Subscriber;
 import entities.Table;
 import entities.WriteHoursDateRequest;
+import entities.Day;
 
 /**
  * A class that handles all operations on the database, receiving requests and handling them 
@@ -266,6 +267,7 @@ public class DBconnector {
 			stmt.setString(3,user.getUserName());
 			stmt.setString(4, user.getPhone());
 			stmt.setString(5, user.getEmail());
+			stmt.setString(6, user.getStatus());
 			if(stmt.executeUpdate()==0) {
 				return "ERROR: Couldn't add the user, please try again";
 			}
@@ -279,13 +281,11 @@ public class DBconnector {
 	
 	public String cancelOrder(Request r) {
 		String query = r.getQuery();
-		String orderNum = ((CancelRequest)r).getOrderNum();
 		String code = ((CancelRequest)r).getCode();
 		int rowsDeleted = 0;
 		try {
     		PreparedStatement stmt = conn.prepareStatement(query);
-    		stmt.setString(1, orderNum);
-    		stmt.setString(2, code);
+    		stmt.setString(1, code);
     		rowsDeleted = stmt.executeUpdate();
     		if(rowsDeleted > 0)
     			return "order deleted";
@@ -617,6 +617,7 @@ public class DBconnector {
 		return null;
 	}
 	
+	
 	public List<Day> getAllDaysHours(Request r) {
 		ArrayList<Day> days = new ArrayList<>();
 		try {
@@ -652,6 +653,7 @@ public class DBconnector {
 		}
 		return null;
 	}
+	
 	// call this when user arrives at terminal and want to seat
 	public void markArrivalAtTerminal(String orderNumber) {
 	    String query = "UPDATE `order` SET actual_arrival = ? WHERE order_number = ? AND actual_arrival IS NULL";
@@ -664,7 +666,7 @@ public class DBconnector {
 
 	// call this when user is seated (phisically at the table)
 	public void markOrderAsSeated(String orderNumber) {
-	    String query = "UPDATE `order` SET seated_time = ? WHERE order_number = ?";
+	    String query = "UPDATE `order` SET seated_time = ? WHERE order_number = ? AND seated_time IS NULL";
 	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
 	        stmt.setTimestamp(1, Timestamp.valueOf(BistroServer.dateTime));
 	        stmt.setInt(2, Integer.parseInt(orderNumber));
@@ -680,5 +682,67 @@ public class DBconnector {
 	        stmt.executeUpdate();
 	    } catch (SQLException e) { e.printStackTrace(); }
 	}
+	
+	// Main method to get all reports data
+	public Map<String, Map<Integer, Double>> getReportsData(Request r) {
+	    // 1. Initialize the structure (0-23 hours) to ensure graphs have all X-axis points
+	    Map<String, Map<Integer, Double>> allData = new HashMap<>();
+	    String[] keys = {"Arrivals", "Departures", "SubLateness", "GuestLateness"};
+	    for (String k : keys) {
+	        allData.put(k, new TreeMap<>());
+	        for (int i = 0; i < 24; i++) allData.get(k).put(i, 0.0);
+	    }
+
+	    try {
+	        // --- QUERY 1: ACTIVITY (Arrivals & Departures) ---
+	        // We use UNION to get both counts in a single database trip
+	        String queryActivity = 
+	            "SELECT HOUR(actual_arrival) as h, 'ARR' as type, COUNT(*) as val FROM `order` " +
+	            "WHERE actual_arrival IS NOT NULL AND MONTH(actual_arrival) = MONTH(CURRENT_DATE) GROUP BY h " +
+	            "UNION " +
+	            "SELECT HOUR(leave_time) as h, 'DEP' as type, COUNT(*) as val FROM `order` " +
+	            "WHERE leave_time IS NOT NULL AND MONTH(leave_time) = MONTH(CURRENT_DATE) GROUP BY h";
+
+	        try (PreparedStatement stmt = conn.prepareStatement(queryActivity);
+	             ResultSet rs = stmt.executeQuery()) {
+	            while (rs.next()) {
+	                int h = rs.getInt("h");
+	                String type = rs.getString("type");
+	                double val = rs.getDouble("val");
+	                
+	                if (type.equals("ARR")) allData.get("Arrivals").put(h, val);
+	                else allData.get("Departures").put(h, val);
+	            }
+	        }
+
+	        // --- QUERY 2: LATENESS (Average Delay) ---
+	        // We let SQL calculate the AVG difference in minutes, grouped by user type
+	        String queryLateness = 
+	            "SELECT HOUR(actual_arrival) as h, " +
+	            "CASE WHEN (subscriber_id IS NOT NULL AND subscriber_id != '0') THEN 'SUB' ELSE 'GUEST' END as type, " +
+	            "AVG(TIMESTAMPDIFF(MINUTE, order_datetime, actual_arrival)) as avg_delay " +
+	            "FROM `order` " +
+	            "WHERE actual_arrival > order_datetime AND MONTH(actual_arrival) = MONTH(CURRENT_DATE) " +
+	            "GROUP BY h, type";
+
+	        try (PreparedStatement stmt = conn.prepareStatement(queryLateness);
+	             ResultSet rs = stmt.executeQuery()) {
+	            while (rs.next()) {
+	                int h = rs.getInt("h");
+	                String type = rs.getString("type");
+	                double val = rs.getDouble("avg_delay");
+	                
+	                if (type.equals("SUB")) allData.get("SubLateness").put(h, val);
+	                else allData.get("GuestLateness").put(h, val);
+	            }
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return allData;
+	}
+
 	
 }
