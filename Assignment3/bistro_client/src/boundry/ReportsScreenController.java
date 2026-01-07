@@ -1,5 +1,8 @@
 package boundry;
 
+import java.time.Month;
+import java.time.format.TextStyle;
+import java.util.Locale;
 import java.util.Map;
 import entities.GetReportsRequest;
 import entities.User;
@@ -12,6 +15,7 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 
 /**
  * Controller for the Reports Screen. Displays activity and lateness charts
@@ -28,6 +32,8 @@ public class ReportsScreenController implements IController {
     @FXML private CategoryAxis latenessXAxis;
     
     @FXML private Button backBtn;
+    
+    @FXML private ComboBox<String> months;
 
 	/**
 	 * Initializes the controller. Sets up the charts and requests report data.
@@ -41,6 +47,12 @@ public class ReportsScreenController implements IController {
         
         // 2. Request data (This ensures it updates every time you enter the screen)
         ClientUI.console.accept(new GetReportsRequest());
+        
+        for (Month month : Month.values()) {
+            months.getItems().add(
+                month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
+            );
+        }
     }
 
     /** Sets up the X-Axes with hour categories from 08:00 to 23:00 */
