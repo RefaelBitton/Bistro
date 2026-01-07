@@ -23,6 +23,9 @@ import javafx.scene.layout.HBox;
 import javafx.util.Pair;
 import entities.Subscriber;
 
+/**
+ * Controller for the Order Screen.
+ */
 public class OrderScreenController implements IController {
 
     private User user;
@@ -34,11 +37,14 @@ public class OrderScreenController implements IController {
     @FXML private ComboBox<Integer> guestsComboBox;
     @FXML private TextArea resultTxt;
 
-
-    //  NEW guest contact UI
+    /** Contact input for guest users */
     @FXML private HBox contactBox;
     @FXML private TextField contactTxt;
 
+	/**
+	 * Property indicating if the user is logged in. Used to show/hide contact input
+	 * for guests.
+	 */
     private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
     private Integer pendingGuests;
     private String pendingSubscriberIdStr;
@@ -47,7 +53,10 @@ public class OrderScreenController implements IController {
     private Integer maxTableCapacity;
     @FXML private Button orderBtn;
     @FXML private Button backBtn;
-    
+
+	/**
+	 * Initializes the controller.
+	 */
     @FXML
     public void initialize() throws InterruptedException {
         ClientUI.console.setController(this);
@@ -77,7 +86,14 @@ public class OrderScreenController implements IController {
         ClientUI.console.accept(new GetHoursDayRequest());
         
     }
-    
+ 
+	/**
+	 * Retrieves the opening and closing hours for a given date.
+	 *
+	 * @param date The date to check.
+	 * @return A Pair containing opening and closing LocalTime, or null if not
+	 *         found.
+	 */
     private Pair<LocalTime, LocalTime> getHoursForDate(LocalDate date) {
         if (allSpecificDates != null) {
             for (SpecificDate d : allSpecificDates) {
@@ -99,7 +115,10 @@ public class OrderScreenController implements IController {
         return null;
     }
 
-
+/**
+ * Updates the available times in the timeComboBox based on the selected date.
+ * @param selectedDate
+ */
     private void updateAvailableTimes(LocalDate selectedDate) {
         timeComboBox.getItems().clear();
         if (selectedDate == null) return;
@@ -118,6 +137,10 @@ public class OrderScreenController implements IController {
         }
     }
 
+    /**
+     * Handles the order button click event.
+     * @param event
+     */
     @FXML
     void OnOrderClick(ActionEvent event) {
         resultTxt.clear();
@@ -165,6 +188,12 @@ public class OrderScreenController implements IController {
         }
     }
 
+	/**
+	 * Validates if the given string is a valid phone number or email address.
+	 * 
+	 * @param s The string to validate.
+	 * @return true if valid, false otherwise.
+	 */
     public static boolean isValidPhoneOrEmail(String s) {
         boolean looksEmail = s.contains("@") && s.contains(".") && s.indexOf('@') > 0;
         String digits = s.replaceAll("[^0-9]", "");
@@ -172,6 +201,11 @@ public class OrderScreenController implements IController {
         return looksEmail || looksPhone;
     }
 
+/**
+ * Handles the back button click event. 
+ * @param event
+ * @throws IOException
+ */
     @FXML
     void onBackClick(ActionEvent event) throws IOException {
     	if(user.getType() == UserType.GUEST) {
@@ -184,13 +218,24 @@ public class OrderScreenController implements IController {
     		ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
     	}
     }
-
+    
+	/**
+	 * Sets the current user.
+	 * 
+	 * @param user The user to set.
+	 */
     @Override
     public void setUser(User user) {
         this.user = user;
         isLoggedIn.set(user != null && user.getType() != UserType.GUEST);
     }
 
+	/**
+	 * Sets the result text or updates internal data based on the result object.
+	 * 
+	 * @param result The result object which can be a List<Day>, List<SpecificDate>,
+	 *               String message, or Integer max table capacity.
+	 */
     public void setResultText(Object result) {
         if (result instanceof List<?> list) {
             if (!list.isEmpty()) {

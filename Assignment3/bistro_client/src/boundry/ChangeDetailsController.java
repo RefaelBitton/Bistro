@@ -12,6 +12,9 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 
+/**
+ * Controller class for handling user detail changes.
+ */
 public class ChangeDetailsController implements IController {
 	private Subscriber user;
     @FXML
@@ -32,6 +35,9 @@ public class ChangeDetailsController implements IController {
     @FXML
     private TextField userNameTxt;
 
+	/**
+	 * Initializes the controller and sets up input validation.
+	 */
     @FXML
     void initialize() {
     	System.out.println("initialize ChangeDetailsController");
@@ -42,6 +48,12 @@ public class ChangeDetailsController implements IController {
     	    }
     	});
     }
+    
+	/**
+	 * Handles the back button click event to navigate to the appropriate screen.
+	 * 
+	 * @param event The action event triggered by clicking the back button.
+	 */
     @FXML
     void onBackBtnClick(ActionEvent event) {
     	if(user.getType() ==UserType.SUBSCRIBER) {
@@ -52,6 +64,11 @@ public class ChangeDetailsController implements IController {
 		}
     }
     
+	/**
+	 * Handles the update button click event to update user details.
+	 * 
+	 * @param event The action event triggered by clicking the update button.
+	 */
     @FXML
     void onUpdateClick(ActionEvent event) {
     	boolean emailException = false;
@@ -97,6 +114,9 @@ public class ChangeDetailsController implements IController {
     	}   	
     }
 
+    /**
+     * Sets the result text to display update details.
+     */
 	@Override
 	public void setResultText(Object result) {
 		 Platform.runLater(() -> {
@@ -107,11 +127,22 @@ public class ChangeDetailsController implements IController {
 		        alert.showAndWait();
 		    });	}
 
+	/**
+	 * Sets the user for this controller.
+	 * 
+	 * @param user The user to be set.
+	 */
 	@Override
 	public void setUser(User user) {
 		this.user = (Subscriber) user;
 	}
-	
+
+	/**
+	 * Validates the email format.
+	 * 
+	 * @param email The email string to be validated.
+	 * @return true if the email format is valid, false otherwise.
+	 */
 	public boolean isValidEmail(String email) {
 	    return email != null && email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 	}

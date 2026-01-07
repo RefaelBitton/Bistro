@@ -47,7 +47,10 @@ public class RegisterScreenController implements IController{
     
     @FXML
     private TextArea resultTxt;
-    
+
+	/**
+	 * initializes the controller
+	 */
 	@FXML
 	void initialize() {
 		random = new Random();
@@ -130,16 +133,27 @@ public class RegisterScreenController implements IController{
     		alert.showAndWait();
     	}
     }
-    
+
+    /**
+     * validates email format
+     * @param email
+     * @return
+     */
     public boolean isValidEmail(String email) {
 	    return email != null && email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 	}
 
+	/**
+	 * sets the result text area
+	 */
 	@Override
 	public void setResultText(Object result) {
 		resultTxt.setText((String)result);
 	}
-    
+
+	/**
+	 * sets the user of the session
+	 */
     public void setUser(User user) {
     	this.user = user;
     }

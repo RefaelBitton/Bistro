@@ -12,9 +12,14 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 
+/**
+ * Controller class for displaying the waitlist and current orders.
+ */
 public class ShowWaitlistAndCurrentOrdersController implements IController {
 
     private User user;
+    
+    /** Property to track if user is logged in */
     private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
 
     @FXML private Button refreshBtn;
@@ -22,6 +27,9 @@ public class ShowWaitlistAndCurrentOrdersController implements IController {
     @FXML private TextArea showWaitlist;
     @FXML private TextArea showCurrentOrders;
 
+	/**
+	 * Initializes the controller class.
+	 */
     @FXML
     public void initialize() {
         ClientUI.console.setController(this);
@@ -42,23 +50,39 @@ public class ShowWaitlistAndCurrentOrdersController implements IController {
         ClientUI.console.accept(req);
     }
 
+	/**
+	 * Handles the refresh button click event.
+	 */
     @FXML
     void refreshClick(ActionEvent event) {
         loadData();
     }
 
+	/**
+	 * Handles the back button click event.
+	 */
     @FXML
     void onBackClick(ActionEvent event) throws IOException {
         String path = "/boundry/WorkerScreen.fxml";
         ClientUI.console.switchScreen(this, event, path, user);
     }
 
+	/**
+	 * Sets the current user and updates login status.
+	 * 
+	 * @param user The user to set.
+	 */
     @Override
     public void setUser(User user) {
         this.user = user;
         isLoggedIn.set(user != null && user.getType() != UserType.GUEST);
     }
 
+	/**
+	 * Updates the UI with the result from the server.
+	 * 
+	 * @param result The result object from the server, expected to be List<String>.
+	 */
     @SuppressWarnings("unchecked")
 	@Override
     public void setResultText(Object result) {

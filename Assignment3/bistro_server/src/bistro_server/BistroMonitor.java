@@ -8,21 +8,32 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import entities.CancelRequest;
 import entities.Order;
 import entities.ShowTakenSlotsRequest;
 import entities.Table;
 
+/**
+ * A class that monitors the bistro server for various tasks such as checking
+ * order times, notifying customers, and managing the waiting list.
+ */
 public class BistroMonitor implements Runnable {
 	private BistroServer server;
 	private Map<Order, LocalDateTime> pending;
 
+	/**
+	 * Constructor for BistroMonitor.
+	 * 
+	 * @param server The BistroServer instance to monitor.
+	 */
 	public BistroMonitor(BistroServer server) {
 		pending = new HashMap<>();
 		this.server = server;
 	}
 
+	/**
+	 * The main run method that continuously checks orders and manages time.
+	 */
 	@Override
 	public void run() {
 		while (true) {
@@ -42,7 +53,10 @@ public class BistroMonitor implements Runnable {
 			}
 		}
 	}
-	
+
+	/**
+	 * A method that notifies customers about their orders that are due in 2 hours
+	 */
 	private void notifyAboutOrder() {
 		Map<String,String> contacts=server.dbcon.OrdersToNotify();
 		for(Map.Entry<String, String> entry : contacts.entrySet()) {
@@ -122,7 +136,11 @@ public class BistroMonitor implements Runnable {
 	    }
 	}
 	
-	
+
+	/**
+	 * A method that checks orders that have been seated for more than 2 hours and
+	 * notifies the customers.
+	 */
 	private void checkOrdersAndAdvanceTime() {
 	    Map<Table, Order> currentBistro = server.getCurrentBistro();
 
@@ -156,6 +174,11 @@ public class BistroMonitor implements Runnable {
 	    }
 
 	}
+	
+	/**
+	 * A method that tries to seat orders from the waiting list when tables become
+	 * available.
+	 */
 	private void trySeatFromWaitlist() {
 		System.out.println("------------------------------------------");
 		List<WaitlistNode> toRemove = new ArrayList<>();
@@ -197,9 +220,13 @@ public class BistroMonitor implements Runnable {
 		
 	}
 	    
-			
-		
-	
+	/**
+	 * A helper method that attempts to seat an order from the waiting list.
+	 * 
+	 * @param order    The order to be seated.
+	 * @param waitlist The waiting list from which the order came.
+	 * @return The table ID if seated successfully, -1 otherwise.
+	 */
 	private int trySeatHelper(Order order,WaitingList waitlist) {
 		Map<Table, Order> currentBistro = server.getCurrentBistro();
 		int guests=Integer.parseInt(order.getNumberOfGuests());

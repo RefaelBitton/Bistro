@@ -26,6 +26,10 @@ import javafx.scene.paint.Color;
 import javafx.util.Callback;
 import javafx.scene.control.Alert.AlertType;
 
+/**
+ * Controller class for the Bistro Management Screen. This class handles user
+ * interactions and updates the UI accordingly.
+ */
 public class BistroManagementScreenController implements IController{
 	private User user;
 	@FXML private DatePicker datePicker;
@@ -40,6 +44,9 @@ public class BistroManagementScreenController implements IController{
 	@FXML private CheckBox removeTableCheck;
     @FXML private TextField setTableCapText;
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     */
 	@FXML
 	public void initialize() {
 		ClientUI.console.setController(this);
@@ -88,7 +95,13 @@ public class BistroManagementScreenController implements IController{
             }
         });
 	}
-	
+
+	/**
+	 * Handles the confirm button click event. Validates input and sends appropriate
+	 * requests to the server.
+	 * 
+	 * @param event The action event triggered by clicking the confirm button.
+	 */
 	@FXML
 	void onConfirmClick(ActionEvent event) {
 		ArrayList<String> args = new ArrayList<>();
@@ -147,7 +160,13 @@ public class BistroManagementScreenController implements IController{
     		alert.showAndWait();
     	}
 	}
-	
+
+	/**
+	 * Handles the tables button click event. Validates input and sends appropriate
+	 * requests to the server.
+	 * 
+	 * @param event The action event triggered by clicking the tables button.
+	 */
 	@FXML
 	void onTablesBtnClick(ActionEvent event) throws InterruptedException {
 		try {
@@ -196,12 +215,22 @@ public class BistroManagementScreenController implements IController{
 			alert.showAndWait();
 		}
 	}
-	
+
+	/**
+	 * Handles the back button click event. Navigates back to the worker screen.
+	 * 
+	 * @param event The action event triggered by clicking the back button.
+	 */
 	@FXML
 	void onBackBtnClick(ActionEvent event) {
 		ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
 	}
-	
+
+	/**
+	 * Sets the result text in the UI based on the provided result object.
+	 * 
+	 * @param result The result object containing data to be displayed.
+	 */
 	@Override
 	public void setResultText(Object result) {
 		if( result instanceof ArrayList<?>) {
@@ -223,7 +252,12 @@ public class BistroManagementScreenController implements IController{
 			});
 		}
 	}
-	
+
+	/**
+	 * Sets the user for this controller.
+	 * 
+	 * @param user The user to be set.
+	 */
 	@Override
 	public void setUser(User user) {
 		this.user = user;	

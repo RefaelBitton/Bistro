@@ -16,6 +16,11 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 
+/**
+ * Controller class for managing the queue waitlist functionality in the client
+ * application. This class handles user interactions related to spotting a
+ * position in the waitlist and leaving the waitlist.
+ */
 public class queueWaitListController implements IController{
 	private User user;
 	@FXML private TextField confCodeTxt;
@@ -23,15 +28,21 @@ public class queueWaitListController implements IController{
 	@FXML private Button spotBtn;
 	@FXML private Button leaveWaitListBtn;
 	@FXML private Button backBtn;
-	
 
-	//need to be done when we will have the logic of searching in waiting list
-	
-	 @FXML
-	    void initialize() {
-	    	ClientUI.console.setController(this);
-	    }
-	 
+	/**
+	 * Initializes the controller by setting the console reference.
+	 */
+	@FXML
+    void initialize() {
+    	ClientUI.console.setController(this);
+    }
+
+	/**
+	 * Handles the action when the "Spot" button is clicked. Validates input and
+	 * sends a request to spot a position in the waitlist.
+	 * 
+	 * @param event The action event triggered by clicking the button.
+	 */
 	@FXML
 	void onSpotBtnClick(ActionEvent event) {
 		boolean exceptionRaised = false;
@@ -59,7 +70,13 @@ public class queueWaitListController implements IController{
         	
     	}
 	}
-	
+
+	/**
+	 * Handles the action when the "Leave Waitlist" button is clicked. Validates
+	 * input and sends a request to leave the waitlist.
+	 * 
+	 * @param event The action event triggered by clicking the button.
+	 */
 	@FXML
 	void onLeaveBtnClick(ActionEvent event) throws IOException, InterruptedException{
 		boolean exceptionRaised = false;
@@ -88,17 +105,31 @@ public class queueWaitListController implements IController{
     	}
 	}
 	
+	/**
+	 * Handles the action when the "Back" button is clicked. Navigates back to the
+	 * @param event
+	 */
     @FXML
     void onBackBtnClick(ActionEvent event) {
 		ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
 
     }
-	
+
+	/**
+	 * Sets the user for this controller.
+	 * 
+	 * @param user The user to be set.
+	 */
 	@Override
     public void setUser(User user) {
         this.user = user;
     }
-	
+
+	/**
+	 * Sets the result text area with the provided result message.
+	 * 
+	 * @param result The result message to be displayed.
+	 */
 	@Override
     public void setResultText(Object result) {
 		String message = (String) result;

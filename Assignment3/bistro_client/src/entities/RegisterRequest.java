@@ -6,6 +6,12 @@ public class RegisterRequest extends Request {
 
 	private static final long serialVersionUID = 1L;
 	private Subscriber user;
+
+	/**
+	 * Constructor for RegisterRequest
+	 * 
+	 * @param user The user to be registered
+	 */
 	public RegisterRequest(Subscriber user) {
 		super(RequestType.REGISTER_REQUEST, "INSERT INTO `user` (full_name, subscriber_id, username, phone_number, email, status)\n"
 				+ "VALUES (?, ?, ?, ?, ?, ?);");

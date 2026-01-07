@@ -54,7 +54,7 @@ public class DBconnector {
         {
 
 			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "shonv2014!");
+        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
 
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -66,6 +66,12 @@ public class DBconnector {
 
 
     }
+    
+	/**
+	 * the method checks for confirmation codes related to a contact in a given time frame
+	 * @param r A CheckConfCodeRequest
+	 * @return The resulting string, a message to the user
+	 */
     public  String checkConfCode(Request r) {
     	CheckConfCodeRequest req = (CheckConfCodeRequest) r;
     	String res="";
@@ -91,7 +97,13 @@ public class DBconnector {
 		
     }
 
-
+	/**
+	 * the method adds an order to the database
+	 * 
+	 * @param o     The order to add
+	 * @param query The insert query
+	 * @return The resulting string, a message to the user
+	 */
     public String addOrder(Order o,String query) {
        
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -130,8 +142,12 @@ public class DBconnector {
     
     
 
-	
- public String getTakenSlots(Request r) {
+	/**
+	 * 	the method gets all taken slots in a given time frame
+	 * @param r A ShowTakenSlotsRequest
+	 * @return The resulting string, a message to the user
+	 */
+    public String getTakenSlots(Request r) {
     	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
     	LocalDateTime from = req.getFrom();
     	LocalDateTime to = req.getTo();
@@ -151,6 +167,12 @@ public class DBconnector {
         }
 
     }
+    
+	/**
+	 * the method gets the next order number
+	 * 
+	 * @return The resulting string, the next order number
+	 */
     public String OrderNumber() {
         try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL(MAX(order_number), 0) + 1 AS next_num FROM `order`");
              ResultSet rs = stmt.executeQuery()) {
@@ -169,6 +191,12 @@ public class DBconnector {
     /* ================= READ ORDER =================
        Make sure your ReadRequest SELECT uses order_datetime as the 2nd column.
     */
+    
+	/**
+	 * the method gets an order from the database
+	 * @param r A ReadRequest
+	 * @return The resulting string, a message or the order details
+	 */
     public String getOrder(Request r) {
         String query = r.getQuery();
         String orderNum = ((ReadRequest) r).getOrderNum();
@@ -199,6 +227,13 @@ public class DBconnector {
     }
 
     /* ================= READ EMAIL ================= */
+    
+	/**
+	 * the method reads the email of a subscriber from the database
+	 * 
+	 * @param subId The subscriber ID
+	 * @return The resulting string, the email or empty string if not found
+	 */
     public String readEmail(String subId) {
 
         try {
@@ -217,9 +252,7 @@ public class DBconnector {
             return "";
         }
     }
-
-
-   
+  
 	/**
 	 * 
 	 * @param r A LoginRequest
@@ -247,10 +280,8 @@ public class DBconnector {
 				e.printStackTrace();
 			}
 			return "";
-		}
-		
-		
-		
+	}
+				
 	/**
 	 * 
 	 * @param r a RegisterRequest to handle
@@ -278,7 +309,12 @@ public class DBconnector {
 		return "New user added successfully, please keep your ID handy for further login attempts\nUser is:\n"+user;
 		
 	}
-	
+
+	/**
+	 * the method cancels an order in the database
+	 * @param r A CancelRequest
+	 * @return The resulting string, a message to the user
+	 */
 	public String cancelOrder(Request r) {
 		String query = r.getQuery();
 		String code = ((CancelRequest)r).getCode();
@@ -295,6 +331,11 @@ public class DBconnector {
 		return "order was not deleted";
 	}
 
+	/**
+	 * the method gets all relevant tables from the database
+	 * 
+	 * @return A list of relevant tables
+	 */
 	public List<Table> getRelevantTables() {
 		ArrayList<Table> tables = new ArrayList<>();
 		try {
@@ -314,7 +355,13 @@ public class DBconnector {
 		
 		return null;
 	}
-	
+
+	/**
+	 * the method updates details in the database
+	 * 
+	 * @param r A Request containing the update query
+	 * @return The resulting string, a message to the user
+	 */
 	public String updateDetails(Request r) {
 		String query = r.getQuery();
 		try {
@@ -329,7 +376,13 @@ public class DBconnector {
 			return "Error updating details: " + e.getMessage();
 		}
 	}
-	
+
+	/**
+	 * the method gets the order history from the database
+	 * 
+	 * @param r A Request containing the select query
+	 * @return The resulting string, a message to the user
+	 */
 	public String getOrderHistory(Request r) {
 		String query = r.getQuery();
 		String result = "";
@@ -355,6 +408,13 @@ public class DBconnector {
 
 		return result;
 	}
+	
+	/**
+	 * the method gets all active orders from the database
+	 * 
+	 * @param r A Request containing the select query
+	 * @return The resulting string, a message to the user
+	 */
 	public String getAllActiveOrders(Request r) {
 		String query = r.getQuery();
 		String result = "";
@@ -381,6 +441,13 @@ public class DBconnector {
 		}
 		return result;
 	}
+	
+	/**
+	 * the method gets all subscribers from the database
+	 * 
+	 * @param r A Request containing the select query
+	 * @return The resulting string, a message to the user
+	 */
 	public String getAllSubscribers(Request r) {
 		String query = r.getQuery();
 		String result = "";
@@ -405,6 +472,14 @@ public class DBconnector {
 
 		return result;
 	}
+	
+	/**
+	 * the method gets an order from the database using confirmation code
+	 * 
+	 * @param query    The select query
+	 * @param confCode The confirmation code
+	 * @return The resulting string, a message or the order details
+	 */
 	public String getOrderFromConfCode(String query, String confCode) {
 		try {
 			PreparedStatement stmt = conn.prepareStatement(query);
@@ -426,6 +501,13 @@ public class DBconnector {
 		return "Not found";
 	}	
 	
+	/**
+	 * the method changes the opening and closing hours for a specific day in the
+	 * database
+	 * 
+	 * @param r A ChangeHoursDayRequest
+	 * @return The resulting string, a message to the user
+	 */
 	public String changeHoursDay(Request r) {
 	    ChangeHoursDayRequest req = (ChangeHoursDayRequest) r;
 	    String openTime = String.format("%02d:00:00", Integer.parseInt(req.getOpen()));
@@ -449,6 +531,13 @@ public class DBconnector {
 	        return "Error: Invalid hour format.";
 	    }
 	}
+	
+	/**
+	 * the method closes an order in the database
+	 * 
+	 * @param r A LeaveTableRequest
+	 * @return The resulting string, a message to the user
+	 */
 	public String closeOrder(LeaveTableRequest r) {
 		String query = r.getQuery();
 		String confcode = r.getConfCode();
@@ -473,8 +562,13 @@ public class DBconnector {
 		return "Error";
 	}
 	
-
-	
+	/**
+	 * the method writes opening and closing hours for a specific date in the
+	 * database
+	 * 
+	 * @param r A WriteHoursDateRequest
+	 * @return The resulting string, a message to the user
+	 */
 	public String writeHoursDate(Request r) {
 	    WriteHoursDateRequest req = (WriteHoursDateRequest) r;
 	    String openTime;
@@ -503,6 +597,12 @@ public class DBconnector {
 	        return "Error inserting hours for date: " + e.getMessage();
 	    }
 	}
+	
+	/**
+	 * the method gets the next table ID from the database
+	 * 
+	 * @return The next table ID
+	 */
 	private int getNextTableId() {
         try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL(MAX(table_number), 0) + 1 AS next_num FROM `table`");
              ResultSet rs = stmt.executeQuery()) {
@@ -518,6 +618,12 @@ public class DBconnector {
 		
 	}
 	
+	/**
+	 * the method adds a new table to the database
+	 * 
+	 * @param req An AddTableRequest
+	 * @return true if the table was added successfully, false otherwise
+	 */
 	public boolean addNewTable(AddTableRequest req) {
 		String query = req.getQuery();
 		try {
@@ -536,6 +642,12 @@ public class DBconnector {
 		return true;
 	}
 	
+	/**
+	 * the method removes a table from the database
+	 * 
+	 * @param req A RemoveTableRequest
+	 * @return true if the table was removed successfully, false otherwise
+	 */
 	public boolean removeTable(RemoveTableRequest req) {
 		String query = req.getQuery();
 		try {
@@ -551,7 +663,13 @@ public class DBconnector {
 		}
 		return true;
 	}
-	
+
+	/**
+	 * the method expires pending orders in the database
+	 * 
+	 * @param OrdersInBistro A set of order numbers currently in the bistro
+	 * @return A map of expired order numbers and their associated contacts
+	 */
 	protected Map<String,String> ExpirePendingOrders(Set<String> OrdersInBistro) {
 	    Map<String,String> expiredOrders = new HashMap<>();
 	    String query = "SELECT order_number, contact, status FROM `order` WHERE status = 'OPEN' AND order_datetime <= ?;";
@@ -577,6 +695,11 @@ public class DBconnector {
 	    return expiredOrders;
 	}
 	
+	/**
+	 * the method gets orders that need notification in the database
+	 * 
+	 * @return A map of order numbers and their associated contacts for notification
+	 */
 	protected Map<String,String> OrdersToNotify() {
 	    Map<String,String> contacts = new HashMap<>();
 	    String query = "SELECT order_number, contact FROM `order` WHERE status = 'OPEN' AND order_datetime = ?;";
@@ -598,6 +721,11 @@ public class DBconnector {
 	    return contacts;
 	}
 	
+	/**
+	 * the method gets all tables from the database
+	 * 
+	 * @return A list of all tables
+	 */
 	public List<Table> getAllTables() {
 		ArrayList<Table> tables = new ArrayList<>();
 		try {
@@ -617,7 +745,12 @@ public class DBconnector {
 		return null;
 	}
 	
-	
+	/**
+	 * the method gets all days' hours from the database
+	 * 
+	 * @param r A Request
+	 * @return A list of all days with their hours
+	 */
 	public List<Day> getAllDaysHours(Request r) {
 		ArrayList<Day> days = new ArrayList<>();
 		try {
@@ -636,6 +769,12 @@ public class DBconnector {
 		return null;
 	}
 	
+	/**
+	 * the method gets all specific dates' hours from the database
+	 * 
+	 * @param r A Request
+	 * @return A list of all specific dates with their hours
+	 */
 	public List<SpecificDate> getAllDatesHours(Request r) {
 		ArrayList<SpecificDate> dates = new ArrayList<>();
 		try {
@@ -654,7 +793,11 @@ public class DBconnector {
 		return null;
 	}
 	
-	// call this when user arrives at terminal and want to seat
+	/**
+	 * call this when user arrives at the terminal (entrance)
+	 * 
+	 * @param orderNumber The order number
+	 */
 	public void markArrivalAtTerminal(String orderNumber) {
 	    String query = "UPDATE `order` SET actual_arrival = ? WHERE order_number = ? AND actual_arrival IS NULL";
 	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -664,7 +807,11 @@ public class DBconnector {
 	    } catch (SQLException e) { e.printStackTrace(); }
 	}
 
-	// call this when user is seated (phisically at the table)
+	/**
+	 * call this when user is seated at the table
+	 * 
+	 * @param orderNumber The order number
+	 */
 	public void markOrderAsSeated(String orderNumber) {
 	    String query = "UPDATE `order` SET seated_time = ? WHERE order_number = ? AND seated_time IS NULL";
 	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -674,6 +821,12 @@ public class DBconnector {
 	    } catch (SQLException e) { e.printStackTrace(); }
 	}
 
+	/**
+	 * the method changes the status of an order in the database
+	 * 
+	 * @param status      The new status
+	 * @param orderNumber The order number
+	 */
 	public void changeStatus(String status, String orderNumber) {
 	    String query = "UPDATE `order` SET status = ? WHERE order_number = ?";
 	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -683,7 +836,12 @@ public class DBconnector {
 	    } catch (SQLException e) { e.printStackTrace(); }
 	}
 	
-	// Main method to get all reports data
+	/**
+	 * the method gets reports data from the database
+	 * 
+	 * @param r A Request
+	 * @return A map containing the reports data
+	 */
 	public Map<String, Map<Integer, Double>> getReportsData(Request r) {
 	    // 1. Initialize the structure (0-23 hours) to ensure graphs have all X-axis points
 	    Map<String, Map<Integer, Double>> allData = new HashMap<>();
