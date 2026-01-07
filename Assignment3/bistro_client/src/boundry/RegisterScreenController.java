@@ -43,9 +43,6 @@ public class RegisterScreenController implements IController{
     private TextField userName;
     
     @FXML
-    private TextField statusField;
-    
-    @FXML
     private TextArea resultTxt;
 
 	/**
@@ -78,14 +75,13 @@ public class RegisterScreenController implements IController{
     	boolean emptyException = false;
     	boolean emailException = false;
     	boolean phoneException = false;
-    	boolean statusException = false;
     	String fname = firstName.getText().trim();
     	String lname = lastName.getText().trim();
     	String phone = phoneNumber.getText().trim();
     	String userName = this.userName.getText().trim();
     	String email = this.email.getText().trim();
-    	String status = this.statusField.getText().trim();
-    	if(fname.isEmpty() || lname.isEmpty() || phone.isEmpty() || email.isEmpty() || userName.isEmpty() || status.isEmpty()) {
+    	String status = "CLIENT";
+    	if(fname.isEmpty() || lname.isEmpty() || phone.isEmpty() || email.isEmpty() || userName.isEmpty()) {
     		emptyException = true;
     	}
     	if(!isValidEmail(email)) {
@@ -94,10 +90,7 @@ public class RegisterScreenController implements IController{
     	if(phone.length() != 10) {
     		phoneException = true;
     	}
-    	if(!(status.equals("CLIENT")) && !(status.equals("EMPLOYEE"))) {
-    		statusException = true;
-    	}
-    	if((!emailException) && (!phoneException) && (!emptyException) && (!statusException)) {
+    	if((!emailException) && (!phoneException) && (!emptyException)) {
     		int generatedId = this.random.nextInt(1_000_000);
     		Subscriber s = new Subscriber(generatedId,userName,fname,lname,phone,email,status,new ArrayList<>());
     		RegisterRequest r = new RegisterRequest(s);
@@ -123,13 +116,6 @@ public class RegisterScreenController implements IController{
     		alert.setTitle("Error Occurred");
     		alert.setHeaderText("Input Validation Failed");
     		alert.setContentText("Please enter valid phone number with 10 digits");
-    		alert.showAndWait();
-    	}
-    	if(statusException) {
-			Alert alert = new Alert(AlertType.ERROR);
-    		alert.setTitle("Error Occurred");
-    		alert.setHeaderText("Input Validation Failed");
-    		alert.setContentText("Please enter valid status: CLIENT or EMPLOYEE");
     		alert.showAndWait();
     	}
     }
