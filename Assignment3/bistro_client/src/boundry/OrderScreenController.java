@@ -209,10 +209,10 @@ public class OrderScreenController implements IController {
     @FXML
     void onBackClick(ActionEvent event) throws IOException {
     	if(user.getType() == UserType.GUEST) {
-            ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
+            ClientUI.console.switchScreen(this, event, "/boundry/AppOrderManagementScreen.fxml", user);
     	}
     	else if(user.getType() == UserType.SUBSCRIBER) {
-    		ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
+    		ClientUI.console.switchScreen(this, event, "/boundry/AppOrderManagementScreen.fxml", user);
     	}
     	else {
     		ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
