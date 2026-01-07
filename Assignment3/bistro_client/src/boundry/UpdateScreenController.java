@@ -41,9 +41,13 @@ public class UpdateScreenController implements IController {
 	
 	@FXML
 	private Button backBtn;
+	
 	/** for formatting the dates the user enters*/
 	DateTimeFormatter formatter;
-	
+
+	/**
+	 * Initializes the controller class.
+	 */
 	@FXML
 	public void initialize() {
 		formatter =DateTimeFormatter
@@ -51,6 +55,7 @@ public class UpdateScreenController implements IController {
 	            .withResolverStyle(ResolverStyle.STRICT); //forces real dates
 		ClientUI.console.setController(this);
 	}
+	
 	/**
 	 * When the user clicks on 'update number of guests'
 	 */
@@ -85,6 +90,7 @@ public class UpdateScreenController implements IController {
     	}
     	
     }
+	
     /**
      * When the user clicks on 'update date'
      * @param event
@@ -121,7 +127,8 @@ public class UpdateScreenController implements IController {
     		alert.setContentText("Please enter valid entries in the fields\nFor date: in the format dd/mm/yyyy\nFor order and guests: a positive integer");
     		alert.showAndWait();
     	}
-    }	
+    }
+    
     /**
      * When the user clicks on 'back'
      * @param event
@@ -130,11 +137,21 @@ public class UpdateScreenController implements IController {
     void OnBackBtnClick(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
     }
-    
+  
+	/**
+	 * Sets the result text area with the given result
+	 * 
+	 * @param result The result to display
+	 */
     public void setResultText(Object result) {
     	resultTxt.setText((String)result);
     }
-    
+ 
+	/**
+	 * Sets the user of this controller
+	 * 
+	 * @param user The user to set
+	 */
     public void setUser(User user) {
     	this.user = user;
     }

@@ -16,16 +16,22 @@ import javafx.stage.Stage;
  * A wrapper around the client, sending messages and holding the method to switch screens
  */
 public class Console {
+	/**the BistroClient instance*/
     private static BistroClient bc;
+    
+    /**default port number*/
     final public static int DEFAULT = 5556;
 
+    /**constructor*/
     public Console(String host, int port) {
         bc = new BistroClient(host,port);
     }
     
+    /**setting the controller*/
   	public void setController(IController controller) {
     	  bc.setController(controller);
   	}
+  	
   	/**sending request to server*/
     public void accept(Request r) 
     {
@@ -70,6 +76,7 @@ public class Console {
     	}          
 	}
 	
+	/**quitting the client*/
 	public void quit() {
 		bc.quit();
 	}

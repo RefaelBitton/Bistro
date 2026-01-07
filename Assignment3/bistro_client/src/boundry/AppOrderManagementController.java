@@ -45,6 +45,7 @@ public class AppOrderManagementController implements IController {
 	 * 
 	 * @param event The action event triggered by clicking the back button.
 	 */
+    
     @FXML
     void onBackClick(ActionEvent event) {
     	if((user.getType() == UserType.SUBSCRIBER) || (user.getType() == UserType.GUEST)) {
@@ -54,6 +55,7 @@ public class AppOrderManagementController implements IController {
 			ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
 		}
 	}
+    
     /**
 	 * Handles the action when the cancel order button is clicked.
 	 * Validates input and sends a cancel request if confirmed.
@@ -92,6 +94,11 @@ public class AppOrderManagementController implements IController {
         	}
     	}
     }
+    
+    /**
+     * Handles the action when the finish order button is clicked.
+     * @param event
+     */
     @FXML
     void onFinishOrderClick(ActionEvent event) {
     	int res = -1;
@@ -111,17 +118,26 @@ public class AppOrderManagementController implements IController {
     	    alert.setContentText("Please enter a positive integer as a confirmation code");
     	    alert.showAndWait();
     	}
-    	LeaveTableRequest r = new LeaveTableRequest(confCodeTxt.getText().trim());
-    	ClientUI.console.accept(r);
-
+    	else {
+        	LeaveTableRequest r = new LeaveTableRequest(confCodeTxt.getText().trim());
+        	ClientUI.console.accept(r);
+    	}
     }
 
+	/**
+	 * Handles the action when the new order button is clicked.
+	 * 
+	 * @param event
+	 */
     @FXML
     void onNewOrderClick(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml", user);
 
     }
 
+    /**
+     * Sets the result text in an alert dialog.
+     */
 	@Override
 	public void setResultText(Object result) {
 		Platform.runLater(()->{
@@ -134,6 +150,11 @@ public class AppOrderManagementController implements IController {
 		);
    }
 
+	/**
+	 * Sets the user for this controller.
+	 * 
+	 * @param user The user to be set.
+	 */
 	@Override
 	public void setUser(User user) {
 		this.user = user;	

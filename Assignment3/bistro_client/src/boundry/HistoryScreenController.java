@@ -21,11 +21,15 @@ public class HistoryScreenController implements IController {
 
     @FXML
     private TextArea orderHistoryText;
-    
+
+    /**
+     * 	Initializes the controller class.
+     */
     @FXML
     void initialize() {
     	ClientUI.console.setController(this);
     }
+    
     /**
 	 * Handles the back button click event.
 	 * Navigates to the appropriate screen based on user type.
@@ -39,21 +43,27 @@ public class HistoryScreenController implements IController {
 			ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
 		}
     }
+    
     /**
 	 * Handles the order history button click event.
 	 */
     @FXML
     void onOrderHistoryClick(ActionEvent event) {
     	OrderHistoryRequest req = new OrderHistoryRequest(user.getSubscriberID()+"");
-    	ClientUI.console.accept(req);
-    	
+    	ClientUI.console.accept(req);   	
     }
 
+    /**
+     * Sets the result text in the order history text area.
+     */
 	@Override
 	public void setResultText(Object result) {
 		orderHistoryText.setText((String)result);
 	}
 
+	/**
+	 * Sets the user for this controller.
+	 */
 	@Override
 	public void setUser(User user) {
 		this.user = (Subscriber)user;

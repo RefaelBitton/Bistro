@@ -6,6 +6,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Order class representing a restaurant order.
+ */
 public class Order implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -18,8 +21,9 @@ public class Order implements Serializable {
     private String dateOfPlacingOrder;  // yyyy-MM-dd
     private String contact;             // phone/email or subscriber email
     
-    
+    /** Sitting time for the order */
     private LocalDateTime sittingtime;
+    
     /**
 	 * Constructor for Order object
 	 * @param args ArrayList of Strings containing order details in the following order:
@@ -35,6 +39,12 @@ public class Order implements Serializable {
         this.dateOfPlacingOrder = LocalDate.now().toString();
         this.contact = args.get(5);
     }
+    
+    /**
+     * Constructor for Order object
+     * @param args
+     * @param flag
+     */
     public Order(List<String> args, int flag) {
 		this.orderNumber = args.get(0);
 		this.orderDateTime =args.get(1); 

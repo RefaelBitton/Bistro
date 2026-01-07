@@ -24,6 +24,9 @@ import javafx.scene.control.ButtonBar;
  */
 public class TerminalOrderManagementScreenController implements IController {
 	private User user;
+	/**
+	 * Property to track if the user is logged in or a guest.
+	 */
 	private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
 
     @FXML
@@ -40,7 +43,10 @@ public class TerminalOrderManagementScreenController implements IController {
 
     @FXML
     private Button getTableBtn;
-    
+
+    /**
+     * Initializes the controller and sets up necessary configurations.
+     */
     @FXML
     void initialize() {
     	ClientUI.console.setController(this);
@@ -119,6 +125,10 @@ public class TerminalOrderManagementScreenController implements IController {
     }
 
 
+    /**
+     * 	Handles the action when the leave table button is clicked.
+     * @param event
+     */
     @FXML
     void onLeaveTableClick(ActionEvent event) {
     	String confcode = confCodeTxt.getText().trim();
@@ -135,6 +145,11 @@ public class TerminalOrderManagementScreenController implements IController {
     	
     }
 
+	/**
+	 * Handles the action when the get table button is clicked.
+	 * 
+	 * @param event
+	 */
     @FXML
     void onGetTableClick(ActionEvent event) {
     	String confcode = confCodeTxt.getText().trim();
@@ -151,6 +166,9 @@ public class TerminalOrderManagementScreenController implements IController {
 
     }
 
+    /**
+     * Sets the result text to be displayed to the user.
+     */
 	@Override
 	public void setResultText(Object result) {
 		Platform.runLater(() -> 
@@ -163,6 +181,9 @@ public class TerminalOrderManagementScreenController implements IController {
 	    );
 	}
 
+	/**
+	 * Sets the user for the controller and updates the logged-in status.
+	 */
 	@Override
 	public void setUser(User user) {
 		this.user = user;	

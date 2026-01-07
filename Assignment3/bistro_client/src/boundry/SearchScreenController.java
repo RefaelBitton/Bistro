@@ -15,11 +15,6 @@ public class SearchScreenController implements IController {
 	
 	private User user;
 	
-	@FXML
-	public void initialize() {
-	    ClientUI.console.setController(this);
-	}
-	
     @FXML
     private Button cancelBtn;
 
@@ -32,6 +27,13 @@ public class SearchScreenController implements IController {
 
     @FXML
     private Button searchBtn;
+
+    /** initializes the controller*/
+	@FXML
+	public void initialize() {
+	    ClientUI.console.setController(this);
+	}
+	
     /** when the user clicks 'cancel'*/
     @FXML
     void onCancelClick(ActionEvent event) throws Exception {
@@ -66,10 +68,21 @@ public class SearchScreenController implements IController {
     	    alert.showAndWait();
     	}
     }
+    
+	/**
+	 * sets the result text area with the search results
+	 * 
+	 * @param str the results string
+	 */
     public void setResultText(Object str) {
     	resultsTxt.setText((String)str);
     }
 
+	/**
+	 * sets the user of the controller
+	 * 
+	 * @param user the user
+	 */
     public void setUser(User user) {
     	this.user = user;
     }

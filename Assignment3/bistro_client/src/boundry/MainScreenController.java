@@ -49,6 +49,7 @@ public class MainScreenController implements Initializable, IController {
         // Optionally disable others too
         // cancelOrderBtn.visibleProperty().bind(isLoggedIn);
     }
+    
     /**
      * Method called when Order button is clicked
      * @param event
@@ -58,22 +59,43 @@ public class MainScreenController implements Initializable, IController {
     void onOrderClick(ActionEvent event) throws Exception {
     	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml",user);
     }
-    
+
+	/**
+	 * Method called when View History button is clicked
+	 * 
+	 * @param event
+	 * @throws Exception
+	 */
     @FXML
     void onCancelOrderClick(ActionEvent event) throws Exception {
     	ClientUI.console.switchScreen(this, event, "/boundry/CancelScreen.fxml",user);
     }
 
+	/**
+	 * Method called when View History button is clicked
+	 * 
+	 * @param event
+	 * @throws Exception
+	 */
     @FXML
     void onExitClick(ActionEvent event) {
     	System.exit(0);
     }
-    
+
+	/**
+	 * Method called when View History button is clicked
+	 * 
+	 * @param event
+	 * @throws Exception
+	 */
     public void setUser(User user) {
     	this.user = user;
     	isLoggedIn.setValue(user.getType()==UserType.SUBSCRIBER);
     }
 
+    /**
+     * Method called when View History button is clicked
+     */
 	@Override
 	public void setResultText(Object result) {
 		return;

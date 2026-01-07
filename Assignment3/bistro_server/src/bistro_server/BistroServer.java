@@ -98,6 +98,7 @@ public class BistroServer extends AbstractServer {
         handlers.put(RequestType.GET_HOURS_DAY, dbcon::getAllDaysHours);
         handlers.put(RequestType.GET_MAX_TABLE, this::getMaxTable);
     }
+    
     /**
      * Sending messages from client over to the database connector
      */
@@ -116,12 +117,14 @@ public class BistroServer extends AbstractServer {
             e.printStackTrace();
         }
     }
+    
     /**Adding a client to the array*/
     @Override
     protected void clientConnected(ConnectionToClient client) {
         clients.add(client);
         MainScreenServerController.refreshClientsLive();
     }
+    
     /**
      * Removing a client from the array
      */
@@ -174,16 +177,24 @@ public class BistroServer extends AbstractServer {
         result.add(seatedSb.toString());
         return result;
     }
-    
+ 
+    /**
+     * Handles a request to get all tables
+     * @param r
+     * @return a list of all tables
+     */
     public List<Table> getTables(Request r) {
     	tables = dbcon.getAllTables();
     	return tables;
     }
-    /**Checking if there are available tables for the given order
-	 * @param o the order to check availability for
-	 * @return whether there are available tables for the order
-	 * */
- 	
+
+ 	/**
+ 	 * Checks availability of tables for the given guests in time
+ 	 * @param tables list of tables to check
+ 	 * @param guests_in_time
+ 	 * @param orderIdentifier
+ 	 * @return the table ID if available, -1 if not enough tables, 0 if others can be seated
+ 	 */
     public synchronized int checkAvailability(List<Table> tables, Map<String,Integer> guests_in_time,String orderIdentifier) {
 		Table resultTable = null;
 		if (guests_in_time.size()>tables.size()) {
@@ -212,6 +223,7 @@ public class BistroServer extends AbstractServer {
     /** * Handles a customer leaving the waitlist
 	 * Searches by order number
 	 * @param r the LeaveWaitlistRequest containing the order number
+	 * @return a message indicating success or failure
 	 */
     public String handleLeaveWaitlist(Request r) {
         String confCode = ((AlterWaitlistRequest)r).getConfCode();
@@ -229,8 +241,8 @@ public class BistroServer extends AbstractServer {
     
     /** * Handles a walk-in joining the waitlist at the terminal.
      * @param r the JoinWaitlistRequest containing the order details
-     */
-    
+     * @return a message indicating success, prompt for confirmation, or failure
+     */   
     public String handleJoinWaitlist(Request r) {
         JoinWaitlistRequest req = (JoinWaitlistRequest) r;
         int guests = Integer.parseInt(req.getNumberOfGuests());
@@ -299,7 +311,8 @@ public class BistroServer extends AbstractServer {
     
     /** * Sorts a set of tables into a list
      * @param tableSet = the set of tables to sort
-
+     * @param copyCurrentBistroState = whether to copy the current taken state of the tables
+     * @return a sorted list of tables
      */
     protected List<Table> sortTables(Set <Table> tableSet, boolean copyCurrentBistroState) {
 		List<Table> tableList = new ArrayList<>();
@@ -325,6 +338,11 @@ public class BistroServer extends AbstractServer {
 		}
 	}
 
+    /**
+     * Adds a new order to the database
+     * @param r the WriteRequest containing order details
+     * @return the created Order
+     */
     public Order addNewOrder(Request r) {
     	WriteRequest req = (WriteRequest) r;
     	System.out.println("Adding new order for subscriber ID: " + req.getSubscriberId());
@@ -353,10 +371,12 @@ public class BistroServer extends AbstractServer {
     	System.out.println(	dbcon.addOrder(o,req.getQuery()));
     	return o;
     }
-    
-    // this function will be called when a table is freed up
-    
-    
+
+    /**
+     * Reserves a table in advance
+     * @param r the ReserveRequest
+     * @return the confirmation code or available slots message
+     */
     public synchronized String reserveTableInAdvance(Request r) {
     	ReserveRequest req = (ReserveRequest) r;
     	LocalDateTime requested =LocalDateTime.parse(req.getOrderDateTime(), DT_FMT);
@@ -406,7 +426,12 @@ public class BistroServer extends AbstractServer {
 		}
     }
     
-    
+    /**
+     * Prepares a map of guests in time from the database response
+     * @param r the ShowTakenSlotsRequest
+     * @param isNotInDatabase indicates if the current request is not yet in the database
+     * @return a map of confirmation codes to number of guests
+     */
     protected Map<String,Integer> prepareGuestsInTimeList(Request r,boolean isNotInDatabase) {
     	ShowTakenSlotsRequest slotReq = (ShowTakenSlotsRequest) r;
     	String open_orders_in_time_string = dbcon.getTakenSlots(slotReq);
@@ -448,6 +473,12 @@ public class BistroServer extends AbstractServer {
             System.out.println("ERROR - Could not listen for clients!");
         }
     }
+    
+    /**
+     * Gets the table for a given order based on confirmation code
+     * @param r the GetTableRequest
+     * @return the table information or waitlist status
+     */
     private String getTableForOrder(Request r) {
 		GetTableRequest req = (GetTableRequest) r;
 		System.out.println("Current Bistro: "+currentBistro.toString());
@@ -524,7 +555,13 @@ public class BistroServer extends AbstractServer {
 		}
 	
 	}
-    
+
+	/**
+	 * * Handles a customer leaving their table Searches by confirmation code
+	 * 
+	 * @param r the LeaveTableRequest containing the confirmation code
+	 * @return a message indicating success or failure
+	 */
 	public String leaveTable(Request r) {
 		LeaveTableRequest req = (LeaveTableRequest) r;
 		String confcode = req.getConfCode();
@@ -553,6 +590,12 @@ public class BistroServer extends AbstractServer {
 		return "Error: No order with that confirmation code is currently seated.";
 		}	
 
+	/**
+	 * * Handles adding a new table to the restaurant
+	 * 
+	 * @param r the AddTableRequest containing the table details
+	 * @return a message indicating success or failure
+	 */
 	public String addTable(Request r) {
 		AddTableRequest req = (AddTableRequest)r;
 		if(dbcon.addNewTable(req)) {
@@ -562,7 +605,13 @@ public class BistroServer extends AbstractServer {
 			return "ERROR: new Table could not be added";
 		}
 	}
-	
+
+	/**
+	 * * Handles removing a table from the restaurant
+	 * 
+	 * @param r the RemoveTableRequest containing the table ID
+	 * @return a message indicating success or failure
+	 */
 	public String removeTable(Request r) {
 		RemoveTableRequest req = (RemoveTableRequest)r;
 		if(dbcon.removeTable(req)) {
@@ -570,7 +619,13 @@ public class BistroServer extends AbstractServer {
 		}
 		return "ERROR: table could not be removed";
 	}
-	
+
+	/**
+	 * * Handles updating a table's capacity
+	 * 
+	 * @param r the UpdateTableCapacityRequest containing the table details
+	 * @return a message indicating success or failure
+	 */
 	public String updateTable(Request r) {
 		UpdateTableCapacityRequest req = (UpdateTableCapacityRequest)r;
 		if(!dbcon.removeTable(req.getRemoveReq())) {
@@ -582,7 +637,14 @@ public class BistroServer extends AbstractServer {
 		return "Updated table number " +req.getRemoveReq().getId() + " to " +req.getAddReq().getCap() + " sucessfully"; 
 	}
 
-
+	/**
+	 * * Attempts to seat a party immediately 
+	 * @param guests_in_time   map of confirmation codes to number of guests
+	 * @param confCode         the confirmation code of the party to seat now
+	 * @param number_of_guests the number of guests in the party to seat now
+	 * @return the table ID if seated, -1 if not enough tables or others can be
+	 *         seated
+	 */
 	public int trySeatNow(Map<String,Integer> guests_in_time, String confCode, int number_of_guests) {
 		System.out.println("trySeatNow started with Args:\n1.guests_in_time=" +guests_in_time+"\n2.confCode= "+confCode+"\n3.numberOfGuests: "+number_of_guests);
 		List<Table> tablesCopy = sortTables(currentBistro.keySet(),true);
@@ -597,7 +659,14 @@ public class BistroServer extends AbstractServer {
 		}
 		return -1;
 	}
-	
+
+	/**
+	 * * Handles a customer checking their spot in the waitlist Searches by
+	 * confirmation code
+	 * 
+	 * @param r the AlterWaitlistRequest containing the confirmation code
+	 * @return a message indicating their spot or failure
+	 */
 	public String handleSpotWaitlist(Request r) {
 		String confCode = ((AlterWaitlistRequest)r).getConfCode();
         // Accessing the static waitlist instance in BistroServer to remove the node
@@ -609,7 +678,7 @@ public class BistroServer extends AbstractServer {
             return "Could not find an order with this confiramtion code in the waiting list.";
         }
 	}
-		
+
 	public Map<Table,Order> getCurrentBistro(){
 		return currentBistro;
 	}

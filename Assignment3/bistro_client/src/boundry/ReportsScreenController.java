@@ -13,18 +13,25 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 
+/**
+ * Controller for the Reports Screen. Displays activity and lateness charts
+ * based on data retrieved from the server.
+ */
 public class ReportsScreenController implements IController {
     private User user;
 
     @FXML private BarChart<String, Number> activityChart; 
     @FXML private BarChart<String, Number> latenessChart; 
     
-    // NEW: Injecting the Axes to force the labels
+    /** X-Axes for both charts to set categories (hours) */
     @FXML private CategoryAxis activityXAxis;
     @FXML private CategoryAxis latenessXAxis;
     
     @FXML private Button backBtn;
 
+	/**
+	 * Initializes the controller. Sets up the charts and requests report data.
+	 */
     @FXML
     public void initialize() {
         ClientUI.console.setController(this);
@@ -36,6 +43,7 @@ public class ReportsScreenController implements IController {
         ClientUI.console.accept(new GetReportsRequest());
     }
 
+    /** Sets up the X-Axes with hour categories from 08:00 to 23:00 */
     private void setupAxes() {
         ObservableList<String> hours = FXCollections.observableArrayList();
         for (int i = 8; i <= 23; i++) {
@@ -46,6 +54,12 @@ public class ReportsScreenController implements IController {
         latenessXAxis.setCategories(hours);
     }
 
+
+	/**
+	 * Handles the result from the server and populates the charts. Expects a Map
+	 * with keys: "Arrivals", "Departures", "AvgCustomerLate", "AvgRestaurantDelay"
+	 * @param result The result object from the server
+	 */
     @Override
     public void setResultText(Object result) {
         if (result instanceof Map) {
@@ -58,6 +72,10 @@ public class ReportsScreenController implements IController {
         }
     }
 
+    /** Populates the activity chart with arrivals and departures data
+     * @param arrivals Map of hour to number of arrivals
+     * @param departures Map of hour to number of departures
+     *  */
     private void populateActivityChart(Map<Integer, Double> arrivals, Map<Integer, Double> departures) {
         activityChart.getData().clear();
         
@@ -76,6 +94,11 @@ public class ReportsScreenController implements IController {
         activityChart.getData().addAll(seriesArr, seriesDep);
     }
 
+	/**
+	 * Populates the lateness chart with customer lateness and restaurant delay data 
+	 * @param customerLate    Map of hour to average customer lateness
+	 * @param restaurantDelay Map of hour to average restaurant delay
+	 */
     private void populateLatenessChart(Map<Integer, Double> customerLate, Map<Integer, Double> restaurantDelay) {
 		latenessChart.getData().clear();
 		latenessChart.setTitle("Lateness vs Delay (Minutes)");
@@ -96,12 +119,20 @@ public class ReportsScreenController implements IController {
 		latenessChart.getData().addAll(seriesCust, seriesRest);
 	}
 
+    /** Handles the Back button click event to return to the Worker Screen
+     * @param event The action event triggered by clicking the button
+     */
     @FXML
     void onBackBtnClick(ActionEvent event) {
         // This will now work because we added onAction in FXML
         ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
     }
 
+	/**
+	 * Sets the current user for the controller
+	 * 
+	 * @param user The user to set
+	 */
     @Override
     public void setUser(User user) {
         this.user = user;
