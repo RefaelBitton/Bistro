@@ -36,6 +36,7 @@ import entities.Subscriber;
 import entities.Table;
 import entities.WriteHoursDateRequest;
 import entities.Day;
+import entities.GetReportsRequest;
 
 /**
  * A class that handles all operations on the database, receiving requests and handling them 
@@ -843,6 +844,7 @@ public class DBconnector {
 	 * @return A map containing the reports data
 	 */
 	public Map<String, Map<Integer, Double>> getReportsData(Request r) {
+		GetReportsRequest req = (GetReportsRequest)r;
 	    // 1. Initialize the structure (0-23 hours) to ensure graphs have all X-axis points
 	    Map<String, Map<Integer, Double>> allData = new HashMap<>();
 	    String[] keys = {"Arrivals", "Departures", "SubLateness", "GuestLateness"};
@@ -894,6 +896,51 @@ public class DBconnector {
 	                else allData.get("GuestLateness").put(h, val);
 	            }
 	        }
+	     // --- QUERY 2: IN_ADVANCE vs ON_THE_SPOT (Daily) ---
+
+	        String queryOrderTypes = 
+	            "SELECT DAY(order_time) as d, 'ADVANCE' as type, COUNT(*) as val " +
+	            "FROM `order` " +
+	            "WHERE type_of_order = 'IN_ADVANCE' " +
+	            "AND MONTH(order_time) = ? AND YEAR(order_time) = ? " +
+	            "GROUP BY d " +
+	            
+	            "UNION " +
+	            
+	            "SELECT DAY(order_time) as d, 'SPOT' as type, COUNT(*) as val " +
+	            "FROM `order` " +
+	            "WHERE type_of_order = 'ON_THE_SPOT' " +
+	            "AND MONTH(order_time) = ? AND YEAR(order_time) = ? " +
+	            "GROUP BY d";
+
+	        try (PreparedStatement stmt = conn.prepareStatement(queryOrderTypes)) {
+	            
+	            // We have 4 placeholders (?) because of the UNION
+	            // 1st part (ADVANCE)
+	            stmt.setInt(1, req.getMonth().getValue()); // Message to SQL: Which Month?
+	            stmt.setInt(2, req.getYear());             // Message to SQL: Which Year?
+	            
+	            // 2nd part (SPOT)
+	            stmt.setInt(3, req.getMonth().getValue());
+	            stmt.setInt(4, req.getYear());
+
+	            try (ResultSet rs = stmt.executeQuery()) {
+	                while (rs.next()) {
+	                    int day = rs.getInt("d");
+	                    String type = rs.getString("type");
+	                    double count = rs.getDouble("val");
+
+	                    // Assuming you have a Map structure for this like:
+	                    // Map<String, Map<Integer, Double>> dailyData;
+	                    
+	                    if (type.equals("ADVANCE")) {
+	                        allData.get("InAdvance").put(day, count);
+	                    } else if (type.equals("SPOT")) {
+	                        allData.get("OnTheSpot").put(day, count);
+	                    }
+	                }
+	            }
+	        }
 
 	    } catch (SQLException e) {
 	        e.printStackTrace();
@@ -902,5 +949,16 @@ public class DBconnector {
 	    return allData;
 	}
 
+	public void setOrderType(String orderNum,String type) {
+		String query = "UPDATE `order` SET type_of_order = ? WHERE order_number = ? AND type_of_order IS NULL;";
+		try{
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setString(1, type);
+			stmt.setInt(2, Integer.parseInt(orderNum));
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 	
 }

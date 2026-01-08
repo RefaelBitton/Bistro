@@ -277,6 +277,7 @@ public class BistroServer extends AbstractServer {
         	desiredTable.setTaken(true);
         	dbcon.markArrivalAtTerminal(waitlistOrder.getOrderNumber());
 			dbcon.markOrderAsSeated(waitlistOrder.getOrderNumber());
+			dbcon.setOrderType(waitlistOrder.getOrderNumber(),"ON_THE_SPOT");
             return "SUCCESS: Table is ready! Please proceed to your table.\n"
             		+ "Your confirmation code: " + (waitlistOrder.getConfirmationCode())+"\n";
         } 
@@ -302,6 +303,7 @@ public class BistroServer extends AbstractServer {
         printWaitlists(BistroServer.waitlistJustArrived, 1);
         dbcon.markArrivalAtTerminal(waitlistOrder.getOrderNumber());
         dbcon.changeStatus("WAITING", orderNum);
+		dbcon.setOrderType(waitlistOrder.getOrderNumber(),"ON_THE_SPOT");
         return "The restaurant is full. You've been added to the waitlist.\n" +
                "Order Number: " + orderNum + "\n" +
                "Confirmation Code: " + waitlistOrder.getConfirmationCode();
@@ -399,7 +401,9 @@ public class BistroServer extends AbstractServer {
     		t.setTaken(false);
     	}
 		if (available != -1) {
-			return addNewOrder(req).toString();
+			Order o = addNewOrder(req);
+			dbcon.setOrderType(o.getOrderNumber(), "IN_ADVANCE");
+			return o.toString();
 		}
 		else{
              StringBuilder sb = new StringBuilder("No available tables at requested time. Available slots:\n");

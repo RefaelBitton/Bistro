@@ -13,6 +13,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -25,13 +27,16 @@ public class ReportsScreenController implements IController {
     private User user;
 
     @FXML private BarChart<String, Number> activityChart; 
-    @FXML private BarChart<String, Number> latenessChart; 
+    @FXML private BarChart<String, Number> latenessChart;
+    @FXML private StackedBarChart<String, Number> inAdvanceVsOnTheSpotChart;
     
     /** X-Axes for both charts to set categories (hours) */
     @FXML private CategoryAxis activityXAxis;
     @FXML private CategoryAxis latenessXAxis;
+    @FXML private CategoryAxis inAdvanceVsOnTheSpotXAxis;
     
     @FXML private Button backBtn;
+    
     
     @FXML private ComboBox<String> months;
 
@@ -46,7 +51,7 @@ public class ReportsScreenController implements IController {
         setupAxes();
         
         // 2. Request data (This ensures it updates every time you enter the screen)
-        ClientUI.console.accept(new GetReportsRequest());
+        //ClientUI.console.accept(new GetReportsRequest());
         
         for (Month month : Month.values()) {
             months.getItems().add(
@@ -64,6 +69,13 @@ public class ReportsScreenController implements IController {
         // Force the X-Axis to use these categories so they always appear
         activityXAxis.setCategories(hours);
         latenessXAxis.setCategories(hours);
+        
+        ObservableList<String> days = FXCollections.observableArrayList();
+        for (int i = 1; i <= 31; i++) {
+            days.add(String.valueOf(i));
+        }
+        
+        inAdvanceVsOnTheSpotXAxis.setCategories(days);
     }
 
 
@@ -138,6 +150,15 @@ public class ReportsScreenController implements IController {
     void onBackBtnClick(ActionEvent event) {
         // This will now work because we added onAction in FXML
         ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
+    }
+    
+    @FXML
+    void onChooseMonth(ActionEvent event){
+    	
+        if (months.getValue() != null) {
+        	Month month = Month.valueOf(months.getValue().toUpperCase());
+        	ClientUI.console.accept(new GetReportsRequest(month));
+        }
     }
 
 	/**
