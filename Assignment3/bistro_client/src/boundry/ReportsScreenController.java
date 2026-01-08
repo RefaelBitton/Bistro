@@ -1,7 +1,5 @@
 package boundry;
 
-import java.time.Month;
-import java.time.format.TextStyle;
 import java.util.Locale;
 import java.util.Map;
 import entities.GetReportsRequest;
@@ -16,7 +14,8 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 /**
  * Controller for the Reports Screen. Displays activity and lateness charts
  * based on data retrieved from the server.
@@ -41,18 +40,32 @@ public class ReportsScreenController implements IController {
     @FXML
     public void initialize() {
         ClientUI.console.setController(this);
-        
-        // 1. Force the axes to show hours 08:00 - 23:00 immediately
         setupAxes();
         
-        // 2. Request data (This ensures it updates every time you enter the screen)
-        ClientUI.console.accept(new GetReportsRequest());
-        
-        for (Month month : Month.values()) {
-            months.getItems().add(
-                month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
-            );
+        // 1. Populate ComboBox with past 12 months (excluding current)
+        months.getItems().clear();
+        YearMonth current = YearMonth.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH);
+
+        for (int i = 1; i <= 12; i++) {
+            YearMonth pastMonth = current.minusMonths(i);
+            months.getItems().add(pastMonth.format(formatter));
         }
+        
+        // 2. Select the first item (Last Month) by default
+        if (!months.getItems().isEmpty()) {
+            months.getSelectionModel().select(0);
+        }
+
+        // 3. Add Listener to handle selection changes
+        months.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                requestReportForDate(newVal);
+            }
+        });
+
+        // 4. Initial Request (for the default selected month)
+        requestReportForDate(months.getSelectionModel().getSelectedItem());
     }
 
     /** Sets up the X-Axes with hour categories from 08:00 to 23:00 */
@@ -130,6 +143,18 @@ public class ReportsScreenController implements IController {
 
 		latenessChart.getData().addAll(seriesCust, seriesRest);
 	}
+ // Helper method to parse string and send request
+    private void requestReportForDate(String dateString) {
+        if (dateString == null) return;
+        
+        // Parse "January 2026" back to Month and Year
+        try {
+            YearMonth ym = YearMonth.parse(dateString, DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH));
+            ClientUI.console.accept(new GetReportsRequest(ym.getMonthValue(), ym.getYear()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /** Handles the Back button click event to return to the Worker Screen
      * @param event The action event triggered by clicking the button
