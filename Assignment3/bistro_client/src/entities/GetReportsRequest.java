@@ -1,5 +1,6 @@
 package entities;
 
+
 /**
  * Represents a request to retrieve reports from the server. This request does
  * not require any query parameters as the server handles the logic for fetching
