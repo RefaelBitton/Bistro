@@ -1,17 +1,25 @@
 package bistro_server;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import entities.Order;
 
+/**
+ * A waiting list that keeps orders sorted by their order date and time.
+ */
 public class SortedWaitingList extends WaitingList {
-	
+
+	/**
+	 * Enqueues an order into the waiting list, maintaining sorted order by order
+	 * date and time.
+	 *
+	 * @param o The order to be enqueued.
+	 */
 	@Override
 	public void enqueue(Order o) {
 	    WaitlistNode newNode = new WaitlistNode(o);
 
-	    LocalDateTime newDt = LocalDateTime.parse(o.getOrderDateTime());
+	    LocalDateTime newDt = LocalDateTime.parse(o.getOrderDateTime(),BistroServer.DT_FMT);
 
 	    if (head == null) {
 	        head = newNode;

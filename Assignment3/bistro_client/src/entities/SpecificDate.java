@@ -4,12 +4,23 @@ import java.io.Serializable;
 import java.sql.Time;
 import java.time.LocalDate;
 
+/**
+ * Represents a specific date with opening and closing times.
+ */
 public class SpecificDate implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private LocalDate date;
 	private Time open;
 	private Time close;
-	
+
+	/**
+	 * Constructs a SpecificDate with the given date, opening time, and closing
+	 * time.
+	 * 
+	 * @param date  the specific date
+	 * @param open  the opening time
+	 * @param close the closing time
+	 */
 	public SpecificDate(LocalDate date, Time open, Time close) {
 		this.date = date;
 		this.open = open;

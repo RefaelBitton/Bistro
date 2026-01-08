@@ -10,6 +10,11 @@ public class WaitlistNode {
     protected WaitlistNode next;
     protected WaitlistNode prev;
 
+	/**
+	 * Constructor for WaitlistNode
+	 * 
+	 * @param order The order associated with this node
+	 */
     public WaitlistNode(Order order) {
         this.order = order;
         this.next = null;
@@ -17,6 +22,7 @@ public class WaitlistNode {
     }
 
     public Order getOrder() { return order; }
+    
     public boolean equals(WaitlistNode other) {
 		return this.order.getOrderNumber().equals(other.getOrder().getOrderNumber());
 	}

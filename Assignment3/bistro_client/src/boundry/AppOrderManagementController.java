@@ -3,7 +3,7 @@ package boundry;
 import java.util.Optional;
 
 import entities.CancelRequest;
-import entities.LeaveWaitlistRequest;
+import entities.LeaveTableRequest;
 import entities.User;
 import entities.UserType;
 import javafx.application.Platform;
@@ -27,9 +27,6 @@ public class AppOrderManagementController implements IController {
 
     @FXML
     private TextField confCodeTxt;
-
-    @FXML
-    private TextField orderNumTxt;
     
     @FXML
     private Button finishOrderBtn;
@@ -37,8 +34,6 @@ public class AppOrderManagementController implements IController {
     @FXML
     private Button newOrderBtn;
 
-    @FXML
-    private Button leaveWaitingListBtn;
     @FXML
     void initialize() {
     	ClientUI.console.setController(this);
@@ -50,15 +45,17 @@ public class AppOrderManagementController implements IController {
 	 * 
 	 * @param event The action event triggered by clicking the back button.
 	 */
+    
     @FXML
     void onBackClick(ActionEvent event) {
-    	if(user.getType() ==UserType.SUBSCRIBER || user.getType() ==UserType.GUEST) {
+    	if((user.getType() == UserType.SUBSCRIBER) || (user.getType() == UserType.GUEST)) {
 			ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
 		}
 		else {
 			ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
 		}
 	}
+    
     /**
 	 * Handles the action when the cancel order button is clicked.
 	 * Validates input and sends a cancel request if confirmed.
@@ -67,18 +64,15 @@ public class AppOrderManagementController implements IController {
     @FXML
     void onCancelOrderClick(ActionEvent event) {
 		boolean exceptionRaised = false;
-    	int orderNum = 0;
     	int code = 0;
     	try {
     		//parsing integers fields
-    		orderNum = Integer.parseInt(orderNumTxt.getText().trim());
     		code = Integer.parseInt(confCodeTxt.getText().trim());
-    		if(orderNum <= 0 || code <=0) {
+    		if(code <=0) {
     			exceptionRaised = true;
     		}
     	}catch (NumberFormatException e) { 
 			exceptionRaised = true;
-			orderNumTxt.clear();
 			confCodeTxt.clear();
     	}
     	if(exceptionRaised) {
@@ -95,43 +89,60 @@ public class AppOrderManagementController implements IController {
         	alert.setContentText("Are you sure you want to continue?");
         	Optional<ButtonType> result = alert.showAndWait();
         	if (result.isPresent() && result.get() == ButtonType.OK) {
-        		CancelRequest c = new CancelRequest(orderNumTxt.getText().trim(),confCodeTxt.getText().trim());
+        		CancelRequest c = new CancelRequest(confCodeTxt.getText().trim());
             	ClientUI.console.accept(c);
         	}
     	}
     }
     
-    @FXML
-    void onleaveWaitingListClick(ActionEvent event) {
-    	LeaveWaitlistRequest leaveRequest = new LeaveWaitlistRequest(orderNumTxt.getText().trim());
-    		Alert alert = new Alert(AlertType.CONFIRMATION);
-        	alert.setTitle("Confirmation");
-        	alert.setHeaderText("Your order will be removed from the waiting list");
-        	alert.setContentText("Are you sure you want to continue?");
-        	Optional<ButtonType> result = alert.showAndWait();
-        	if (result.isPresent() && result.get() == ButtonType.OK) {
-        		ClientUI.console.accept(leaveRequest);
-        	}
-    }
-
+    /**
+     * Handles the action when the finish order button is clicked.
+     * @param event
+     */
     @FXML
     void onFinishOrderClick(ActionEvent event) {
-    	//navigate to finish order screen (not implemented yet)
-    	ClientUI.console.switchScreen(this, event, "/boundry/FinishOrderScreen.fxml", user);
-
+    	int res = -1;
+    	try {
+    		res = Integer.parseInt(confCodeTxt.getText().trim());
+    	} catch (NumberFormatException e) {
+    		Alert alert = new Alert(AlertType.ERROR);
+    	    alert.setTitle("Error Occurred");
+    	    alert.setHeaderText("Input Validation Failed");
+    	    alert.setContentText("Please enter an integer as a confirmation code");
+    	    alert.showAndWait();
+    	}
+    	if (res<=0) {
+    		Alert alert = new Alert(AlertType.ERROR);
+    	    alert.setTitle("Error Occurred");
+    	    alert.setHeaderText("Input Validation Failed");
+    	    alert.setContentText("Please enter a positive integer as a confirmation code");
+    	    alert.showAndWait();
+    	}
+    	else {
+        	LeaveTableRequest r = new LeaveTableRequest(confCodeTxt.getText().trim());
+        	ClientUI.console.accept(r);
+    	}
     }
 
+	/**
+	 * Handles the action when the new order button is clicked.
+	 * 
+	 * @param event
+	 */
     @FXML
     void onNewOrderClick(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml", user);
 
     }
 
+    /**
+     * Sets the result text in an alert dialog.
+     */
 	@Override
 	public void setResultText(Object result) {
 		Platform.runLater(()->{
 			Alert alert = new Alert(AlertType.INFORMATION);
-			alert.setTitle("Order Cancellation Result");
+			alert.setTitle("Operation Result");
 		    alert.setHeaderText(null);
 		    alert.setContentText((String) result);
 		    alert.showAndWait();
@@ -139,6 +150,11 @@ public class AppOrderManagementController implements IController {
 		);
    }
 
+	/**
+	 * Sets the user for this controller.
+	 * 
+	 * @param user The user to be set.
+	 */
 	@Override
 	public void setUser(User user) {
 		this.user = user;	

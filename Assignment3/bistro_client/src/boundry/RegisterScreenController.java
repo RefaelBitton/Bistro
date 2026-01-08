@@ -20,11 +20,7 @@ public class RegisterScreenController implements IController{
 	private User user;
 	/** for setting the subscriber id*/
 	Random random;
-	@FXML
-	void initialize() {
-		random = new Random();
-		ClientUI.console.setController(this);
-	}
+	
     @FXML
     private Button cancelBtn;
 
@@ -48,12 +44,27 @@ public class RegisterScreenController implements IController{
     
     @FXML
     private TextArea resultTxt;
+
+	/**
+	 * initializes the controller
+	 */
+	@FXML
+	void initialize() {
+		random = new Random();
+		ClientUI.console.setController(this);
+    	phoneNumber.textProperty().addListener((obs, oldValue, newValue) -> {
+    	    if (!newValue.matches("\\d*")) {
+    	    	phoneNumber.setText(oldValue);
+    	    }
+    	});
+	}
+
     /**
      * when the user clicks 'cancel'
      * */
     @FXML
     void onCancelClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/loginScreen.fxml",user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml",user);
     }
     /**
      * when the user clicks 'Submit' (registering the user)
@@ -61,32 +72,74 @@ public class RegisterScreenController implements IController{
      */
     @FXML
     void onSubmitClick(ActionEvent event) {
+    	boolean emptyException = false;
+    	boolean emailException = false;
+    	boolean phoneException = false;
     	String fname = firstName.getText().trim();
     	String lname = lastName.getText().trim();
     	String phone = phoneNumber.getText().trim();
     	String userName = this.userName.getText().trim();
     	String email = this.email.getText().trim();
+    	String status = "CLIENT";
     	if(fname.isEmpty() || lname.isEmpty() || phone.isEmpty() || email.isEmpty() || userName.isEmpty()) {
+    		emptyException = true;
+    	}
+    	if(!isValidEmail(email)) {
+    		emailException = true;
+    	}
+    	if(phone.length() != 10) {
+    		phoneException = true;
+    	}
+    	if((!emailException) && (!phoneException) && (!emptyException)) {
+    		int generatedId = this.random.nextInt(1_000_000);
+    		Subscriber s = new Subscriber(generatedId,userName,fname,lname,phone,email,status,new ArrayList<>());
+    		RegisterRequest r = new RegisterRequest(s);
+    		ClientUI.console.accept(r);
+    		user = s;
+    	}
+    	if(emptyException) {
     		Alert alert = new Alert(AlertType.ERROR);
     		alert.setTitle("Error Occurred");
     		alert.setHeaderText("Input Validation Failed");
     		alert.setContentText("please enter a value in all fields");
     		alert.showAndWait();
     	}
-    	else {
-    		int generatedId = this.random.nextInt(1_000_000);
-    		Subscriber s = new Subscriber(generatedId,userName,fname,lname,phone,email,new ArrayList<>());
-    		RegisterRequest r = new RegisterRequest(s);
-    		ClientUI.console.accept(r);
-    		user = s;
+    	if(emailException) {
+			Alert alert = new Alert(AlertType.ERROR);
+    		alert.setTitle("Error Occurred");
+    		alert.setHeaderText("Input Validation Failed");
+    		alert.setContentText("Please enter valid email");
+    		alert.showAndWait();
+    	}
+    	if(phoneException) {
+			Alert alert = new Alert(AlertType.ERROR);
+    		alert.setTitle("Error Occurred");
+    		alert.setHeaderText("Input Validation Failed");
+    		alert.setContentText("Please enter valid phone number with 10 digits");
+    		alert.showAndWait();
     	}
     }
 
+    /**
+     * validates email format
+     * @param email
+     * @return
+     */
+    public boolean isValidEmail(String email) {
+	    return email != null && email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+	}
+
+	/**
+	 * sets the result text area
+	 */
 	@Override
 	public void setResultText(Object result) {
 		resultTxt.setText((String)result);
 	}
-    
+
+	/**
+	 * sets the user of the session
+	 */
     public void setUser(User user) {
     	this.user = user;
     }

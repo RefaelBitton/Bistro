@@ -15,7 +15,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -63,7 +62,7 @@ public class LoginScreenController implements IController{
      */
     @FXML
     void onGuestTerminalClick(ActionEvent event) throws IOException {
-    	this.user = new Guest(null, null);
+    	this.user = new Guest(null, null,null);
     	ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
     }
     
@@ -74,7 +73,7 @@ public class LoginScreenController implements IController{
      */
     @FXML
     void onGuestAppClick(ActionEvent event) throws IOException {
-    	this.user = new Guest(null, null);
+    	this.user = new Guest(null, null,null);
     	ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
     }
     
@@ -99,7 +98,15 @@ public class LoginScreenController implements IController{
     void onAppClick(ActionEvent event) throws IOException, InterruptedException {
     	login("APP", event);
     }
-    
+ 
+	/**
+	 * method for logging in the user
+	 * 
+	 * @param mode
+	 * @param event
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
     public void login(String mode, ActionEvent event) throws IOException, InterruptedException {
         int id = 0;
         boolean exceptionRaised = false;
@@ -124,13 +131,13 @@ public class LoginScreenController implements IController{
                 String status = args[5];
 
                 if ("CLIENT".equals(status)) {
-                    user = new Subscriber(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4], null);
+                    user = new Subscriber(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4],args[5], null);
                 }
                 else if ("EMPLOYEE".equals(status)) {
-                    user = new Worker(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4], null);
+                    user = new Worker(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4],args[5], null);
                 }
                 else {
-                    user = new Manager(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4], null);
+                    user = new Manager(Integer.parseInt(args[1]), args[2], fname, lname, args[3], args[4],args[5], null);
                 }
 
                 String screen;
@@ -163,54 +170,6 @@ public class LoginScreenController implements IController{
             alert.showAndWait();
         }
     }
-
-    
-//    public void login(String screen,ActionEvent event) throws IOException, InterruptedException {
-//    	int id = 0;
-//    	boolean exceptionRaised = false;
-//    	try {
-//    		id = Integer.parseInt(subscriberId.getText().trim());
-//    		exceptionRaised = id<=0;
-//    	} catch (NumberFormatException e) {
-//    		exceptionRaised = true;
-//    	}
-//    	if (!exceptionRaised) {
-//        	LoginRequest r = new LoginRequest(id);
-//        	ClientUI.console.accept(r);
-//        	Thread.sleep(200); // wait for server response
-//        	if(!serverResponse.equals("Not found")) {
-//        		System.out.println(serverResponse);
-//        		String[] args = serverResponse.split(",");
-//        		//args = [0] - full name [1] - sub_id [2] - username [3] - phone number [4] - email
-//        		String fname = args[0].split(" ")[0];
-//        		String lname = args[0].split(" ")[1];
-//        		if(args[5] == "CLIENT") {
-//        			user = new Subscriber(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
-//        		}
-//        		else if(args[5] == "EMPLOYEE")
-//        			user = new Worker(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
-//        		else
-//        			user = new Manager(Integer.parseInt(args[1]),args[2], fname, lname, args[3],args[4], null);
-//    			ClientUI.console.switchScreen(this, event, screen, user);
-//        	}
-//        	else{
-//        		Alert alert = new Alert(AlertType.ERROR);
-//        	    alert.setTitle("Error Occurred");
-//        	    alert.setHeaderText("Input Validation Failed");
-//        	    alert.setContentText("That user doesn't exist, please check your credentials");
-//        	    alert.showAndWait();
-//        	}    		
-//    	}
-//    	
-//    	else {
-//    		Alert alert = new Alert(AlertType.ERROR);
-//    		alert.setTitle("Error Occurred");
-//    		alert.setHeaderText("Input Validation Failed");
-//    		alert.setContentText("an id must be a positive integer");
-//    		alert.showAndWait();
-//    	}
-//		
-//	}
     
     /**
      * setting the server response
@@ -219,13 +178,25 @@ public class LoginScreenController implements IController{
 	public void setResultText(Object result) {
 		serverResponse = (String)result;	
 	}
-	
+
+	/**
+	 * when the user clicks 'register'
+	 * 
+	 * @param event
+	 * @throws IOException
+	 */
     @FXML
     void onExitClick(ActionEvent event) {
     	ClientUI.console.quit();
     	System.exit(0);
     }
-	
+
+	/**
+	 * when the user clicks 'register'
+	 * 
+	 * @param event
+	 * @throws IOException
+	 */
     public void start(Stage primaryStage) throws Exception {  // Method for starting the main screen
         // Load the main screen FXML into a Parent node
         Parent root = FXMLLoader.load(getClass().getResource("/boundry/loginScreen.fxml"));
@@ -236,6 +207,11 @@ public class LoginScreenController implements IController{
         primaryStage.show();                                  // Display the window
     }
 
+	/**
+	 * getting the user
+	 * 
+	 * @return user
+	 */
     public void setUser(User user) {
     	this.user = user;
     }

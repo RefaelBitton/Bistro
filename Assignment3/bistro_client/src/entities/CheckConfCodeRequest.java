@@ -1,9 +1,23 @@
 package entities;
 
+/**
+ * A request to check the confirmation code associated with a contact within a
+ * specific time frame. This class extends the Request class and is used to
+ * retrieve the confirmation code for an order placed by a contact within 30
+ * minutes before or after the current time.
+ * 
+ * @see Request
+ */
 public class CheckConfCodeRequest extends Request {
 	private static final long serialVersionUID = 1L;
 	private String contact;
-	public CheckConfCodeRequest(String contact) { //only primary key (order number) needed for reading details about existing order 
+
+	/**
+	 * Constructs a CheckConfCodeRequest with the specified contact.
+	 * 
+	 * @param contact the contact associated with the order
+	 */
+	public CheckConfCodeRequest(String contact) {  
 		super(RequestType.CHECK_CONFCODE, "SELECT confirmation_code FROM `order` WHERE contact = ? AND order_datetime BETWEEN "
 				+ "DATE_SUB(?, INTERVAL 30 MINUTE) AND DATE_ADD(?, INTERVAL 30 MINUTE)");
 				

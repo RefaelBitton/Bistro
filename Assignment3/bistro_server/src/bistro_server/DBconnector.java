@@ -1,5 +1,9 @@
 package bistro_server;
 
+import java.util.TreeMap;
+import java.util.HashMap;
+import java.util.Map;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -11,18 +15,16 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
+import entities.SpecificDate;
 import entities.AddTableRequest;
 import entities.CancelRequest;
 import entities.ChangeHoursDayRequest;
 import entities.CheckConfCodeRequest;
-import entities.Day;
 import entities.LeaveTableRequest;
 import entities.LoginRequest;
 import entities.Order;
@@ -31,10 +33,11 @@ import entities.RegisterRequest;
 import entities.RemoveTableRequest;
 import entities.Request;
 import entities.ShowTakenSlotsRequest;
-import entities.SpecificDate;
 import entities.Subscriber;
 import entities.Table;
 import entities.WriteHoursDateRequest;
+import entities.Day;
+import entities.GetReportsRequest;
 
 /**
  * A class that handles all operations on the database, receiving requests and handling them 
@@ -51,8 +54,10 @@ public class DBconnector {
     public DBconnector(){
         try //connect DB
         {
+
 			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "123456789");
+
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -63,6 +68,12 @@ public class DBconnector {
 
 
     }
+    
+	/**
+	 * the method checks for confirmation codes related to a contact in a given time frame
+	 * @param r A CheckConfCodeRequest
+	 * @return The resulting string, a message to the user
+	 */
     public  String checkConfCode(Request r) {
     	CheckConfCodeRequest req = (CheckConfCodeRequest) r;
     	String res="";
@@ -88,7 +99,13 @@ public class DBconnector {
 		
     }
 
-
+	/**
+	 * the method adds an order to the database
+	 * 
+	 * @param o     The order to add
+	 * @param query The insert query
+	 * @return The resulting string, a message to the user
+	 */
     public String addOrder(Order o,String query) {
        
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -127,18 +144,26 @@ public class DBconnector {
     
     
 
-	
- public String getTakenSlots(Request r) {
+	/**
+	 * 	the method gets all taken slots in a given time frame
+	 * @param r A ShowTakenSlotsRequest
+	 * @return The resulting string, a message to the user
+	 */
+    public String getTakenSlots(Request r) {
     	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
     	LocalDateTime from = req.getFrom();
     	LocalDateTime to = req.getTo();
+    	System.out.println("DEBUG: Querying DB for status='OPEN' between: " + from + " AND " + to);
         try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
             stmt.setTimestamp(1, Timestamp.valueOf(from));
             stmt.setTimestamp(2, Timestamp.valueOf(to));
 
             try (ResultSet rs = stmt.executeQuery()) {
                 StringBuilder sb = new StringBuilder();
-                while (rs.next()) sb.append(rs.getString(1)).append(":").append(rs.getString(2)).append(",");
+                while (rs.next()) {
+                	sb.append(rs.getString(1)).append(":").append(rs.getString(2)).append(",");
+                	System.out.println("DBCONNECTOR: in getTakenSlots, added an entry to result");
+                }
                 return sb.toString();
             }
             
@@ -148,6 +173,12 @@ public class DBconnector {
         }
 
     }
+    
+	/**
+	 * the method gets the next order number
+	 * 
+	 * @return The resulting string, the next order number
+	 */
     public String OrderNumber() {
         try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL(MAX(order_number), 0) + 1 AS next_num FROM `order`");
              ResultSet rs = stmt.executeQuery()) {
@@ -166,6 +197,12 @@ public class DBconnector {
     /* ================= READ ORDER =================
        Make sure your ReadRequest SELECT uses order_datetime as the 2nd column.
     */
+    
+	/**
+	 * the method gets an order from the database
+	 * @param r A ReadRequest
+	 * @return The resulting string, a message or the order details
+	 */
     public String getOrder(Request r) {
         String query = r.getQuery();
         String orderNum = ((ReadRequest) r).getOrderNum();
@@ -196,6 +233,13 @@ public class DBconnector {
     }
 
     /* ================= READ EMAIL ================= */
+    
+	/**
+	 * the method reads the email of a subscriber from the database
+	 * 
+	 * @param subId The subscriber ID
+	 * @return The resulting string, the email or empty string if not found
+	 */
     public String readEmail(String subId) {
 
         try {
@@ -214,9 +258,7 @@ public class DBconnector {
             return "";
         }
     }
-
-
-   
+  
 	/**
 	 * 
 	 * @param r A LoginRequest
@@ -244,10 +286,8 @@ public class DBconnector {
 				e.printStackTrace();
 			}
 			return "";
-		}
-		
-		
-		
+	}
+				
 	/**
 	 * 
 	 * @param r a RegisterRequest to handle
@@ -264,6 +304,7 @@ public class DBconnector {
 			stmt.setString(3,user.getUserName());
 			stmt.setString(4, user.getPhone());
 			stmt.setString(5, user.getEmail());
+			stmt.setString(6, user.getStatus());
 			if(stmt.executeUpdate()==0) {
 				return "ERROR: Couldn't add the user, please try again";
 			}
@@ -274,16 +315,19 @@ public class DBconnector {
 		return "New user added successfully, please keep your ID handy for further login attempts\nUser is:\n"+user;
 		
 	}
-	
+
+	/**
+	 * the method cancels an order in the database
+	 * @param r A CancelRequest
+	 * @return The resulting string, a message to the user
+	 */
 	public String cancelOrder(Request r) {
 		String query = r.getQuery();
-		String orderNum = ((CancelRequest)r).getOrderNum();
 		String code = ((CancelRequest)r).getCode();
 		int rowsDeleted = 0;
 		try {
     		PreparedStatement stmt = conn.prepareStatement(query);
-    		stmt.setString(1, orderNum);
-    		stmt.setString(2, code);
+    		stmt.setString(1, code);
     		rowsDeleted = stmt.executeUpdate();
     		if(rowsDeleted > 0)
     			return "order deleted";
@@ -293,6 +337,11 @@ public class DBconnector {
 		return "order was not deleted";
 	}
 
+	/**
+	 * the method gets all relevant tables from the database
+	 * 
+	 * @return A list of relevant tables
+	 */
 	public List<Table> getRelevantTables() {
 		ArrayList<Table> tables = new ArrayList<>();
 		try {
@@ -312,7 +361,13 @@ public class DBconnector {
 		
 		return null;
 	}
-	
+
+	/**
+	 * the method updates details in the database
+	 * 
+	 * @param r A Request containing the update query
+	 * @return The resulting string, a message to the user
+	 */
 	public String updateDetails(Request r) {
 		String query = r.getQuery();
 		try {
@@ -327,7 +382,13 @@ public class DBconnector {
 			return "Error updating details: " + e.getMessage();
 		}
 	}
-	
+
+	/**
+	 * the method gets the order history from the database
+	 * 
+	 * @param r A Request containing the select query
+	 * @return The resulting string, a message to the user
+	 */
 	public String getOrderHistory(Request r) {
 		String query = r.getQuery();
 		String result = "";
@@ -353,6 +414,13 @@ public class DBconnector {
 
 		return result;
 	}
+	
+	/**
+	 * the method gets all active orders from the database
+	 * 
+	 * @param r A Request containing the select query
+	 * @return The resulting string, a message to the user
+	 */
 	public String getAllActiveOrders(Request r) {
 		String query = r.getQuery();
 		String result = "";
@@ -379,6 +447,13 @@ public class DBconnector {
 		}
 		return result;
 	}
+	
+	/**
+	 * the method gets all subscribers from the database
+	 * 
+	 * @param r A Request containing the select query
+	 * @return The resulting string, a message to the user
+	 */
 	public String getAllSubscribers(Request r) {
 		String query = r.getQuery();
 		String result = "";
@@ -403,6 +478,14 @@ public class DBconnector {
 
 		return result;
 	}
+	
+	/**
+	 * the method gets an order from the database using confirmation code
+	 * 
+	 * @param query    The select query
+	 * @param confCode The confirmation code
+	 * @return The resulting string, a message or the order details
+	 */
 	public String getOrderFromConfCode(String query, String confCode) {
 		try {
 			PreparedStatement stmt = conn.prepareStatement(query);
@@ -424,6 +507,13 @@ public class DBconnector {
 		return "Not found";
 	}	
 	
+	/**
+	 * the method changes the opening and closing hours for a specific day in the
+	 * database
+	 * 
+	 * @param r A ChangeHoursDayRequest
+	 * @return The resulting string, a message to the user
+	 */
 	public String changeHoursDay(Request r) {
 	    ChangeHoursDayRequest req = (ChangeHoursDayRequest) r;
 	    String openTime = String.format("%02d:00:00", Integer.parseInt(req.getOpen()));
@@ -447,6 +537,13 @@ public class DBconnector {
 	        return "Error: Invalid hour format.";
 	    }
 	}
+	
+	/**
+	 * the method closes an order in the database
+	 * 
+	 * @param r A LeaveTableRequest
+	 * @return The resulting string, a message to the user
+	 */
 	public String closeOrder(LeaveTableRequest r) {
 		String query = r.getQuery();
 		String confcode = r.getConfCode();
@@ -471,8 +568,13 @@ public class DBconnector {
 		return "Error";
 	}
 	
-
-	
+	/**
+	 * the method writes opening and closing hours for a specific date in the
+	 * database
+	 * 
+	 * @param r A WriteHoursDateRequest
+	 * @return The resulting string, a message to the user
+	 */
 	public String writeHoursDate(Request r) {
 	    WriteHoursDateRequest req = (WriteHoursDateRequest) r;
 	    String openTime;
@@ -501,6 +603,12 @@ public class DBconnector {
 	        return "Error inserting hours for date: " + e.getMessage();
 	    }
 	}
+	
+	/**
+	 * the method gets the next table ID from the database
+	 * 
+	 * @return The next table ID
+	 */
 	private int getNextTableId() {
         try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL(MAX(table_number), 0) + 1 AS next_num FROM `table`");
              ResultSet rs = stmt.executeQuery()) {
@@ -516,6 +624,12 @@ public class DBconnector {
 		
 	}
 	
+	/**
+	 * the method adds a new table to the database
+	 * 
+	 * @param req An AddTableRequest
+	 * @return true if the table was added successfully, false otherwise
+	 */
 	public boolean addNewTable(AddTableRequest req) {
 		String query = req.getQuery();
 		try {
@@ -534,6 +648,12 @@ public class DBconnector {
 		return true;
 	}
 	
+	/**
+	 * the method removes a table from the database
+	 * 
+	 * @param req A RemoveTableRequest
+	 * @return true if the table was removed successfully, false otherwise
+	 */
 	public boolean removeTable(RemoveTableRequest req) {
 		String query = req.getQuery();
 		try {
@@ -549,7 +669,13 @@ public class DBconnector {
 		}
 		return true;
 	}
-	
+
+	/**
+	 * the method expires pending orders in the database
+	 * 
+	 * @param OrdersInBistro A set of order numbers currently in the bistro
+	 * @return A map of expired order numbers and their associated contacts
+	 */
 	protected Map<String,String> ExpirePendingOrders(Set<String> OrdersInBistro) {
 	    Map<String,String> expiredOrders = new HashMap<>();
 	    String query = "SELECT order_number, contact, status FROM `order` WHERE status = 'OPEN' AND order_datetime <= ?;";
@@ -575,6 +701,11 @@ public class DBconnector {
 	    return expiredOrders;
 	}
 	
+	/**
+	 * the method gets orders that need notification in the database
+	 * 
+	 * @return A map of order numbers and their associated contacts for notification
+	 */
 	protected Map<String,String> OrdersToNotify() {
 	    Map<String,String> contacts = new HashMap<>();
 	    String query = "SELECT order_number, contact FROM `order` WHERE status = 'OPEN' AND order_datetime = ?;";
@@ -596,6 +727,11 @@ public class DBconnector {
 	    return contacts;
 	}
 	
+	/**
+	 * the method gets all tables from the database
+	 * 
+	 * @return A list of all tables
+	 */
 	public List<Table> getAllTables() {
 		ArrayList<Table> tables = new ArrayList<>();
 		try {
@@ -615,6 +751,12 @@ public class DBconnector {
 		return null;
 	}
 	
+	/**
+	 * the method gets all days' hours from the database
+	 * 
+	 * @param r A Request
+	 * @return A list of all days with their hours
+	 */
 	public List<Day> getAllDaysHours(Request r) {
 		ArrayList<Day> days = new ArrayList<>();
 		try {
@@ -633,6 +775,12 @@ public class DBconnector {
 		return null;
 	}
 	
+	/**
+	 * the method gets all specific dates' hours from the database
+	 * 
+	 * @param r A Request
+	 * @return A list of all specific dates with their hours
+	 */
 	public List<SpecificDate> getAllDatesHours(Request r) {
 		ArrayList<SpecificDate> dates = new ArrayList<>();
 		try {
@@ -650,7 +798,12 @@ public class DBconnector {
 		}
 		return null;
 	}
-	// call this when user arrives at terminal and want to seat
+	
+	/**
+	 * call this when user arrives at the terminal (entrance)
+	 * 
+	 * @param orderNumber The order number
+	 */
 	public void markArrivalAtTerminal(String orderNumber) {
 	    String query = "UPDATE `order` SET actual_arrival = ? WHERE order_number = ? AND actual_arrival IS NULL";
 	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -660,9 +813,13 @@ public class DBconnector {
 	    } catch (SQLException e) { e.printStackTrace(); }
 	}
 
-	// call this when user is seated (phisically at the table)
+	/**
+	 * call this when user is seated at the table
+	 * 
+	 * @param orderNumber The order number
+	 */
 	public void markOrderAsSeated(String orderNumber) {
-	    String query = "UPDATE `order` SET seated_time = ? WHERE order_number = ?";
+	    String query = "UPDATE `order` SET seated_time = ? WHERE order_number = ? AND seated_time IS NULL";
 	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
 	        stmt.setTimestamp(1, Timestamp.valueOf(BistroServer.dateTime));
 	        stmt.setInt(2, Integer.parseInt(orderNumber));
@@ -670,6 +827,12 @@ public class DBconnector {
 	    } catch (SQLException e) { e.printStackTrace(); }
 	}
 
+	/**
+	 * the method changes the status of an order in the database
+	 * 
+	 * @param status      The new status
+	 * @param orderNumber The order number
+	 */
 	public void changeStatus(String status, String orderNumber) {
 	    String query = "UPDATE `order` SET status = ? WHERE order_number = ?";
 	    try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -677,6 +840,181 @@ public class DBconnector {
 	        stmt.setInt(2, Integer.parseInt(orderNumber));
 	        stmt.executeUpdate();
 	    } catch (SQLException e) { e.printStackTrace(); }
+	}
+	
+	/**
+	 * the method gets reports data from the database
+	 * 
+	 * @param r A GetReportsRequest
+	 * @return A map containing the reports data
+	 */
+	public Map<String, Map<Integer, Double>> getReportsData(Request r) {
+	    GetReportsRequest req = (GetReportsRequest) r;
+	    
+	    // Determine which month/year to query
+	    int targetMonth, targetYear;
+	    
+	    if (req.getMonth() == -1) {
+	        // Default: Previous Month
+	        LocalDate lastMonth = LocalDate.now().minusMonths(1);
+	        targetMonth = lastMonth.getMonthValue();
+	        targetYear = lastMonth.getYear();
+	    } else {
+	        // User Selection
+	        targetMonth = req.getMonth();
+	        targetYear = req.getYear();
+	    }
+
+	    Map<String, Map<Integer, Double>> allData = new HashMap<>();
+	    String[] keys = {"Arrivals", "Departures", "AvgCustomerLate", "AvgRestaurantDelay","InAdvance","OnTheSpot","AvgWaiting"};
+	    for (String k : keys) {
+	        allData.put(k, new TreeMap<>());
+	        for (int i = 0; i < 24; i++) allData.get(k).put(i, 0.0);
+	    }
+
+	    try {
+	        // --- QUERY 1: ACTIVITY ---
+	        String queryActivity = 
+	            "SELECT HOUR(actual_arrival) as h, 'ARR' as type, COUNT(*) as val FROM `order` " +
+	            "WHERE actual_arrival IS NOT NULL AND MONTH(actual_arrival) = ? AND YEAR(actual_arrival) = ? GROUP BY h " +
+	            "UNION " +
+	            "SELECT HOUR(leave_time) as h, 'DEP' as type, COUNT(*) as val FROM `order` " +
+	            "WHERE leave_time IS NOT NULL AND MONTH(leave_time) = ? AND YEAR(leave_time) = ? GROUP BY h";
+
+	        try (PreparedStatement stmt = conn.prepareStatement(queryActivity)) {
+	            stmt.setInt(1, targetMonth); stmt.setInt(2, targetYear);
+	            stmt.setInt(3, targetMonth); stmt.setInt(4, targetYear);
+	            
+	            try (ResultSet rs = stmt.executeQuery()) {
+	                while (rs.next()) {
+	                    int h = rs.getInt("h");
+	                    String type = rs.getString("type");
+	                    double val = rs.getDouble("val");
+	                    if (type.equals("ARR")) allData.get("Arrivals").put(h, val);
+	                    else allData.get("Departures").put(h, val);
+	                }
+	            }
+	        }
+
+	        // --- QUERY 2: LATENESS vs DELAY  ---
+	        String queryLateness = 
+	            "SELECT HOUR(actual_arrival) as h, " +
+	            "AVG(GREATEST(0, TIMESTAMPDIFF(MINUTE, order_datetime, actual_arrival))) as customer_late, " +
+	            "AVG(GREATEST(0, TIMESTAMPDIFF(MINUTE, actual_arrival, seated_time))) as restaurant_delay " +
+	            "FROM `order` " +
+	            "WHERE actual_arrival IS NOT NULL AND seated_time IS NOT NULL " +
+	            "AND MONTH(actual_arrival) = ? AND YEAR(actual_arrival) = ? " +
+	            "GROUP BY h";
+
+	        try (PreparedStatement stmt = conn.prepareStatement(queryLateness)) {
+	            stmt.setInt(1, targetMonth); stmt.setInt(2, targetYear);
+	            
+	            try (ResultSet rs = stmt.executeQuery()) {
+	                while (rs.next()) {
+	                    int h = rs.getInt("h");
+	                    allData.get("AvgCustomerLate").put(h, rs.getDouble("customer_late"));
+	                    allData.get("AvgRestaurantDelay").put(h, rs.getDouble("restaurant_delay"));
+	                }
+	            }
+	        }
+	     // --- QUERY 3: IN_ADVANCE vs ON_THE_SPOT (Daily) ---
+
+	        String queryOrderTypes = 
+	            "SELECT DAY(order_datetime) as d, 'ADVANCE' as type, COUNT(*) as val " +
+	            "FROM `order` " +
+	            "WHERE type_of_order = 'IN_ADVANCE' " +
+	            "AND MONTH(order_datetime) = ? AND YEAR(order_datetime) = ? " +
+	            "GROUP BY d " +
+	            
+	            "UNION " +
+	            
+	            "SELECT DAY(order_datetime) as d, 'SPOT' as type, COUNT(*) as val " +
+	            "FROM `order` " +
+	            "WHERE type_of_order = 'ON_THE_SPOT' " +
+	            "AND MONTH(order_datetime) = ? AND YEAR(order_datetime) = ? " +
+	            "GROUP BY d";
+
+	        try (PreparedStatement stmt = conn.prepareStatement(queryOrderTypes)) {
+	            
+	            // 1st part (ADVANCE)
+	            stmt.setInt(1, req.getMonth()); 
+	            stmt.setInt(2, req.getYear());  
+	            
+	            // 2nd part (SPOT)
+	            stmt.setInt(3, req.getMonth());
+	            stmt.setInt(4, req.getYear());
+
+	            try (ResultSet rs = stmt.executeQuery()) {
+	                while (rs.next()) {
+	                    int day = rs.getInt("d");
+	                    String type = rs.getString("type");
+	                    double count = rs.getDouble("val");
+
+	                    
+	                    if (type.equals("ADVANCE")) {
+	                        allData.get("InAdvance").put(day, count);
+	                    } else if (type.equals("SPOT")) {
+	                        allData.get("OnTheSpot").put(day, count);
+	                    }
+	                }
+	            }
+	        }
+	     String queryWaitingTimes =
+	    		    "SELECT HOUR(actual_arrival) as start_h, HOUR(seated_time) as end_h " +
+	    		    	    "FROM `order` " +
+	    		    	    "WHERE actual_arrival IS NOT NULL AND seated_time IS NOT NULL " +
+	    		    	    "AND MONTH(actual_arrival) = ? AND YEAR(actual_arrival) = ? " +
+	    		    	    "AND TIMESTAMPDIFF(MINUTE, actual_arrival, seated_time) > 0";
+	     
+	     int[] hourlyCounts = new int[24]; 
+	     int month = req.getMonth();
+	     int year = req.getYear();
+	     
+	     try (PreparedStatement stmt = conn.prepareStatement(queryWaitingTimes)) {
+	         stmt.setInt(1, month);
+	         stmt.setInt(2, year);
+	         
+	         try (ResultSet rs = stmt.executeQuery()) {
+	             while (rs.next()) {
+	                 int startH = rs.getInt("start_h");
+	                 int endH = rs.getInt("end_h");
+	                 // Logic: If I waited from 12:15 to 12:45, I was waiting during hour 12.
+	                 if (startH == endH) {
+	                     hourlyCounts[startH]++;
+	                 }
+	                 else {
+	                     // If I waited from 19:50 to 20:10, I waited both in hour 19 and hour 20.
+	                     for (int h = startH; h <= endH; h++) {
+	                         if (h >= 0 && h < 24) {
+	                             hourlyCounts[h]++;
+	                         }
+	                     }
+	                 }
+	              }
+	         }
+	     }
+	     int daysInMonth = YearMonth.of(year, month).lengthOfMonth();
+
+	     for (int h = 0; h < 24; h++) {
+	         // Total Waiting Count / Days in Month = Average Daily Queue for that hour
+	         double avg = (double) hourlyCounts[h] / daysInMonth;
+	         allData.get("AvgWaiting").put(h, avg);
+	     }
+	    } catch (SQLException e) { e.printStackTrace(); }
+
+	    return allData;
+	}
+
+	public void setOrderType(String orderNum,String type) {
+		String query = "UPDATE `order` SET type_of_order = ? WHERE order_number = ? AND type_of_order IS NULL;";
+		try{
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.setString(1, type);
+			stmt.setInt(2, Integer.parseInt(orderNum));
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	
 }

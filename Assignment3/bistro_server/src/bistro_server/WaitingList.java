@@ -5,11 +5,13 @@ import java.util.NoSuchElementException;
 
 import entities.Order;
 
+/** Doubly Linked List implementation for managing the waiting list of customers [cite: 37, 38] */
 public class WaitingList implements Iterable<Order>{
     protected WaitlistNode head;
     protected WaitlistNode tail;
     protected int size;
 
+    /** Initializes an empty waiting list */
     public WaitingList() {
         this.head = null;
         this.tail = null;
@@ -29,6 +31,7 @@ public class WaitingList implements Iterable<Order>{
         size++;
     }
 
+
     /** Removes the person at the front when a table is free  */
     public Order dequeue(WaitlistNode node) {
     	WaitlistNode current = head;
@@ -45,18 +48,21 @@ public class WaitingList implements Iterable<Order>{
     /** * Handles customer cancellation from anywhere in the queue 
      * Searches by order number
      */
-    public boolean cancel(String orderNumber) {
+    public String cancel(String ConfirmationCode) {
         WaitlistNode current = head;
         while (current != null) {
-            if (current.getOrder().getOrderNumber().equals(orderNumber)) {
+            if (current.getOrder().getConfirmationCode().equals(ConfirmationCode)) {
                 removeNode(current);
-                return true;
+                return current.getOrder().getOrderNumber();
             }
             current = current.next;
         }
-        return false;
+        return "not found";
     }
 
+    /** Removes a specific node from the Doubly Linked List
+     * @param node The node to be removed 
+     *  */
     private void removeNode(WaitlistNode node) {
         if (node.prev != null) node.prev.next = node.next;
         else head = node.next;
@@ -66,7 +72,11 @@ public class WaitingList implements Iterable<Order>{
 
         size--;
     }
-    
+
+    /**
+     * Returns an iterator to traverse the waiting list
+     * @return An iterator for the waiting list
+     */
     @Override
     public Iterator<Order> iterator() {
         return new Iterator<Order>() {
@@ -90,10 +100,44 @@ public class WaitingList implements Iterable<Order>{
             }
         };
     }
-
-    public int getSize() { return size; }
-    public WaitlistNode getHead() { return head; }
+ 
+	/**
+	 * Gets the position of a customer in the queue based on their confirmation code
+	 * 
+	 * @param ConfirmationCode The confirmation code of the customer
+	 * @return The position in the queue (1-based index), or -1 if not found
+	 */
+    public int getSpotInQueue(String ConfirmationCode) {
+		WaitlistNode current = head;
+		int position = 1;
+		while (current != null) {
+			if (current.getOrder().getConfirmationCode().equals(ConfirmationCode)) {
+				return position;
+			}
+			current = current.next;
+			position++;
+		}
+		return -1; // Not found
+	}
     
+	/**
+	 * Gets the current size of the waiting list
+	 * 
+	 * @return The number of customers in the waiting list
+	 */
+    public int getSize() { return size; }
+    
+	/**
+	 * Gets the head node of the waiting list
+	 * 
+	 * @return The head node of the waiting list
+	 */
+    public WaitlistNode getHead() { return head; }
+
+    /**
+     * Returns a string representation of the waiting list
+     * @return A string representing the waiting list
+     */
     @Override
     public String toString() {
 		StringBuilder sb = new StringBuilder("WaitingList{");

@@ -1,9 +1,13 @@
 package boundry;
 
+import java.io.IOException;
 import java.util.Optional;
+
+import entities.AlterWaitlistRequest;
 import entities.CheckConfCodeRequest;
 import entities.GetTableRequest;
 import entities.LeaveTableRequest;
+import entities.RequestType;
 import entities.User;
 import entities.UserType;
 import javafx.application.Platform;
@@ -24,6 +28,9 @@ import javafx.scene.control.ButtonBar;
  */
 public class TerminalOrderManagementScreenController implements IController {
 	private User user;
+	/**
+	 * Property to track if the user is logged in or a guest.
+	 */
 	private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
 
     @FXML
@@ -41,6 +48,12 @@ public class TerminalOrderManagementScreenController implements IController {
     @FXML
     private Button getTableBtn;
     
+    @FXML
+    private Button leaveWaitingListBtn;
+
+    /**
+     * Initializes the controller and sets up necessary configurations.
+     */
     @FXML
     void initialize() {
     	ClientUI.console.setController(this);
@@ -119,6 +132,10 @@ public class TerminalOrderManagementScreenController implements IController {
     }
 
 
+    /**
+     * 	Handles the action when the leave table button is clicked.
+     * @param event
+     */
     @FXML
     void onLeaveTableClick(ActionEvent event) {
     	String confcode = confCodeTxt.getText().trim();
@@ -130,11 +147,14 @@ public class TerminalOrderManagementScreenController implements IController {
 			return;
 		}
 		LeaveTableRequest leaveTableRequest = new LeaveTableRequest(confcode);
-		ClientUI.console.accept(leaveTableRequest);
-		
-    	
+		ClientUI.console.accept(leaveTableRequest);   	
     }
 
+	/**
+	 * Handles the action when the get table button is clicked.
+	 * 
+	 * @param event
+	 */
     @FXML
     void onGetTableClick(ActionEvent event) {
     	String confcode = confCodeTxt.getText().trim();
@@ -150,7 +170,44 @@ public class TerminalOrderManagementScreenController implements IController {
     	
 
     }
+    
+    /**
+	 * Handles the action when the "Leave Waitlist" button is clicked. Validates
+	 * input and sends a request to leave the waitlist.
+	 * 
+	 * @param event The action event triggered by clicking the button.
+	 */
+	@FXML
+	void onLeaveWaitingListBtnClick(ActionEvent event) throws IOException, InterruptedException{
+		boolean exceptionRaised = false;
+    	int code = 0;
+    	try {
+    		//parsing integers fields
+    		code = Integer.parseInt(confCodeTxt.getText().trim());
+    		if(code <=0) {
+    			exceptionRaised = true;
+    		}
+    	}catch (NumberFormatException e) { 
+			exceptionRaised = true;
+			confCodeTxt.clear();
+    	}
+    	if(exceptionRaised) {
+    		Alert alert = new Alert(AlertType.ERROR);
+    	    alert.setTitle("Error Occurred");
+    	    alert.setHeaderText("Input Validation Failed");
+    	    alert.setContentText("you cannot enter non-positive number");
+    	    alert.showAndWait();
+    	}
+    	else {
+        	AlterWaitlistRequest r = new AlterWaitlistRequest(confCodeTxt.getText().trim(),RequestType.LEAVE_WAITLIST);
+            ClientUI.console.accept(r);
+        	
+    	}
+	}
 
+    /**
+     * Sets the result text to be displayed to the user.
+     */
 	@Override
 	public void setResultText(Object result) {
 		Platform.runLater(() -> 
@@ -163,6 +220,9 @@ public class TerminalOrderManagementScreenController implements IController {
 	    );
 	}
 
+	/**
+	 * Sets the user for the controller and updates the logged-in status.
+	 */
 	@Override
 	public void setUser(User user) {
 		this.user = user;	

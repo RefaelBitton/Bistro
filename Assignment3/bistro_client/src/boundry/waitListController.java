@@ -15,8 +15,13 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+/**
+ * Controller for the Waitlist screen. Handles user interactions for joining the
+ * waitlist.
+ */
 public class waitListController implements IController {
     private User user;
+    /** Property to track login status */
     private final BooleanProperty isLoggedIn = new SimpleBooleanProperty(false);
 
     @FXML private TextField guestsNumberTxt;
@@ -26,6 +31,7 @@ public class waitListController implements IController {
     @FXML private Button backBtn;
     @FXML private Button submitBtn;
 
+    /** Initializes the controller and binds UI elements based on user status */
     @FXML
     public void initialize() {
         ClientUI.console.setController(this);
@@ -37,6 +43,9 @@ public class waitListController implements IController {
         idLabel.managedProperty().bind(isLoggedIn.not());
     }
 
+    /** Handles the Join Waitlist button click event
+     * @param event The action event triggered by the button click
+    */
     @FXML
     public void onJoinWaitlistClick(ActionEvent event) {
         String guests = guestsNumberTxt.getText().trim();
@@ -59,9 +68,9 @@ public class waitListController implements IController {
 
         // 3. Prepare data for JoinWaitlistRequest
         String orderDateTime = LocalDate.now().toString() + " " + LocalTime.now().toString().substring(0, 8);
-        String subscriberId = (user.getType() == UserType.SUBSCRIBER) ? 
+        String subscriberId = (user.getType() != UserType.GUEST) ? 
                              String.valueOf(((entities.Subscriber)user).getSubscriberID()) : "0";
-        String finalContact = (user.getType() == UserType.SUBSCRIBER && contactInput.isEmpty()) ? 
+        String finalContact = (user.getType() != UserType.GUEST && contactInput.isEmpty()) ? 
                              user.getPhone() : contactInput;
         String altDateTime = BistroClient.dateTime.format(BistroClient.fmt);
 
@@ -76,6 +85,11 @@ public class waitListController implements IController {
         return input.matches("^\\d{10}$") || input.contains("@");
     }
 
+	/**
+	 * Sets the result text in the UI based on the server response
+	 * 
+	 * @param result The result object from the server, expected to be a String
+	 */
     @Override
     public void setResultText(Object result) {
         String message = (String) result;
@@ -90,6 +104,7 @@ public class waitListController implements IController {
         });
     }
 
+    /** Displays a confirmation popup for joining the waitlist */
     private void showWaitlistConfirmPopup() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         ButtonType btnJoin = new ButtonType("Join Waitlist");
@@ -122,6 +137,7 @@ public class waitListController implements IController {
         }
     }
 
+    /** Sets the user and updates login status */
     @Override
     public void setUser(User user) {
         this.user = user;
@@ -130,6 +146,11 @@ public class waitListController implements IController {
         });
     }
 
+	/**
+	 * Handles the Back button click event
+	 * 
+	 * @param event The action event triggered by the button click
+	 */
     @FXML
     void OnBackBtnClick(ActionEvent event) {
         try {

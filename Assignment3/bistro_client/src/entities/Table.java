@@ -17,6 +17,14 @@ public class Table implements Serializable, Comparable<Table> {
 	
 	private LocalDate active_from;
 	private LocalDate active_to;
+	
+	/**
+	 * Constructor for Table class
+	 * 
+	 * @param id       the table's id
+	 * @param capacity the table's capacity
+	 * @param isTaken  whether the table is taken or not
+	 */
 	public Table(int id, int capacity, boolean isTaken) {
 		super();
 		this.id = id;
@@ -24,6 +32,15 @@ public class Table implements Serializable, Comparable<Table> {
 		this.isTaken = isTaken;
 	}
 	
+	/**
+	 * Constructor for Table class with active dates
+	 * 
+	 * @param id         the table's id
+	 * @param capacity   the table's capacity
+	 * @param isTaken    whether the table is taken or not
+	 * @param activeFrom the date from which the table is active
+	 * @param activeTo   the date until which the table is active
+	 */
 	public Table (int id, int capacity, boolean isTaken, LocalDate activeFrom, LocalDate activeTo) {
 		this.id = id;
 		this.capacity = capacity;

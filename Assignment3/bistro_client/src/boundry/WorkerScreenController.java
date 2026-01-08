@@ -9,6 +9,10 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
+/**
+ * Controller class for the Worker Screen. Manages user interactions and
+ * navigation to other screens.
+ */
 public class WorkerScreenController implements IController {
 	private User user;
 	
@@ -42,7 +46,12 @@ public class WorkerScreenController implements IController {
     @FXML
     private Button registerBtn;
     
+    /** Boolean property to determine if the user is a manager */
     private BooleanProperty isManager = new SimpleBooleanProperty(false);
+    
+	/**
+	 * Initializes the controller. Sets up bindings and initial states.
+	 */
     @FXML
 	void initialize() {
     	ClientUI.console.setController(this);
@@ -50,11 +59,23 @@ public class WorkerScreenController implements IController {
 		reportBtn.managedProperty().bind(isManager);
     }
 
+	/**
+	 * Handles the click event for the Bistro Management button. Navigates to the
+	 * Bistro Management screen.
+	 * 
+	 * @param event The action event triggered by the button click.
+	 */
     @FXML
     void onBistroManagementClick(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/BistroManagementScreen.fxml", user);
     }
 
+	/**
+	 * Handles the click event for the Change Details button. Navigates to the
+	 * Change Details screen.
+	 * 
+	 * @param event The action event triggered by the button click.
+	 */
     @FXML
     void onChangeDetailsClick(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/ChangeDetailsScreen.fxml", user);
@@ -65,32 +86,67 @@ public class WorkerScreenController implements IController {
     	ClientUI.console.switchScreen(this, event, "/boundry/HistoryScreen.fxml", user);
     }
 
+	/**
+	 * Handles the click event for the Log Out button. Navigates back to the login
+	 * screen.
+	 * 
+	 * @param event The action event triggered by the button click.
+	 */
     @FXML
     void onLogOutClick(ActionEvent event) {
 		ClientUI.console.switchScreen(this, event, "/boundry/loginScreen.fxml", null);
     }
 
+	/**
+	 * Handles the click event for the New Order button. Navigates to the Order
+	 * screen.
+	 * 
+	 * @param event The action event triggered by the button click.
+	 */
     @FXML
     void onNewOrderBtn(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml", user);
     }
 
+	/**
+	 * Handles the click event for the Order Details button. Navigates to the All
+	 * Orders screen.
+	 * 
+	 * @param event The action event triggered by the button click.
+	 */
     @FXML
     void onOrderDetailsClick(ActionEvent event) {
 		ClientUI.console.switchScreen(this, event, "/boundry/AllOrdersScreen.fxml", user);
     }
 
+	/**
+	 * Handles the click event for the Report button. Navigates to the Reports
+	 * screen if the user is a manager.
+	 * 
+	 * @param event The action event triggered by the button click.
+	 */
     @FXML
     void onReportClick(ActionEvent event) {
     	if(user.getType() == UserType.MANAGER)
-    		ClientUI.console.switchScreen(this, event, "/boundry/ReportScreen.fxml", user);
+    		ClientUI.console.switchScreen(this, event, "/boundry/ReportsScreen.fxml", user);
     }
 
+	/**
+	 * Handles the click event for the Subscriber Details button. Navigates to the
+	 * Subscriber Info screen.
+	 * 
+	 * @param event The action event triggered by the button click.
+	 */
     @FXML
     void onSubscriberDetailsClick(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/SubscriberInfoScreen.fxml", user);
     }
 
+	/**
+	 * when the user clicks on 'Waiting List'
+	 * 
+	 * @param event
+	 */
     @FXML
     void onWaitingListClick(ActionEvent event) {
     	ClientUI.console.switchScreen(this, event, "/boundry/CurrentStateScreen.fxml", user);
@@ -102,16 +158,22 @@ public class WorkerScreenController implements IController {
      */
     @FXML
     void onRegisterClick(ActionEvent event) {
-    	this.user = new Guest(null, null);
+    	this.user = new Guest(null, null,null);
     	ClientUI.console.switchScreen(this, event, "/boundry/registerScreen.fxml",user);
     }
 
+    /**
+     * Sets the result text. Not used in this controller.
+     */
 	@Override
 	public void setResultText(Object result) {
 		return;
 		
 	}
 
+	/**
+	 * Sets the current user and updates the manager status.
+	 */
 	@Override
 	public void setUser(User user) {
 		this.user = user;

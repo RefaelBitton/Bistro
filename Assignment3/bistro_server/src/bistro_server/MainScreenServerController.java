@@ -28,15 +28,19 @@ public class MainScreenServerController {
     @FXML
     private TextArea resultTxt1;
     
-    
-
+    /** Singleton instance of the controller */
     private static MainScreenServerController instance;
 
+	/**
+	 * Initializes the controller after its root element has been completely processed.
+	 */
     @FXML
     void initialize() {
         instance = this;
         refreshClientsText();
     }
+    
+    /** Updates the resultTxt1 TextArea with a new message */
     public void updateTxt(String msg) {
 		if (instance == null) return;
 		Platform.runLater(() -> {
@@ -44,11 +48,14 @@ public class MainScreenServerController {
 			instance.resultTxt1.setText(currentText + "\n" + msg);
 		});
 	}
+    
+    /** Refreshes the clients list in the UI */
     public static void refreshClientsLive() {
         if (instance == null) return;
         Platform.runLater(() -> instance.refreshClientsText());
     }
 
+    /** Updates the resultTxt TextArea with the list of connected clients */
     private void refreshClientsText() {
         if (BistroServer.clients == null || BistroServer.clients.isEmpty()) {
             resultTxt.setText("No Client Connected.");
@@ -65,12 +72,13 @@ public class MainScreenServerController {
         resultTxt.setText(clientString.toString());
     }
 
+    /** Handles the exit button click event to close the application */
     @FXML
     void onExitClick(ActionEvent event) {
         System.exit(0);
     }
 
-
+    /** Handles the show IP button click event to display the server IP address */
     public void start(Stage primaryStage) throws Exception {  // Method for starting the main screen
         // Load the main screen FXML into a Parent node
         Parent root = FXMLLoader.load(getClass().getResource("/bistro_server/serverui.fxml"));

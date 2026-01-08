@@ -9,6 +9,14 @@ public class WriteRequest extends Request {
     private String numberOfGuests;
     private String subscriberId;        // "0" means guest
     private String contact;             // phone/email or subscriber email
+    
+    /**
+     * Constructor
+     * @param orderDateTime
+     * @param numberOfGuests
+     * @param subscriberId
+     * @param contact
+     */
 	public WriteRequest(String orderDateTime, String numberOfGuests, String subscriberId, String contact) {
 	    super(
 	        RequestType.WRITE_ORDER,

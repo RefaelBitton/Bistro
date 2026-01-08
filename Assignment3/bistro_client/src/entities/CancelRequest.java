@@ -1,17 +1,29 @@
 package entities;
 
+/**
+ * CancelRequest class represents a request to cancel an order in the system. It
+ * extends the Request class and includes the confirmation code of the order to
+ * be cancelled.
+ */
 public class CancelRequest extends Request {
 	private static final long serialVersionUID = 1L;
-	private String orderNum;
 	private String code;
-	public CancelRequest(String orderNum, String code) {
-		super(RequestType.CANCEL_REQUEST, "UPDATE `order` SET status = 'CANCELLED' WHERE order_number = ? AND confirmation_code = ?");
-		this.orderNum = orderNum;
+	
+	/**
+	 * Constructs a CancelRequest with the specified confirmation code.
+	 * 
+	 * @param code the confirmation code of the order to be cancelled
+	 */
+	public CancelRequest(String code) {
+		super(RequestType.CANCEL_REQUEST, "UPDATE `order` SET status = 'CANCELLED' WHERE confirmation_code = ?");
 		this.code = code;
 	}
-	public String getOrderNum() {
-		return orderNum;
-	}
+
+	/**
+	 * Returns the confirmation code of the order to be cancelled.
+	 * 
+	 * @return the confirmation code
+	 */
 	public String getCode() {
 		return code;
 	}
