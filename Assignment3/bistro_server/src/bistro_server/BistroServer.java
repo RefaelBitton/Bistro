@@ -382,13 +382,9 @@ public class BistroServer extends AbstractServer {
     public synchronized String reserveTableInAdvance(Request r) {
     	ReserveRequest req = (ReserveRequest) r;
     	LocalDateTime requested =LocalDateTime.parse(req.getOrderDateTime(), DT_FMT);
-		LocalDate requestedDate = requested.toLocalDate();
-        LocalDateTime open = LocalDateTime.of(requestedDate, LocalTime.of(11,0));
-        LocalDateTime last = LocalDateTime.of(requestedDate, LocalTime.of(21,30));
         LocalDateTime before = requested.minusHours(1).minusMinutes(30);
         LocalDateTime after   = requested.plusHours(1).plusMinutes(30);
-        if (before.isBefore(open)) before = open;
-        if (after.isAfter(last)) after = last;
+    
     	ShowTakenSlotsRequest slotReq = new ShowTakenSlotsRequest(
 				Integer.parseInt(req.getNumberOfGuests()), req.getOrderDateTime(),before,after
 				);
@@ -408,22 +404,29 @@ public class BistroServer extends AbstractServer {
 		else{
              StringBuilder sb = new StringBuilder("No available tables at requested time. Available slots:\n");
              boolean thereAreOptions = false;
-             while (!before.isAfter(after)) {
+             before = before.minusHours(1).minusMinutes(30);
+             requested = requested.minusHours(1).minusMinutes(30);
+             LocalDateTime until = after;
+             after = after.minusHours(1).minusMinutes(30);
+             
+             while (!before.isAfter(until)) {
             	 slotReq = new ShowTakenSlotsRequest(
 						 Integer.parseInt(req.getNumberOfGuests()),
-						 req.getOrderDateTime(),
+						 requested.toString(),
 						 before,
 						 after
 						 );
             	 guests_in_time = prepareGuestsInTimeList(slotReq,true);
-            	 if (checkAvailability(tables, guests_in_time,"-1") != -1) {
+            	 if (checkAvailability(tables, guests_in_time,"-1") > 0) {
             		 thereAreOptions = true;
-            		 sb.append(before.format(DT_FMT).toString()).append("\n");
+            		 sb.append(requested.format(DT_FMT).toString()).append("\n");
             	 }
             	 for (Table t : tables) {
             		 t.setTaken(false);
             	 }
             	 before = before.plusMinutes(30);
+            	 requested = requested.plusMinutes(30);
+            	 after = after.plusMinutes(30);
              }
              return (thereAreOptions)? sb.toString() : "No available tables at requested time or near it.";
              
@@ -439,7 +442,6 @@ public class BistroServer extends AbstractServer {
     protected Map<String,Integer> prepareGuestsInTimeList(Request r,boolean isNotInDatabase) {
     	ShowTakenSlotsRequest slotReq = (ShowTakenSlotsRequest) r;
     	String open_orders_in_time_string = dbcon.getTakenSlots(slotReq);
-    	System.out.println("Open orders in time string: " + open_orders_in_time_string);
 		String[] open_orders_in_time_array = open_orders_in_time_string.split(",");
 		HashMap<String,Integer> guests_in_time = new HashMap<>();
 		//prepare guests in time list
@@ -450,6 +452,7 @@ public class BistroServer extends AbstractServer {
 		if (isNotInDatabase) {
 			guests_in_time.put("-1",slotReq.getNumberOfGuests());
 		}
+		System.out.println("Guests in time is: "+ guests_in_time);
     	return guests_in_time;
 		
     }

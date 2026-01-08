@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -152,13 +153,17 @@ public class DBconnector {
     	ShowTakenSlotsRequest req = (ShowTakenSlotsRequest) r;
     	LocalDateTime from = req.getFrom();
     	LocalDateTime to = req.getTo();
+    	System.out.println("DEBUG: Querying DB for status='OPEN' between: " + from + " AND " + to);
         try (PreparedStatement stmt = conn.prepareStatement(r.getQuery())) {
             stmt.setTimestamp(1, Timestamp.valueOf(from));
             stmt.setTimestamp(2, Timestamp.valueOf(to));
 
             try (ResultSet rs = stmt.executeQuery()) {
                 StringBuilder sb = new StringBuilder();
-                while (rs.next()) sb.append(rs.getString(1)).append(":").append(rs.getString(2)).append(",");
+                while (rs.next()) {
+                	sb.append(rs.getString(1)).append(":").append(rs.getString(2)).append(",");
+                	System.out.println("DBCONNECTOR: in getTakenSlots, added an entry to result");
+                }
                 return sb.toString();
             }
             
@@ -861,8 +866,7 @@ public class DBconnector {
 	    }
 
 	    Map<String, Map<Integer, Double>> allData = new HashMap<>();
-	    // FIX 1: Using the keys your Controller expects
-	    String[] keys = {"Arrivals", "Departures", "AvgCustomerLate", "AvgRestaurantDelay"};
+	    String[] keys = {"Arrivals", "Departures", "AvgCustomerLate", "AvgRestaurantDelay","InAdvance","OnTheSpot","AvgWaiting"};
 	    for (String k : keys) {
 	        allData.put(k, new TreeMap<>());
 	        for (int i = 0; i < 24; i++) allData.get(k).put(i, 0.0);
@@ -892,7 +896,7 @@ public class DBconnector {
 	            }
 	        }
 
-	        // --- QUERY 2: LATENESS vs DELAY (The Fix) ---
+	        // --- QUERY 2: LATENESS vs DELAY  ---
 	        String queryLateness = 
 	            "SELECT HOUR(actual_arrival) as h, " +
 	            "AVG(GREATEST(0, TIMESTAMPDIFF(MINUTE, order_datetime, actual_arrival))) as customer_late, " +
@@ -908,35 +912,33 @@ public class DBconnector {
 	            try (ResultSet rs = stmt.executeQuery()) {
 	                while (rs.next()) {
 	                    int h = rs.getInt("h");
-	                    // FIX 2: Mapping to the correct keys
 	                    allData.get("AvgCustomerLate").put(h, rs.getDouble("customer_late"));
 	                    allData.get("AvgRestaurantDelay").put(h, rs.getDouble("restaurant_delay"));
 	                }
 	            }
 	        }
-	     // --- QUERY 2: IN_ADVANCE vs ON_THE_SPOT (Daily) ---
+	     // --- QUERY 3: IN_ADVANCE vs ON_THE_SPOT (Daily) ---
 
 	        String queryOrderTypes = 
-	            "SELECT DAY(order_time) as d, 'ADVANCE' as type, COUNT(*) as val " +
+	            "SELECT DAY(order_datetime) as d, 'ADVANCE' as type, COUNT(*) as val " +
 	            "FROM `order` " +
 	            "WHERE type_of_order = 'IN_ADVANCE' " +
-	            "AND MONTH(order_time) = ? AND YEAR(order_time) = ? " +
+	            "AND MONTH(order_datetime) = ? AND YEAR(order_datetime) = ? " +
 	            "GROUP BY d " +
 	            
 	            "UNION " +
 	            
-	            "SELECT DAY(order_time) as d, 'SPOT' as type, COUNT(*) as val " +
+	            "SELECT DAY(order_datetime) as d, 'SPOT' as type, COUNT(*) as val " +
 	            "FROM `order` " +
 	            "WHERE type_of_order = 'ON_THE_SPOT' " +
-	            "AND MONTH(order_time) = ? AND YEAR(order_time) = ? " +
+	            "AND MONTH(order_datetime) = ? AND YEAR(order_datetime) = ? " +
 	            "GROUP BY d";
 
 	        try (PreparedStatement stmt = conn.prepareStatement(queryOrderTypes)) {
 	            
-	            // We have 4 placeholders (?) because of the UNION
 	            // 1st part (ADVANCE)
-	            stmt.setInt(1, req.getMonth()); // Message to SQL: Which Month?
-	            stmt.setInt(2, req.getYear());             // Message to SQL: Which Year?
+	            stmt.setInt(1, req.getMonth()); 
+	            stmt.setInt(2, req.getYear());  
 	            
 	            // 2nd part (SPOT)
 	            stmt.setInt(3, req.getMonth());
@@ -948,8 +950,6 @@ public class DBconnector {
 	                    String type = rs.getString("type");
 	                    double count = rs.getDouble("val");
 
-	                    // Assuming you have a Map structure for this like:
-	                    // Map<String, Map<Integer, Double>> dailyData;
 	                    
 	                    if (type.equals("ADVANCE")) {
 	                        allData.get("InAdvance").put(day, count);
@@ -959,7 +959,47 @@ public class DBconnector {
 	                }
 	            }
 	        }
+	     String queryWaitingTimes =
+	    		    "SELECT HOUR(actual_arrival) as start_h, HOUR(seated_time) as end_h " +
+	    		    	    "FROM `order` " +
+	    		    	    "WHERE actual_arrival IS NOT NULL AND seated_time IS NOT NULL " +
+	    		    	    "AND MONTH(actual_arrival) = ? AND YEAR(actual_arrival) = ? " +
+	    		    	    "AND TIMESTAMPDIFF(MINUTE, actual_arrival, seated_time) > 0";
+	     
+	     int[] hourlyCounts = new int[24]; 
+	     int month = req.getMonth();
+	     int year = req.getYear();
+	     
+	     try (PreparedStatement stmt = conn.prepareStatement(queryWaitingTimes)) {
+	         stmt.setInt(1, month);
+	         stmt.setInt(2, year);
+	         
+	         try (ResultSet rs = stmt.executeQuery()) {
+	             while (rs.next()) {
+	                 int startH = rs.getInt("start_h");
+	                 int endH = rs.getInt("end_h");
+	                 // Logic: If I waited from 12:15 to 12:45, I was waiting during hour 12.
+	                 if (startH == endH) {
+	                     hourlyCounts[startH]++;
+	                 }
+	                 else {
+	                     // If I waited from 19:50 to 20:10, I waited both in hour 19 and hour 20.
+	                     for (int h = startH; h <= endH; h++) {
+	                         if (h >= 0 && h < 24) {
+	                             hourlyCounts[h]++;
+	                         }
+	                     }
+	                 }
+	              }
+	         }
+	     }
+	     int daysInMonth = YearMonth.of(year, month).lengthOfMonth();
 
+	     for (int h = 0; h < 24; h++) {
+	         // Total Waiting Count / Days in Month = Average Daily Queue for that hour
+	         double avg = (double) hourlyCounts[h] / daysInMonth;
+	         allData.get("AvgWaiting").put(h, avg);
+	     }
 	    } catch (SQLException e) { e.printStackTrace(); }
 
 	    return allData;

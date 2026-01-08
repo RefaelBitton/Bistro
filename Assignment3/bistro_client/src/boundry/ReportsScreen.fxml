@@ -2,6 +2,7 @@
 
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.StackedBarChart?>
 <?import javafx.scene.control.Button?>
@@ -10,7 +11,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="838.0" prefWidth="1279.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="boundry.ReportsScreenController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="838.0" prefWidth="1279.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="boundry.ReportsScreenController">
    <children>
       <Text layoutX="603.0" layoutY="93.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Reports">
          <font>
@@ -36,25 +37,23 @@
           <NumberAxis label="Minutes Delay" side="LEFT" />
         </yAxis>
       </BarChart>
-      <ComboBox fx:id="months" layoutX="467.0" layoutY="120.0" prefWidth="150.0" promptText="Choose Month" />
-      <StackedBarChart fx:id="inAdvanceVsOnTheSpotChart" layoutX="153.0" layoutY="189.0" prefHeight="380.0" prefWidth="475.0" title="Ordered in advance vs on the spot">
+      <ComboBox fx:id="months" layoutX="574.0" layoutY="117.0" prefWidth="150.0" promptText="Choose Month" />
+      <StackedBarChart fx:id="inAdvanceVsOnTheSpotChart" layoutX="34.0" layoutY="180.0" prefHeight="291.0" prefWidth="600.0" title="Ordered in advance vs on the spot">
         <xAxis>
-          <CategoryAxis fx:id="inAdvanceVsOnTheSpotXAxis" label="Day" side="BOTTOM" />
+          <CategoryAxis fx:id="inAdvanceVsOnTheSpotXAxis" label="Day" side="BOTTOM" tickLabelGap="4.0" />
         </xAxis>
         <yAxis>
           <NumberAxis label="Number of customers" side="LEFT" />
         </yAxis>
       </StackedBarChart>
-      <BarChart layoutX="164.0" layoutY="651.0" prefHeight="368.0" prefWidth="464.0" title="Average amount of waiting orders by hour">
+      <LineChart fx:id="averageWaitingChart" layoutX="93.0" layoutY="494.0" prefHeight="273.0" prefWidth="525.0" title="Average amount of waiting orders by hour">
         <xAxis>
-          <CategoryAxis label="Hour" side="BOTTOM" />
+          <CategoryAxis fx:id="averageWaitingXAxis" label="Hour" side="BOTTOM" />
         </xAxis>
         <yAxis>
-          <NumberAxis label="Amount of waiting orders" side="LEFT" />
+          <NumberAxis label="Average Waiting Customers" side="LEFT" />
         </yAxis>
-      </BarChart>
-      <ComboBox fx:id="years" layoutX="687.0" layoutY="120.0" prefWidth="150.0" promptText="Choose Year" />
-      <Button fx:id="refreshBtn" layoutX="603.0" layoutY="158.0" mnemonicParsing="false" onAction="#onRefreshBtn" text="Refresh Charts" />
+      </LineChart>
       
    </children>
 </AnchorPane>

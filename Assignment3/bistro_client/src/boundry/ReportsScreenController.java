@@ -28,17 +28,20 @@ public class ReportsScreenController implements IController {
     @FXML private BarChart<String, Number> activityChart; 
     @FXML private BarChart<String, Number> latenessChart;
     @FXML private StackedBarChart<String, Number> inAdvanceVsOnTheSpotChart;
+    @FXML private LineChart<String, Number> averageWaitingChart;
     
     /** X-Axes for both charts to set categories (hours) */
     @FXML private CategoryAxis activityXAxis;
     @FXML private CategoryAxis latenessXAxis;
     @FXML private CategoryAxis inAdvanceVsOnTheSpotXAxis;
+    @FXML private CategoryAxis averageWaitingXAxis;
     
     @FXML private Button backBtn;
     
     
     @FXML private ComboBox<String> months;
 
+    private int daysOfMonth;
 	/**
 	 * Initializes the controller. Sets up the charts and requests report data.
 	 */
@@ -82,6 +85,7 @@ public class ReportsScreenController implements IController {
         // Force the X-Axis to use these categories so they always appear
         activityXAxis.setCategories(hours);
         latenessXAxis.setCategories(hours);
+        averageWaitingXAxis.setCategories(hours);
         
         ObservableList<String> days = FXCollections.observableArrayList();
         for (int i = 1; i <= 31; i++) {
@@ -105,9 +109,37 @@ public class ReportsScreenController implements IController {
             Platform.runLater(() -> {
                 populateActivityChart(data.get("Arrivals"), data.get("Departures"));
                 populateLatenessChart(data.get("AvgCustomerLate"), data.get("AvgRestaurantDelay"));
+                populateInAdvanceVsOnTheSpotChart(data.get("InAdvance"),data.get("OnTheSpot"));
+                populateAverageWaitingChart(data.get("AvgWaiting"));
             });
         }
     }
+    
+    /** Populates the Order Type chart with Order type data across the month
+     * @param inAdvanceMap Map of day to number of orders in advance
+     * @param onSpotMap Map of day to number of orders on the spot
+     *  */
+    private void populateInAdvanceVsOnTheSpotChart(Map<Integer, Double> inAdvanceMap, Map<Integer, Double> onSpotMap) {
+		inAdvanceVsOnTheSpotChart.getData().clear();
+		XYChart.Series<String, Number> seriesAdvance = new XYChart.Series<>();
+	    seriesAdvance.setName("In Advance"); // Legend label
+
+	    XYChart.Series<String, Number> seriesSpot = new XYChart.Series<>();
+	    seriesSpot.setName("On The Spot");   // Legend label
+ 
+	    for (int i = 1; i <= daysOfMonth; i++) {
+	        String dayLabel = String.valueOf(i);
+	        
+	        
+	        // Add count for "In Advance" for day i
+	        seriesAdvance.getData().add(new XYChart.Data<>(dayLabel, inAdvanceMap.getOrDefault(i, 0.0)));
+	        
+	        // Add count for "On The Spot" for day i
+	        seriesSpot.getData().add(new XYChart.Data<>(dayLabel, onSpotMap.getOrDefault(i, 0.0)));
+	    }
+
+	    inAdvanceVsOnTheSpotChart.getData().addAll(seriesAdvance, seriesSpot);
+	}
 
     /** Populates the activity chart with arrivals and departures data
      * @param arrivals Map of hour to number of arrivals
@@ -155,13 +187,36 @@ public class ReportsScreenController implements IController {
 
 		latenessChart.getData().addAll(seriesCust, seriesRest);
 	}
- // Helper method to parse string and send request
+    
+    /**
+     * Populates the Line Chart with average waiting data.
+     * @param avgWaitingMap Map of hour to average customers
+     */
+    private void populateAverageWaitingChart(Map<Integer, Double> avgWaitingMap) {
+        averageWaitingChart.getData().clear();
+        
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Avg Waiting Customers");
+        
+        // We loop from 8 to 23 (Operating Hours)
+        for (int h = 8; h <= 23; h++) {
+            String hourLabel = String.format("%02d:00", h);
+            
+            // Get the value from the map, default to 0.0 if empty
+            Double val = avgWaitingMap.getOrDefault(h, 0.0);
+            
+            series.getData().add(new XYChart.Data<>(hourLabel, val));
+        }
+        
+        averageWaitingChart.getData().add(series);    
+    }
+    // Helper method to parse string and send request
     private void requestReportForDate(String dateString) {
         if (dateString == null) return;
         
-        // Parse "January 2026" back to Month and Year
         try {
             YearMonth ym = YearMonth.parse(dateString, DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH));
+            daysOfMonth = ym.lengthOfMonth();
             ClientUI.console.accept(new GetReportsRequest(ym.getMonthValue(), ym.getYear()));
         } catch (Exception e) {
             e.printStackTrace();
@@ -173,7 +228,6 @@ public class ReportsScreenController implements IController {
      */
     @FXML
     void onBackBtnClick(ActionEvent event) {
-        // This will now work because we added onAction in FXML
         ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
     }
     

@@ -1,6 +1,5 @@
 package entities;
 
-import java.time.Month;
 
 /**
  * Represents a request to retrieve reports from the server. This request does
