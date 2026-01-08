@@ -54,8 +54,8 @@ public class DBconnector {
         try //connect DB
         {
 
-			//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
-        	conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "Hodvak123!");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro", "root", "");
+        	//conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/bistro?allowLoadLocalInfile=true&serverTimezone=Asia/Jerusalem&useSSL=false", "root", "123456789");
 
             System.out.println("SQL connection succeeded");
             f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -840,60 +840,78 @@ public class DBconnector {
 	/**
 	 * the method gets reports data from the database
 	 * 
-	 * @param r A Request
+	 * @param r A GetReportsRequest
 	 * @return A map containing the reports data
 	 */
 	public Map<String, Map<Integer, Double>> getReportsData(Request r) {
-		GetReportsRequest req = (GetReportsRequest)r;
-	    // 1. Initialize the structure (0-23 hours) to ensure graphs have all X-axis points
+	    GetReportsRequest req = (GetReportsRequest) r;
+	    
+	    // Determine which month/year to query
+	    int targetMonth, targetYear;
+	    
+	    if (req.getMonth() == -1) {
+	        // Default: Previous Month
+	        LocalDate lastMonth = LocalDate.now().minusMonths(1);
+	        targetMonth = lastMonth.getMonthValue();
+	        targetYear = lastMonth.getYear();
+	    } else {
+	        // User Selection
+	        targetMonth = req.getMonth();
+	        targetYear = req.getYear();
+	    }
+
 	    Map<String, Map<Integer, Double>> allData = new HashMap<>();
-	    String[] keys = {"Arrivals", "Departures", "SubLateness", "GuestLateness"};
+	    // FIX 1: Using the keys your Controller expects
+	    String[] keys = {"Arrivals", "Departures", "AvgCustomerLate", "AvgRestaurantDelay"};
 	    for (String k : keys) {
 	        allData.put(k, new TreeMap<>());
 	        for (int i = 0; i < 24; i++) allData.get(k).put(i, 0.0);
 	    }
 
 	    try {
-	        // --- QUERY 1: ACTIVITY (Arrivals & Departures) ---
-	        // We use UNION to get both counts in a single database trip
+	        // --- QUERY 1: ACTIVITY ---
 	        String queryActivity = 
 	            "SELECT HOUR(actual_arrival) as h, 'ARR' as type, COUNT(*) as val FROM `order` " +
-	            "WHERE actual_arrival IS NOT NULL AND MONTH(actual_arrival) = MONTH(CURRENT_DATE) GROUP BY h " +
+	            "WHERE actual_arrival IS NOT NULL AND MONTH(actual_arrival) = ? AND YEAR(actual_arrival) = ? GROUP BY h " +
 	            "UNION " +
 	            "SELECT HOUR(leave_time) as h, 'DEP' as type, COUNT(*) as val FROM `order` " +
-	            "WHERE leave_time IS NOT NULL AND MONTH(leave_time) = MONTH(CURRENT_DATE) GROUP BY h";
+	            "WHERE leave_time IS NOT NULL AND MONTH(leave_time) = ? AND YEAR(leave_time) = ? GROUP BY h";
 
-	        try (PreparedStatement stmt = conn.prepareStatement(queryActivity);
-	             ResultSet rs = stmt.executeQuery()) {
-	            while (rs.next()) {
-	                int h = rs.getInt("h");
-	                String type = rs.getString("type");
-	                double val = rs.getDouble("val");
-	                
-	                if (type.equals("ARR")) allData.get("Arrivals").put(h, val);
-	                else allData.get("Departures").put(h, val);
+	        try (PreparedStatement stmt = conn.prepareStatement(queryActivity)) {
+	            stmt.setInt(1, targetMonth); stmt.setInt(2, targetYear);
+	            stmt.setInt(3, targetMonth); stmt.setInt(4, targetYear);
+	            
+	            try (ResultSet rs = stmt.executeQuery()) {
+	                while (rs.next()) {
+	                    int h = rs.getInt("h");
+	                    String type = rs.getString("type");
+	                    double val = rs.getDouble("val");
+	                    if (type.equals("ARR")) allData.get("Arrivals").put(h, val);
+	                    else allData.get("Departures").put(h, val);
+	                }
 	            }
 	        }
 
-	        // --- QUERY 2: LATENESS (Average Delay) ---
-	        // We let SQL calculate the AVG difference in minutes, grouped by user type
+	        // --- QUERY 2: LATENESS vs DELAY (The Fix) ---
 	        String queryLateness = 
 	            "SELECT HOUR(actual_arrival) as h, " +
-	            "CASE WHEN (subscriber_id IS NOT NULL AND subscriber_id != '0') THEN 'SUB' ELSE 'GUEST' END as type, " +
-	            "AVG(TIMESTAMPDIFF(MINUTE, order_datetime, actual_arrival)) as avg_delay " +
+	            "AVG(GREATEST(0, TIMESTAMPDIFF(MINUTE, order_datetime, actual_arrival))) as customer_late, " +
+	            "AVG(GREATEST(0, TIMESTAMPDIFF(MINUTE, actual_arrival, seated_time))) as restaurant_delay " +
 	            "FROM `order` " +
-	            "WHERE actual_arrival > order_datetime AND MONTH(actual_arrival) = MONTH(CURRENT_DATE) " +
-	            "GROUP BY h, type";
+	            "WHERE actual_arrival IS NOT NULL AND seated_time IS NOT NULL " +
+	            "AND MONTH(actual_arrival) = ? AND YEAR(actual_arrival) = ? " +
+	            "GROUP BY h";
 
-	        try (PreparedStatement stmt = conn.prepareStatement(queryLateness);
-	             ResultSet rs = stmt.executeQuery()) {
-	            while (rs.next()) {
-	                int h = rs.getInt("h");
-	                String type = rs.getString("type");
-	                double val = rs.getDouble("avg_delay");
-	                
-	                if (type.equals("SUB")) allData.get("SubLateness").put(h, val);
-	                else allData.get("GuestLateness").put(h, val);
+	        try (PreparedStatement stmt = conn.prepareStatement(queryLateness)) {
+	            stmt.setInt(1, targetMonth); stmt.setInt(2, targetYear);
+	            
+	            try (ResultSet rs = stmt.executeQuery()) {
+	                while (rs.next()) {
+	                    int h = rs.getInt("h");
+	                    // FIX 2: Mapping to the correct keys
+	                    allData.get("AvgCustomerLate").put(h, rs.getDouble("customer_late"));
+	                    allData.get("AvgRestaurantDelay").put(h, rs.getDouble("restaurant_delay"));
+	                }
 	            }
 	        }
 	     // --- QUERY 2: IN_ADVANCE vs ON_THE_SPOT (Daily) ---
@@ -917,11 +935,11 @@ public class DBconnector {
 	            
 	            // We have 4 placeholders (?) because of the UNION
 	            // 1st part (ADVANCE)
-	            stmt.setInt(1, req.getMonth().getValue()); // Message to SQL: Which Month?
+	            stmt.setInt(1, req.getMonth()); // Message to SQL: Which Month?
 	            stmt.setInt(2, req.getYear());             // Message to SQL: Which Year?
 	            
 	            // 2nd part (SPOT)
-	            stmt.setInt(3, req.getMonth().getValue());
+	            stmt.setInt(3, req.getMonth());
 	            stmt.setInt(4, req.getYear());
 
 	            try (ResultSet rs = stmt.executeQuery()) {
@@ -942,9 +960,7 @@ public class DBconnector {
 	            }
 	        }
 
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	    }
+	    } catch (SQLException e) { e.printStackTrace(); }
 
 	    return allData;
 	}

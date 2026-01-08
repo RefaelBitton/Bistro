@@ -9,22 +9,24 @@ import java.time.Month;
  */
 public class GetReportsRequest extends Request {
     private static final long serialVersionUID = 1L;
-    private Month month;
+    private int month;
     private int year;
-	/**
-	 * Constructs a new GetReportsRequest.
-	 */
-    public GetReportsRequest(Month month,int year) {
+
+    // Default constructor (Previous Month)
+    public GetReportsRequest() {
+        super(RequestType.GET_REPORTS, "");
+        // Logic to default to previous month can be handled here or server-side
+        this.month = -1; 
+        this.year = -1;
+    }
+
+    // New constructor for specific date
+    public GetReportsRequest(int month, int year) {
         super(RequestType.GET_REPORTS, "");
         this.month = month;
         this.year = year;
     }
-    
-    public Month getMonth() {
-    	return month;
-    }
-    
-    public int getYear() {
-    	return year;
-    }
+
+    public int getMonth() { return month; }
+    public int getYear() { return year; }
 }
