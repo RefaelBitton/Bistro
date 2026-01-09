@@ -4,56 +4,50 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="520.0" prefWidth="620.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="boundry.OrderScreenController">
-
+<AnchorPane prefHeight="650.0" prefWidth="600.0" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="boundry.OrderScreenController">
     <children>
-        <VBox spacing="14" AnchorPane.bottomAnchor="18" AnchorPane.leftAnchor="18" AnchorPane.rightAnchor="18" AnchorPane.topAnchor="18">
+      <Text layoutX="50.0" layoutY="60.0" styleClass="title-text" text="Reserve a Spot" />
+      
+      <Pane layoutX="50.0" layoutY="90.0" prefHeight="520.0" prefWidth="500.0" styleClass="card-pane">
+         <children>
+              <VBox layoutX="40.0" layoutY="30.0" spacing="20.0">
+                  <VBox spacing="5">
+                      <Label text="Date" />
+                      <DatePicker fx:id="orderDatePicker" prefWidth="420.0" />
+                  </VBox>
+  
+                  <VBox spacing="5">
+                      <Label text="Time" />
+                      <ComboBox fx:id="timeComboBox" prefWidth="420.0" promptText="Select time" />
+                  </VBox>
+  
+                  <VBox spacing="5">
+                      <Label text="Number of Guests" />
+                      <ComboBox fx:id="guestsComboBox" prefWidth="420.0" promptText="Select guests" />
+                  </VBox>
+  
+                  <HBox fx:id="contactBox" alignment="CENTER_LEFT" spacing="10" prefWidth="420.0">
+                      <Label text="Contact Details:" minWidth="100"/>
+                      <TextField fx:id="contactTxt" prefWidth="310.0" promptText="Phone Number or Email" />
+                  </HBox>
+                  
+                  <Button fx:id="OrderBtn" onAction="#OnOrderClick" prefWidth="420.0" text="Check Availability &amp; Book" />
 
-            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" style="-fx-font-size: 28px; -fx-font-weight: bold;" text="Order" />
+                  <Label text="System Response:" />
+                  <TextArea fx:id="resultTxt" editable="false" prefHeight="80.0" prefWidth="420.0" wrapText="true" style="-fx-control-inner-background: #f3f4f6;" />
+              </VBox>
+         </children>
+      </Pane>
+      
+      <Button fx:id="backBtn" layoutX="50.0" layoutY="620.0" onAction="#onBackClick" styleClass="button-secondary" style="-fx-text-fill: white; -fx-border-color: white;" text="Back" />
 
-            <!-- INPUTS -->
-            <VBox spacing="10">
-                <HBox spacing="10">
-                    <Label minWidth="160" text="Date:" />
-                    <DatePicker fx:id="orderDatePicker" />
-                </HBox>
-
-                <HBox spacing="10">
-                    <Label minWidth="160" text="Hour:" />
-                    <ComboBox fx:id="timeComboBox" prefWidth="150" promptText="Select time" />
-                </HBox>
-
-                <HBox spacing="10">
-                    <Label minWidth="160" text="Guests:" />
-                    <ComboBox fx:id="guestsComboBox" prefWidth="150" promptText="Select guests" />
-                </HBox>
-
-                <!-- Guest Contact (hidden for subscribers via binding in controller) -->
-                <HBox fx:id="contactBox" spacing="10">
-                    <Label minWidth="160" text="Contact (phone or email):" />
-                    <TextField fx:id="contactTxt" prefWidth="250" promptText="Enter phone OR email" />
-                </HBox>
-            </VBox>
-
-            <Separator />
-
-            <!-- RESULT -->
-            <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Result" />
-            <TextArea fx:id="resultTxt" editable="false" prefHeight="140" wrapText="true" />
-
-            <!-- BUTTONS -->
-            <HBox alignment="CENTER_RIGHT" spacing="12">
-                <Button fx:id="backBtn" onAction="#onBackClick" text="Back" />
-                <Button fx:id="OrderBtn" onAction="#OnOrderClick" text="Order" />
-            </HBox>
-
-        </VBox>
     </children>
 </AnchorPane>

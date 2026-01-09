@@ -5,27 +5,38 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="boundry.RegisterScreenController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="700.0" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="boundry.RegisterScreenController">
    <children>
-      <Label layoutX="61.0" layoutY="32.0" prefHeight="40.0" prefWidth="259.0" text="Please fill in your details:">
-         <font>
-            <Font size="21.0" />
-         </font>
-      </Label>
-      <Label layoutX="54.0" layoutY="117.0" text="First Name:" />
-      <Label layoutX="55.0" layoutY="144.0" text="Last Name:" />
-      <Label layoutX="54.0" layoutY="172.0" text="User Name:" />
-      <Label layoutX="54.0" layoutY="207.0" text="Phone Number:" />
-      <Label layoutX="55.0" layoutY="236.0" text="Email:" />
-      <TextField fx:id="firstName" layoutX="167.0" layoutY="113.0" />
-      <TextField fx:id="userName" layoutX="167.0" layoutY="168.0" />
-      <TextField fx:id="lastName" layoutX="167.0" layoutY="140.0" />
-      <TextField fx:id="phoneNumber" layoutX="167.0" layoutY="203.0" promptText="052-123456789" />
-      <TextField fx:id="email" layoutX="167.0" layoutY="232.0" promptText="example@gmail.com" />
-      <Button fx:id="submitBtn" layoutX="167.0" layoutY="295.0" mnemonicParsing="false" onAction="#onSubmitClick" prefHeight="23.0" prefWidth="82.0" text="Submit" />
-      <Button fx:id="cancelBtn" layoutX="259.0" layoutY="295.0" mnemonicParsing="false" onAction="#onCancelClick" prefHeight="23.0" prefWidth="82.0" text="Cancel" />
-      <TextArea fx:id="resultTxt" layoutX="375.0" layoutY="91.0" prefHeight="200.0" prefWidth="200.0" />
+      <Text layoutX="40.0" layoutY="60.0" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="title-text" text="Register" />
+      <Text layoutX="42.0" layoutY="85.0" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="label-light" text="Create a new subscriber account" />
+
+      <Pane layoutX="40.0" layoutY="110.0" prefHeight="350.0" prefWidth="350.0" styleClass="card-pane">
+         <children>
+            <Label layoutX="25.0" layoutY="20.0" styleClass="card-title" text="Details" />
+            
+            <Label layoutX="25.0" layoutY="60.0" text="First Name" />
+            <TextField fx:id="firstName" layoutX="25.0" layoutY="80.0" prefWidth="140.0" />
+            
+            <Label layoutX="180.0" layoutY="60.0" text="Last Name" />
+            <TextField fx:id="lastName" layoutX="180.0" layoutY="80.0" prefWidth="145.0" />
+            
+            <Label layoutX="25.0" layoutY="120.0" text="User Name" />
+            <TextField fx:id="userName" layoutX="25.0" layoutY="140.0" prefWidth="300.0" />
+            
+            <Label layoutX="25.0" layoutY="180.0" text="Phone Number" />
+            <TextField fx:id="phoneNumber" layoutX="25.0" layoutY="200.0" prefWidth="300.0" promptText="052-123456789" />
+            
+            <Label layoutX="25.0" layoutY="240.0" text="Email" />
+            <TextField fx:id="email" layoutX="25.0" layoutY="260.0" prefWidth="300.0" promptText="example@gmail.com" />
+         </children>
+      </Pane>
+
+      <Button fx:id="submitBtn" layoutX="420.0" layoutY="350.0" mnemonicParsing="false" onAction="#onSubmitClick" prefHeight="45.0" prefWidth="240.0" text="Submit Registration" />
+      <Button fx:id="cancelBtn" layoutX="420.0" layoutY="410.0" mnemonicParsing="false" onAction="#onCancelClick" prefHeight="45.0" prefWidth="240.0" styleClass="button-secondary-white" text="Cancel" />
+      
+      <TextArea fx:id="resultTxt" layoutX="420.0" layoutY="110.0" prefHeight="220.0" prefWidth="240.0" wrapText="true" style="-fx-control-inner-background: #0f3d3e; -fx-text-fill: white;" />
    </children>
 </AnchorPane>
