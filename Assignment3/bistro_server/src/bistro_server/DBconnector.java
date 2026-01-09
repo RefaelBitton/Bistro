@@ -21,23 +21,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import entities.SpecificDate;
-import entities.AddTableRequest;
-import entities.CancelRequest;
-import entities.ChangeHoursDayRequest;
-import entities.CheckConfCodeRequest;
-import entities.LeaveTableRequest;
-import entities.LoginRequest;
 import entities.Order;
-import entities.ReadRequest;
-import entities.RegisterRequest;
-import entities.RemoveTableRequest;
-import entities.Request;
-import entities.ShowTakenSlotsRequest;
 import entities.Subscriber;
 import entities.Table;
-import entities.WriteHoursDateRequest;
+import entities.requests.AddTableRequest;
+import entities.requests.CancelRequest;
+import entities.requests.ChangeHoursDayRequest;
+import entities.requests.CheckConfCodeRequest;
+import entities.requests.GetReportsRequest;
+import entities.requests.LeaveTableRequest;
+import entities.requests.LoginRequest;
+import entities.requests.ReadRequest;
+import entities.requests.RegisterRequest;
+import entities.requests.RemoveTableRequest;
+import entities.requests.Request;
+import entities.requests.ShowTakenSlotsRequest;
+import entities.requests.WriteHoursDateRequest;
 import entities.Day;
-import entities.GetReportsRequest;
 
 /**
  * A class that handles all operations on the database, receiving requests and handling them 

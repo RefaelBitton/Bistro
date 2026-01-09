@@ -8,10 +8,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import entities.CancelRequest;
+
 import entities.Order;
-import entities.ShowTakenSlotsRequest;
 import entities.Table;
+import entities.requests.CancelRequest;
+import entities.requests.ShowTakenSlotsRequest;
 
 /**
  * A class that monitors the bistro server for various tasks such as checking

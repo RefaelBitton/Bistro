@@ -2,10 +2,10 @@ package boundry;
 
 import java.util.Optional;
 
-import entities.CancelRequest;
-import entities.LeaveTableRequest;
 import entities.User;
 import entities.UserType;
+import entities.requests.CancelRequest;
+import entities.requests.LeaveTableRequest;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -49,10 +49,10 @@ public class AppOrderManagementController implements IController {
     @FXML
     void onBackClick(ActionEvent event) {
     	if((user.getType() == UserType.SUBSCRIBER) || (user.getType() == UserType.GUEST)) {
-			ClientUI.console.switchScreen(this, event, "/boundry/ClientScreen.fxml", user);
+			ClientUI.console.switchScreen(this, event, "/boundry/fxml_files/ClientScreen.fxml", user);
 		}
 		else {
-			ClientUI.console.switchScreen(this, event, "/boundry/WorkerScreen.fxml", user);
+			ClientUI.console.switchScreen(this, event, "/boundry/fxml_files/WorkerScreen.fxml", user);
 		}
 	}
     
@@ -131,7 +131,7 @@ public class AppOrderManagementController implements IController {
 	 */
     @FXML
     void onNewOrderClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/OrderScreen.fxml", user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/fxml_files/OrderScreen.fxml", user);
 
     }
 
