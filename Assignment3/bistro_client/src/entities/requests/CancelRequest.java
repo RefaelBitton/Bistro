@@ -15,7 +15,7 @@ public class CancelRequest extends Request {
 	 * @param code the confirmation code of the order to be cancelled
 	 */
 	public CancelRequest(String code) {
-		super(RequestType.CANCEL_REQUEST, "UPDATE `order` SET status = 'CANCELLED' WHERE confirmation_code = ?");
+		super(RequestType.CANCEL_REQUEST, "SELECT * FROM `order` WHERE confirmation_code = ?");
 		this.code = code;
 	}
 

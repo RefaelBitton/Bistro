@@ -85,7 +85,7 @@ public class AppOrderManagementController implements IController {
     	else {
     		Alert alert = new Alert(AlertType.CONFIRMATION);
         	alert.setTitle("Confirmation");
-        	alert.setHeaderText("Your order will be deleted");
+        	alert.setHeaderText("Your order will be cancelled");
         	alert.setContentText("Are you sure you want to continue?");
         	Optional<ButtonType> result = alert.showAndWait();
         	if (result.isPresent() && result.get() == ButtonType.OK) {

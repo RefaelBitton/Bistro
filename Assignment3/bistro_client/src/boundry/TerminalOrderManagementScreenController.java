@@ -6,6 +6,7 @@ import java.util.Optional;
 import entities.User;
 import entities.UserType;
 import entities.requests.AlterWaitlistRequest;
+import entities.requests.CancelRequest;
 import entities.requests.CheckConfCodeRequest;
 import entities.requests.GetTableRequest;
 import entities.requests.LeaveTableRequest;
@@ -35,6 +36,9 @@ public class TerminalOrderManagementScreenController implements IController {
 
     @FXML
     private Button backBtn;
+    
+    @FXML
+    private Button cancelOrderBtn;
 
     @FXML
     private Button lostMyCodeBtn;
@@ -59,6 +63,44 @@ public class TerminalOrderManagementScreenController implements IController {
     	ClientUI.console.setController(this);
     }
    
+    /**
+	 * Handles the action when the cancel order button is clicked.
+	 * Validates input and sends a cancel request if confirmed.
+	 * @param event The action event triggered by clicking the cancel order button.
+	 */
+    @FXML
+    void onCancelOrderClick(ActionEvent event) {
+		boolean exceptionRaised = false;
+    	int code = 0;
+    	try {
+    		//parsing integers fields
+    		code = Integer.parseInt(confCodeTxt.getText().trim());
+    		if(code <=0) {
+    			exceptionRaised = true;
+    		}
+    	}catch (NumberFormatException e) { 
+			exceptionRaised = true;
+			confCodeTxt.clear();
+    	}
+    	if(exceptionRaised) {
+    		Alert alert = new Alert(AlertType.ERROR);
+    	    alert.setTitle("Error Occurred");
+    	    alert.setHeaderText("Input Validation Failed");
+    	    alert.setContentText("you cannot enter non-positive number");
+    	    alert.showAndWait();
+    	}
+    	else {
+    		Alert alert = new Alert(AlertType.CONFIRMATION);
+        	alert.setTitle("Confirmation");
+        	alert.setHeaderText("Your order will be cancelled");
+        	alert.setContentText("Are you sure you want to continue?");
+        	Optional<ButtonType> result = alert.showAndWait();
+        	if (result.isPresent() && result.get() == ButtonType.OK) {
+        		CancelRequest c = new CancelRequest(confCodeTxt.getText().trim());
+            	ClientUI.console.accept(c);
+        	}
+    	}
+    }
     
     /**
 	 * Handles the action when the back button is clicked.

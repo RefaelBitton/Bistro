@@ -322,21 +322,40 @@ public class DBconnector {
 	 * @return The resulting string, a message to the user
 	 */
 	public String cancelOrder(Request r) {
-		String query = r.getQuery();
-		String code = ((CancelRequest)r).getCode();
-		int rowsDeleted = 0;
-		try {
-    		PreparedStatement stmt = conn.prepareStatement(query);
-    		stmt.setString(1, code);
-    		rowsDeleted = stmt.executeUpdate();
-    		if(rowsDeleted > 0)
-    			return "order deleted";
-		}catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return "order was not deleted";
-	}
+	    // IMPORTANT: The query in 'r' MUST be a SELECT statement now!
+	    // Example: "SELECT * FROM `order` WHERE confirmation_code = ?"
+	    String code = ((CancelRequest)r).getCode();
+	    String query = r.getQuery();
 
+	    try (PreparedStatement stmt = conn.prepareStatement(query, 
+	            ResultSet.TYPE_SCROLL_INSENSITIVE, 
+	            ResultSet.CONCUR_UPDATABLE)) { 
+	        
+	        stmt.setString(1, code);
+	        
+	        try (ResultSet rs = stmt.executeQuery()) {
+	            if (rs.next()) {
+	                String status = rs.getString("status");
+
+	                if ("CANCELLED".equals(status)) {
+	                    return "Order is already cancelled";
+	                }
+
+	                rs.updateString("status", "CANCELLED");
+	                
+	                rs.updateRow(); 
+	                
+	                return "Order Cancelled";
+	            } else {
+	                return "Order not found";
+	            }
+	        }
+	        
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return "Error: " + e.getMessage();
+	    }
+	}
 	/**
 	 * the method gets all relevant tables from the database
 	 * 
