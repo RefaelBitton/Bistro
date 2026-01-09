@@ -1,7 +1,7 @@
 package boundry;
 
-import entities.ReadRequest;
 import entities.User;
+import entities.requests.ReadRequest;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -37,7 +37,7 @@ public class SearchScreenController implements IController {
     /** when the user clicks 'cancel'*/
     @FXML
     void onCancelClick(ActionEvent event) throws Exception {
-    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/fxml_files/mainScreen.fxml",user);
     }
     /**
      * when the user clicks 'Search'

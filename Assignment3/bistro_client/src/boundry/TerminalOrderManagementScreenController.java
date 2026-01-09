@@ -3,13 +3,13 @@ package boundry;
 import java.io.IOException;
 import java.util.Optional;
 
-import entities.AlterWaitlistRequest;
-import entities.CheckConfCodeRequest;
-import entities.GetTableRequest;
-import entities.LeaveTableRequest;
-import entities.RequestType;
 import entities.User;
 import entities.UserType;
+import entities.requests.AlterWaitlistRequest;
+import entities.requests.CheckConfCodeRequest;
+import entities.requests.GetTableRequest;
+import entities.requests.LeaveTableRequest;
+import entities.requests.RequestType;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -68,7 +68,7 @@ public class TerminalOrderManagementScreenController implements IController {
 	 */
     @FXML
     void onbackClick(ActionEvent event) {
-			ClientUI.console.switchScreen(this, event, "/boundry/TerminalScreen.fxml", user);
+			ClientUI.console.switchScreen(this, event, "/boundry/fxml_files/TerminalScreen.fxml", user);
 		}
 	
     /**

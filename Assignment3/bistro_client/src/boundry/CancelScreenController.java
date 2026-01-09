@@ -3,8 +3,8 @@ package boundry;
 import java.io.IOException;
 import java.util.Optional;
 
-import entities.CancelRequest;
 import entities.User;
+import entities.requests.CancelRequest;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -83,7 +83,7 @@ public class CancelScreenController implements IController{
 	 */
     @FXML
     void OnBackBtnClick(ActionEvent event) {
-    	ClientUI.console.switchScreen(this, event, "/boundry/mainScreen.fxml",user);
+    	ClientUI.console.switchScreen(this, event, "/boundry/fxml_files/mainScreen.fxml",user);
     }
 
 	/**
